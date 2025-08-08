@@ -1,0 +1,14 @@
+services:
+  app:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "8080"
+  db:
+    environment:
+      POSTGRES_USER: sok
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: sok
+    ports:
+      - "5432:5432"  
