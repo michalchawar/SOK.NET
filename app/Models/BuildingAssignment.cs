@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace app.Models
@@ -10,6 +11,7 @@ namespace app.Models
     /// harmonogram wizyty musi byæ zgodny z harmonogramem przypisania (oraz adres wizyty musi byæ
     /// zgodny z adresem budynku).
     /// </summary>
+    [PrimaryKey(nameof(AgendaId), nameof(ScheduleId))]
     public class BuildingAssignment
     {
         /// <summary>
