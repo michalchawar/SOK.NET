@@ -22,7 +22,7 @@ namespace app.Data
         public DbSet<app.Models.Day> Days { get; set; } = default!;
         public DbSet<app.Models.Diocese> Dioceses { get; set; } = default!;
         public DbSet<app.Models.FormSubmission> FormSubmissions { get; set; } = default!;
-        public DbSet<app.Models.Parish> Parishes { get; set; } = default!;
+        public DbSet<app.Models.ParishInfo> ParishInfo { get; set; } = default!;
         public DbSet<app.Models.Plan> Plans { get; set; } = default!;
         public DbSet<app.Models.Schedule> Schedules { get; set; } = default!;
         public DbSet<app.Models.Street> Streets { get; set; } = default!;
