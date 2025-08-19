@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace app.Models
 {
@@ -17,7 +19,6 @@ namespace app.Models
         /// <summary>
         /// Nazwa ulicy.
         /// </summary>
-        [Required]
         [MaxLength(128)]
         public string Name { get; set; } = default!;
 
@@ -30,7 +31,6 @@ namespace app.Models
         /// <summary>
         /// Identyfikator typu ulicy.
         /// </summary>
-        [Required]
         public int StreetSpecifierId { get; set; }
 
         /// <summary>
@@ -39,8 +39,45 @@ namespace app.Models
         public StreetSpecifier Type { get; set; } = default!;
 
         /// <summary>
+        /// Identyfikator miasta, w którym znajduje siê ulica.
+        /// </summary>
+        public int CityId { get; set; }
+
+        /// <summary>
+        /// Miasto, w którym znajduje siê ulica (relacja nawigacyjna).
+        /// </summary>
+        public City City { get; set; } = default!;
+
+        /// <summary>
         /// Lista budynków znajduj¹cych siê przy tej ulicy.
         /// </summary>
         public ICollection<Building> Buildings { get; set; } = new List<Building>();
+    }
+
+    public class StreetEntityTypeConfiguration : IEntityTypeConfiguration<Street>
+    {
+        public void Configure(EntityTypeBuilder<Street> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(s => s.Name)
+                .IsUnique();
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            builder.HasOne(s => s.Type)
+                .WithMany()
+                .HasForeignKey(s => s.StreetSpecifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(s => s.City)
+                .WithMany(c => c.Streets)
+                .HasForeignKey(s => s.CityId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

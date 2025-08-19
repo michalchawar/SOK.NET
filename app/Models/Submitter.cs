@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace app.Models
 {
@@ -18,19 +20,18 @@ namespace app.Models
         /// <summary>
         /// Publiczny unikalny identyfikator osoby zg³aszaj¹cej (GUID).
         /// </summary>
-        [Required]
         public Guid UniqueId { get; set; } = default!;
 
         /// <summary>
         /// Imiê osoby zg³aszaj¹cej.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string Name { get; set; } = default!;
 
         /// <summary>
         /// Nazwisko osoby zg³aszaj¹cej.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string Surname { get; set; } = default!;
 
         /// <summary>
@@ -54,5 +55,25 @@ namespace app.Models
         /// Historia zmian danych osoby zg³aszaj¹cej (snapshoty).
         /// </summary>
         public ICollection<SubmitterSnapshot> History { get; set; } = new List<SubmitterSnapshot>();
+    }
+
+    public class SubmitterEntityTypeConfiguration : IEntityTypeConfiguration<Submitter>
+    {
+        public void Configure(EntityTypeBuilder<Submitter> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(s => s.UniqueId)
+                .IsUnique();
+
+            // Generowane pola
+            builder.Property(s => s.UniqueId)
+                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+
+            // Relacje
+            // (Submitter nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+        }
     }
 }

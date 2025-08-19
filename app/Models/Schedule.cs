@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace app.Models
 {
@@ -21,19 +23,18 @@ namespace app.Models
         /// <summary>
         /// Nazwa harmonogramu.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string Name { get; set; } = default!;
 
         /// <summary>
         /// Krótka nazwa harmonogramu. U¿ywana w wiêkszoœci miejsc.
         /// </summary>
-        [Required, MaxLength(24)]
+        [MaxLength(24)]
         public string ShortName { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator planu, do którego nale¿y harmonogram.
         /// </summary>
-        [Required]
         public int PlanId { get; set; }
 
         /// <summary>
@@ -46,6 +47,7 @@ namespace app.Models
         /// To klasa pomocnicza relacji wiele-do-wielu miêdzy agend¹ a budynkami.
         /// </summary>
         public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
+
         /// <summary>
         /// Lista agend powi¹zanych z harmonogramem.
         /// </summary>
@@ -55,5 +57,36 @@ namespace app.Models
         /// Lista zg³oszeñ powi¹zanych z harmonogramem.
         /// </summary>
         public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+
+        /// <summary>
+        /// Lista wizyt maj¹cych ustawiony ten harmonogram.
+        /// Bezpoœrednio z wizytami powi¹zane s¹ zg³oszenia.
+        /// </summary>
+        public ICollection<Visit> Visits { get; set; } = new List<Visit>();
+    }
+
+    public class ScheduleEntityTypeConfiguration : IEntityTypeConfiguration<Schedule>
+    {
+        public void Configure(EntityTypeBuilder<Schedule> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(s => s.Name)
+                .IsUnique();
+
+            builder.HasIndex(s => s.ShortName)
+                .IsUnique();
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            builder.HasOne(s => s.Plan)
+                .WithMany(p => p.Schedules)
+                .HasForeignKey(s => s.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel.DataAnnotations;
 
 namespace app.Models
@@ -11,13 +12,11 @@ namespace app.Models
     /// harmonogram wizyty musi byæ zgodny z harmonogramem przypisania (oraz adres wizyty musi byæ
     /// zgodny z adresem budynku).
     /// </summary>
-    [PrimaryKey(nameof(AgendaId), nameof(ScheduleId))]
     public class BuildingAssignment
     {
         /// <summary>
         /// Identyfikator agendy, do której przypisany jest budynek.
         /// </summary>
-        [Required]
         public int AgendaId { get; set; }
 
         /// <summary>
@@ -28,7 +27,6 @@ namespace app.Models
         /// <summary>
         /// Identyfikator budynku, który jest przypisany.
         /// </summary>
-        [Required]
         public int BuildingId { get; set; }
 
         /// <summary>
@@ -39,12 +37,42 @@ namespace app.Models
         /// <summary>
         /// Identyfikator harmonogramu, w ramach którego nastêpuje przypisanie.
         /// </summary>
-        [Required]
         public int ScheduleId { get; set; }
 
         /// <summary>
         /// Harmonogram, w ramach którego nastêpuje przypisanie budynku (relacja nawigacyjna).
         /// </summary>
         public Schedule Schedule { get; set; } = default!;
+    }
+
+    public class BuildingAssignmentEntityTypeConfiguration : IEntityTypeConfiguration<BuildingAssignment>
+    {
+        public void Configure(EntityTypeBuilder<BuildingAssignment> builder)
+        {
+            // Klucz g³ówny
+            builder.HasKey(ba => new { ba.AgendaId, ba.BuildingId, ba.ScheduleId });
+
+            // Indeksy i unikalnoœæ
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            builder.HasOne(ba => ba.Agenda)
+                .WithMany(a => a.BuildingAssignments)
+                .HasForeignKey(ba => ba.AgendaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(ba => ba.Building)
+                .WithMany(b => b.BuildingAssignments)
+                .HasForeignKey(ba => ba.BuildingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(ba => ba.Schedule)
+                .WithMany(s => s.BuildingAssignments)
+                .HasForeignKey(ba => ba.ScheduleId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

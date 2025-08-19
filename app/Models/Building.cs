@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace app.Models
 {
@@ -19,7 +21,7 @@ namespace app.Models
         /// Numer budynku (np. 1, 2, 10).
         /// Krotka (Street, Number, Letter) jest unikalna.
         /// </summary>
-        [Required, Range(1, 300)]
+        [Range(1, 300)]
         public int Number { get; set; } = default!;
 
         /// <summary>
@@ -63,23 +65,12 @@ namespace app.Models
         /// <summary>
         /// Identyfikator ulicy, przy której znajduje siê budynek.
         /// </summary>
-        [Required]
         public int StreetId { get; set; }
 
         /// <summary>
         /// Ulica, przy której znajduje siê budynek (relacja nawigacyjna).
         /// </summary>
         public Street Street { get; set; } = default!;
-
-        /// <summary>
-        /// Identyfikator parafii, do której nale¿y budynek (opcjonalnie).
-        /// </summary>
-        public int? ParishId { get; set; }
-
-        /// <summary>
-        /// Parafia, do której nale¿y budynek (relacja opcjonalna).
-        /// </summary>
-        public Parish? Parish { get; set; } = default!;
 
         /// <summary>
         /// Lista przypisañ agend powi¹zanych z budynkiem. To klasa pomocnicza relacji wiele-do-wielu miêdzy agend¹ a budynkami.
@@ -95,5 +86,31 @@ namespace app.Models
         /// Lista jednostek adresowych w budynku.
         /// </summary>
         public ICollection<Address> Addresses { get; set; } = new List<Address>();
+    }
+
+    public class BuildingEntityTypeConfiguration : IEntityTypeConfiguration<Building>
+    {
+        public void Configure(EntityTypeBuilder<Building> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(b => new { b.StreetId, b.Number, b.Letter })
+                   .IsUnique();
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            builder.HasOne(b => b.Street)
+                .WithMany(s => s.Buildings)
+                .HasForeignKey(b => b.StreetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(b => b.Agendas)
+                .WithMany(a => a.BuildingsAssigned)
+                .UsingEntity<BuildingAssignment>();
+        }
     }
 }

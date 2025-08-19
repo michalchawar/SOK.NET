@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,7 +32,6 @@ namespace app.Models
         /// <summary>
         /// Identyfikator budynku, w którym znajduje siê adres.
         /// </summary>
-        [Required]
         public int BuildingId { get; set; }
 
         /// <summary>
@@ -41,39 +42,58 @@ namespace app.Models
         /// <summary>
         /// Identyfikator ulicy, na której znajduje siê adres.
         /// </summary>
-        [Required]
-        public int StreetId { get; private set; }
+        public int StreetId { get; set; }
 
         /// <summary>
         /// Ulica, na której znajduje siê adres (relacja nawigacyjna).
         /// </summary>
-        public Street Street { get; private set; } = default!;
+        public Street Street { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator miasta, w którym znajduje siê adres.
         /// </summary>
-        [Required]
-        public int CityId { get; private set; }
+        public int CityId { get; set; }
 
         /// <summary>
         /// Miasto, w którym znajduje siê adres (relacja nawigacyjna).
         /// </summary>
-        public City City { get; private set; } = default!;
-
-        /// <summary>
-        /// Identyfikator diecezji, w której znajduje siê adres.
-        /// </summary>
-        [Required]
-        public int DioceseId { get; private set; }
-
-        /// <summary>
-        /// Diecezja, w której znajduje siê adres (relacja nawigacyjna).
-        /// </summary>
-        public Diocese Diocese { get; private set; } = default!;
+        public City City { get; set; } = default!;
 
         /// <summary>
         /// Zg³oszenie powi¹zane z adresem (relacja opcjonalna).
         /// </summary>
         public Submission? Submission { get; set; } = default!;
+    }
+
+    public class AddressEntityTypeConfiguration : IEntityTypeConfiguration<Address>
+    {
+        public void Configure(EntityTypeBuilder<Address> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(a => new { a.BuildingId, a.ApartmentNumber, a.ApartmentLetter })
+                .IsUnique();
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            builder.HasOne(a => a.Building)
+                .WithMany(b => b.Addresses)
+                .HasForeignKey(a => a.BuildingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(a => a.Street)
+                .WithMany()
+                .HasForeignKey(a => a.StreetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(a => a.City)
+                .WithMany()
+                .HasForeignKey(a => a.CityId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

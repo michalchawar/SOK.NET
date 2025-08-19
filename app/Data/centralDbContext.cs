@@ -1,9 +1,10 @@
-﻿using System;
+﻿using app.Models;
+using app.Models.Central;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using app.Models.Central;
 
 namespace app.Data
 {
@@ -18,7 +19,8 @@ namespace app.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
+            // Rejestracja konfiguracji encji
+            modelBuilder.ApplyConfiguration(new app.Models.Central.UserEntityTypeConfiguration());
         }
     }
 }

@@ -2,6 +2,9 @@ using app.Models.Enums;
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace app.Models
 {
@@ -19,14 +22,14 @@ namespace app.Models
 
         /// <summary>
         /// Publiczny unikalny identyfikator zg³oszenia w momencie utworzenia snapshotu.
+        /// W wiêkszoœci przypadków wszystkie snapshoty dla danego zg³oszenia bêd¹ mia³y ten sam UniqueId.
         /// </summary>
-        [Required]
         public Guid UniqueId { get; set; } = default!;
 
         /// <summary>
         /// Token dostêpu do zg³oszenia w momencie utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string AccessToken { get; set; } = default!;
 
         /// <summary>
@@ -50,54 +53,53 @@ namespace app.Models
         /// <summary>
         /// Status realizacji notatek w momencie utworzenia snapshotu.
         /// </summary>
-        [Required, DefaultValue(NotesFulfillmentStatus.NA)]
+        [DefaultValue(NotesFulfillmentStatus.NA)]
         public NotesFulfillmentStatus NotesStatus { get; set; }
 
         /// <summary>
         /// Numer (i opcjonalnie litera) mieszkania z momentu utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(16)]
+        [MaxLength(16)]
         public string Apartment { get; set; } = default!;
 
         /// <summary>
         /// Numer (i opcjonalnie litera) budynku z momentu utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(16)]
+        [MaxLength(16)]
         public string Building { get; set; } = default!;
 
         /// <summary>
         /// Typ ulicy z momentu utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(32)]
+        [MaxLength(32)]
         public string StreetSpecifier { get; set; } = default!;
 
         /// <summary>
         /// Nazwa ulicy z momentu utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string Street { get; set; } = default!;
 
         /// <summary>
         /// Nazwa miasta z momentu utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string City { get; set; } = default!;
 
         /// <summary>
         /// Nazwa diecezji z momentu utworzenia snapshotu.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string Diocese { get; set; } = default!;
 
         /// <summary>
         /// Data i godzina utworzenia snapshotu.
         /// </summary>
-        public DateTime ChangeTime { get; set; }
+        public DateTime ChangeTime { get; private set; }
 
         /// <summary>
         /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
         /// </summary>
-        [Required]
         public int ChangeAuthorId { get; set; } = default!;
 
         /// <summary>
@@ -108,12 +110,40 @@ namespace app.Models
         /// <summary>
         /// Identyfikator zg³oszenia, którego dotyczy snapshot.
         /// </summary>
-        [Required]
         public int SubmissionId { get; set; } = default!;
 
         /// <summary>
         /// Zg³oszenie, którego dotyczy snapshot (relacja nawigacyjna).
         /// </summary>
         public Submission Submission { get; set; } = default!;
+    }
+
+    public class SubmissionSnapshotEntityTypeConfiguration : IEntityTypeConfiguration<SubmissionSnapshot>
+    {
+        public void Configure(EntityTypeBuilder<SubmissionSnapshot> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+
+            // Generowane pola
+            builder.Property(ss => ss.ChangeTime)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            // Relacje
+            builder.HasOne(ss => ss.Submission)
+                .WithMany(s => s.History)
+                .HasForeignKey(ss => ss.SubmissionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(ss => ss.ChangeAuthor)
+                .WithMany()
+                .HasForeignKey(ss => ss.ChangeAuthorId)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
     }
 }

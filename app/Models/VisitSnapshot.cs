@@ -2,12 +2,17 @@ using app.Models.Enums;
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace app.Models
 {
     /// <summary>
     /// Reprezentuje archiwalny stan wizyty w danym momencie.
     /// Pozwala œledziæ historiê zmian statusu, daty, przewidywanego czasu oraz autora zmiany.
+    /// Obiekt wizyty jest przypisany na sta³e do jednego zg³oszenia,
+    /// zatem snapshot nie uwzglêdnia zmian zg³oszenia.
     /// </summary>
     public class VisitSnapshot
     {
@@ -26,14 +31,14 @@ namespace app.Models
         /// <summary>
         /// Status wizyty w momencie utworzenia snapshotu.
         /// </summary>
-        [Required, DefaultValue(VisitStatus.Unplanned)]
+        [DefaultValue(VisitStatus.Unplanned)]
         public VisitStatus Status { get; set; }
 
         /// <summary>
         /// Nazwa harmonogramu, do którego przypisana by³a wizyta w momencie utworzenia snapshotu.
+        /// Mo¿e byæ null, tylko gdy Status jest równy VisitStatus.Withdrawn.
         /// </summary>
-        [Required]
-        public string ScheduleName { get; set; } = default!;
+        public string? ScheduleName { get; set; } = default!;
 
         /// <summary>
         /// Data wizyty w momencie utworzenia snapshotu (jeœli dotyczy).
@@ -58,12 +63,11 @@ namespace app.Models
         /// <summary>
         /// Data i godzina utworzenia snapshotu.
         /// </summary>
-        public DateTime ChangeTime { get; set; }
+        public DateTime ChangeTime { get; private set; }
 
         /// <summary>
         /// Login u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
         /// </summary>
-        [Required]
         public string ChangeAuthorLogin { get; set; } = default!;
 
         /// <summary>
@@ -74,12 +78,40 @@ namespace app.Models
         /// <summary>
         /// Identyfikator wizyty, której dotyczy snapshot.
         /// </summary>
-        [Required]
         public int VisitId { get; set; }
 
         /// <summary>
         /// Wizyta, której dotyczy snapshot (relacja nawigacyjna).
         /// </summary>
         public Visit Visit { get; set; } = default!;
+    }
+
+    public class VisitSnapshotEntityTypeConfiguration : IEntityTypeConfiguration<VisitSnapshot>
+    {
+        public void Configure(EntityTypeBuilder<VisitSnapshot> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+
+            // Generowane pola
+            builder.Property(vs => vs.ChangeTime)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            // Relacje
+            builder.HasOne(vs => vs.Visit)
+                .WithMany(v => v.History)
+                .HasForeignKey(vs => vs.VisitId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(vs => vs.ChangeAuthor)
+                .WithMany()
+                .HasForeignKey("ChangeAuthorId")
+                .OnDelete(DeleteBehavior.SetNull);
+        }
     }
 }

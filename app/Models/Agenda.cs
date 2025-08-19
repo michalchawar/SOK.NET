@@ -1,7 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection.Emit;
 
 namespace app.Models
 {
@@ -21,13 +25,12 @@ namespace app.Models
         /// <summary>
         /// Publiczny unikalny identyfikator agendy (GUID), wykorzystywany g³ównie do udostêpniania lub autoryzacji (w po³¹czeniu z AccessToken).
         /// </summary>
-        [Required]
         public Guid UniqueId { get; set; } = default!;
 
         /// <summary>
         /// Token dostêpu do agendy, u¿ywany do autoryzacji w po³¹czeniu z UniqueId.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string AccessToken { get; set; } = default!;
 
         /// <summary>
@@ -49,20 +52,19 @@ namespace app.Models
         /// Okreœla, czy przypisania wizyt w tej agendzie maj¹ byæ widoczne dla zg³aszaj¹cych (niezalogowanych u¿ytkowników).
         /// Wartoœæ automatycznie ustawiana jest na true na okreœlony (w ustawieniach) czas przed rozpoczêciem agendy.
         /// </summary>
-        [Required, DefaultValue(false)]
+        [DefaultValue(false)]
         public bool ShowsAssignment { get; set; }
 
         /// <summary>
         /// Okreœla, czy przewidywane godziny wizyt w tej agendzie maj¹ byæ widoczne dla zg³aszaj¹cych (niezalogowanych u¿ytkowników).
         /// Wartoœæ automatycznie ustawiana jest na true na okreœlony (w ustawieniach) czas przed rozpoczêciem agendy.
         /// </summary>
-        [Required, DefaultValue(false)]
+        [DefaultValue(false)]
         public bool ShowHours { get; set; }
 
         /// <summary>
         /// Identyfikator dnia, do którego przypisana jest agenda.
         /// </summary>
-        [Required]
         public int DayId { get; set; }
 
         /// <summary>
@@ -90,5 +92,31 @@ namespace app.Models
         /// U¿ytkownicy mog¹ mieæ ró¿ne role.
         /// </summary>
         public ICollection<User> AssignedUsers { get; set; } = new List<User>();
+    }
+
+    public class AgendaEntityTypeConfiguration : IEntityTypeConfiguration<Agenda>
+    {
+        public void Configure(EntityTypeBuilder<Agenda> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(a => a.UniqueId)
+                .IsUnique();
+
+            // Generowane pola
+            builder.Property(a => a.AccessToken)
+                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+
+            // Relacje
+            builder.HasOne(a => a.Day)
+                .WithMany(d => d.Agendas)
+                .HasForeignKey(a => a.DayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(a => a.AssignedUsers)
+                .WithMany(u => u.AssignedAgendas);
+        }
     }
 }

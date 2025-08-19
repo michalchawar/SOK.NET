@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -19,30 +22,17 @@ namespace app.Models
         /// <summary>
         /// Data i godzina utworzenia planu.
         /// </summary>
-        [Required]
-        public DateTime CreationTime { get; set; }
+        public DateTime CreationTime { get; private set; }
 
         /// <summary>
         /// Identyfikator u¿ytkownika, który jest autorem planu.
         /// </summary>
-        [Required]
         public int AuthorId { get; set; }
 
         /// <summary>
         /// Autor planu (relacja nawigacyjna).
         /// </summary>
         public User Author { get; set; } = default!;
-
-        /// <summary>
-        /// Identyfikator parafii, do której nale¿y plan.
-        /// </summary>
-        [Required]
-        public string ParishId { get; set; } = default!;
-
-        /// <summary>
-        /// Parafia, do której nale¿y plan (relacja nawigacyjna).
-        /// </summary>
-        public Parish Parish { get; set; } = default!;
 
         /// <summary>
         /// Lista harmonogramów (Schedule) powi¹zanych z planem.
@@ -58,5 +48,29 @@ namespace app.Models
         /// Lista dni (Day) w ramach planu.
         /// </summary>
         public ICollection<Day> Days { get; set; } = new List<Day>();
+    }
+
+    public class PlanEntityTypeConfiguration : IEntityTypeConfiguration<Plan>
+    {
+        public void Configure(EntityTypeBuilder<Plan> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+
+            // Generowane pola
+            builder.Property(fs => fs.CreationTime)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            // Relacje
+            builder.HasOne(p => p.Author)
+                .WithMany()
+                .HasForeignKey(p => p.AuthorId)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
     }
 }

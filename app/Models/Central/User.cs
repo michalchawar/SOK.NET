@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel.DataAnnotations;
 
 namespace app.Models.Central
@@ -17,7 +19,7 @@ namespace app.Models.Central
         /// <summary>
         /// Login u¿ytkownika (unikalny w systemie).
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string Login { get; set; } = default!;
 
         /// <summary>
@@ -29,7 +31,25 @@ namespace app.Models.Central
         /// <summary>
         /// Unikalny identyfikator parafii, do której przypisany jest u¿ytkownik.
         /// </summary>
-        [Required]
         public Guid ParishUniqueId { get; set; }
+    }
+
+    public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
+    {
+        public void Configure(EntityTypeBuilder<User> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(u => u.Login)
+                .IsUnique();
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            // (User nie jest podrzêdny wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+        }
     }
 }

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using app.Models.Enums;
 
 namespace app.Models
@@ -22,13 +24,12 @@ namespace app.Models
         /// <summary>
         /// Publiczny unikalny identyfikator zg³oszenia (GUID), wykorzystywany g³ównie do udostêpniania lub autoryzacji (w po³¹czeniu z AccessToken).
         /// </summary>
-        [Required]
         public Guid UniqueId { get; set; } = default!;
 
         /// <summary>
         /// Token dostêpu do zg³oszenia, u¿ywany do autoryzacji w po³¹czeniu z UniqueId.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string AccessToken { get; set; } = default!;
 
         /// <summary>
@@ -53,30 +54,12 @@ namespace app.Models
         /// Status realizacji uwag od u¿ytkownika.
         /// Status jest równy NotesFulfillmentStatus.NA, jeœli zg³oszenie nie zawiera uwag od u¿ytkownika.
         /// </summary>
-        [Required, DefaultValue(NotesFulfillmentStatus.NA)]
+        [DefaultValue(NotesFulfillmentStatus.NA)]
         public NotesFulfillmentStatus NotesStatus { get; set; }
-
-        /// <summary>
-        /// Powi¹zane archiwalne dane formularza zg³oszeniowego.
-        /// </summary>
-        [Required]
-        public FormSubmission FormSubmission { get; set; } = default!;
-
-        /// <summary>
-        /// Identyfikator planu, do którego nale¿y zg³oszenie.
-        /// </summary>
-        [Required]
-        public int PlanId { get; set; } = default!;
-
-        /// <summary>
-        /// Plan, do którego nale¿y zg³oszenie (relacja nawigacyjna).
-        /// </summary>
-        public Plan Plan { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator osoby zg³aszaj¹cej (Submitter).
         /// </summary>
-        [Required]
         public string SubmitterId { get; set; } = default!;
 
         /// <summary>
@@ -87,7 +70,6 @@ namespace app.Models
         /// <summary>
         /// Identyfikator adresu powi¹zanego ze zg³oszeniem.
         /// </summary>
-        [Required]
         public int AddressId { get; set; } = default!;
 
         /// <summary>
@@ -96,10 +78,9 @@ namespace app.Models
         public Address Address { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator wizyty powi¹zanej ze zg³oszeniem.
+        /// Powi¹zane archiwalne dane formularza zg³oszeniowego.
         /// </summary>
-        [Required]
-        public int VisitId { get; set; } = default!;
+        public FormSubmission FormSubmission { get; set; } = default!;
 
         /// <summary>
         /// Wizyta powi¹zana ze zg³oszeniem (relacja nawigacyjna).
@@ -110,5 +91,33 @@ namespace app.Models
         /// Historia zmian zg³oszenia (snapshoty).
         /// </summary>
         public ICollection<SubmissionSnapshot> History { get; set; } = new List<SubmissionSnapshot>();
+    }
+
+    public class SubmissionEntityTypeConfiguration : IEntityTypeConfiguration<Submission>
+    {
+        public void Configure(EntityTypeBuilder<Submission> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(s => s.UniqueId)
+                .IsUnique();
+
+            // Generowane pola
+            builder.Property(s => s.UniqueId)
+                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+
+            // Relacje
+            builder.HasOne(s => s.Submitter)
+                .WithMany(s => s.Submissions)
+                .HasForeignKey(s => s.SubmitterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(s => s.Address)
+                .WithOne(a => a.Submission)
+                .HasForeignKey<Submission>(s => s.AddressId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

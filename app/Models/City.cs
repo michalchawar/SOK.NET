@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace app.Models
 {
@@ -18,7 +20,6 @@ namespace app.Models
         /// <summary>
         /// Nazwa miasta.
         /// </summary>
-        [Required]
         [MaxLength(128)]
         public string Name { get; set; } = default!;
 
@@ -33,5 +34,23 @@ namespace app.Models
         /// Lista ulic znajduj¹cych siê w mieœcie.
         /// </summary>
         public ICollection<Street> Streets { get; set; } = new List<Street>();
+    }
+
+    public class CityEntityTypeConfiguration : IEntityTypeConfiguration<City>
+    {
+        public void Configure(EntityTypeBuilder<City> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+
+            // Generowane pola
+            // (brak automatycznie generowanych pól)
+
+            // Relacje
+            // (City nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+        }
     }
 }

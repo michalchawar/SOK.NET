@@ -1,7 +1,10 @@
+using app.Models.Enums;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using app.Models.Enums;
 
 namespace app.Models
 {
@@ -21,13 +24,13 @@ namespace app.Models
         /// <summary>
         /// Imiê osoby zg³aszaj¹cej.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string Name { get; set; } = default!;
 
         /// <summary>
         /// Nazwisko osoby zg³aszaj¹cej.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string Surname { get; set; } = default!;
 
         /// <summary>
@@ -51,49 +54,49 @@ namespace app.Models
         /// <summary>
         /// Nazwa harmonogramu, do którego zg³oszenie zosta³o przypisane.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string ScheduleName { get; set; } = default!;
 
         /// <summary>
         /// Numer (i opcjonalnie litera) mieszkania podany w zg³oszeniu.
         /// </summary>
-        [Required, MaxLength(16)]
+        [MaxLength(16)]
         public string Apartment { get; set; } = default!;
 
         /// <summary>
         /// Numer (i opcjonalnie litera) budynku podana w zg³oszeniu.
         /// </summary>
-        [Required, MaxLength(16)]
+        [MaxLength(16)]
         public string Building { get; set; } = default!;
 
         /// <summary>
         /// Typ ulicy (np. Ulica, Aleja, Plac) w momencie sk³adania zg³oszenia.
         /// </summary>
-        [Required, MaxLength(32)]
+        [MaxLength(32)]
         public string StreetSpecifier { get; set; } = default!;
 
         /// <summary>
         /// Nazwa ulicy podana w zg³oszeniu.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string Street { get; set; } = default!;
 
         /// <summary>
         /// Nazwa miasta w momencie sk³adania zg³oszenia.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string City { get; set; } = default!;
 
         /// <summary>
         /// Nazwa diecezji w momencie sk³adania zg³oszenia.
         /// </summary>
-        [Required, MaxLength(128)]
+        [MaxLength(128)]
         public string Diocese { get; set; } = default!;
 
         /// <summary>
         /// Metoda zg³oszenia (np. formularz papierowy, online, telefonicznie).
         /// </summary>
-        [Required, DefaultValue(SubmitMethod.NotRegistered)]
+        [DefaultValue(SubmitMethod.NotRegistered)]
         public SubmitMethod Method { get; set; }
 
         /// <summary>
@@ -101,19 +104,18 @@ namespace app.Models
         /// Jeœli zg³oszenie zosta³o wprowadzone manualnie przez zalogowanego u¿ytkownika,
         /// to jest to adres IP tego u¿ytkownika.
         /// </summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64)]
         public string IP { get; set; } = default!;
 
         /// <summary>
         /// Data i godzina otrzymania zg³oszenia.
         /// </summary>
-        public DateTime SubmitTime { get; set; }
+        public DateTime SubmitTime { get; private set; }
 
         /// <summary>
         /// Identyfikator u¿ytkownika, który utworzy³ zg³oszenie 
         /// (jeœli zosta³o wprowadzone manualnie).
         /// </summary>
-        [Required]
         public int? AuthorId { get; set; } = default!;
 
         /// <summary>
@@ -124,12 +126,40 @@ namespace app.Models
         /// <summary>
         /// Identyfikator powi¹zanego zg³oszenia g³ównego (Submission).
         /// </summary>
-        [Required]
         public int SubmissionId { get; set; } = default!;
 
         /// <summary>
         /// Powi¹zane zg³oszenie g³ówne (relacja nawigacyjna).
         /// </summary>
         public Submission? Submission { get; set; } = default!;
+    }
+
+    public class FormSubmissionEntityTypeConfiguration : IEntityTypeConfiguration<FormSubmission>
+    {
+        public void Configure(EntityTypeBuilder<FormSubmission> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+
+            // Generowane pola
+            builder.Property(fs => fs.SubmitTime)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            // Relacje
+            builder.HasOne(fs => fs.Author)
+                .WithMany(u => u.EnteredSubmissions)
+                .HasForeignKey(fs => fs.AuthorId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(fs => fs.Submission)
+                .WithOne(s => s.FormSubmission)
+                .HasForeignKey<FormSubmission>(fs => fs.SubmissionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using app.Models;
+using app.Models.Enums;
 
 namespace app.Data
 {
     public class sokAppContext : DbContext
     {
-        public sokAppContext (DbContextOptions<sokAppContext> options)
+        public sokAppContext(DbContextOptions<sokAppContext> options)
             : base(options)
         {
         }
@@ -20,7 +20,6 @@ namespace app.Data
         public DbSet<app.Models.BuildingAssignment> BuildingAssignments { get; set; } = default!;
         public DbSet<app.Models.City> Cities { get; set; } = default!;
         public DbSet<app.Models.Day> Days { get; set; } = default!;
-        public DbSet<app.Models.Diocese> Dioceses { get; set; } = default!;
         public DbSet<app.Models.FormSubmission> FormSubmissions { get; set; } = default!;
         public DbSet<app.Models.ParishInfo> ParishInfo { get; set; } = default!;
         public DbSet<app.Models.Plan> Plans { get; set; } = default!;
@@ -37,7 +36,26 @@ namespace app.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
+            // Rejestracja konfiguracji encji
+            modelBuilder.ApplyConfiguration(new AddressEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new AgendaEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new BuildingEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new BuildingAssignmentEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new CityEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new DayEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new FormSubmissionEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ParishInfoEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new PlanEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ScheduleEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new StreetEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new StreetSpecifierEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new SubmissionEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new SubmissionSnapshotEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new SubmitterEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new SubmitterSnapshotEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new VisitEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
         }
     }
 }
