@@ -1,12 +1,25 @@
 services:
   app:
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # Po³¹czenie administracyjne do serwera (master) — tylko dla Provisioningu
+      Admin__SqlServer: "Server=db,1433;Database=master;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True"
+      # Po³¹czenie do bazy centralnej (utworzy siê automatycznie przez migracje)
+      ConnectionStrings__CentralDb: "Server=db,1433;Database=CentralDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True"
+      # Klucz do szyfrowania connection stringów tenantów (AES)
+      Crypto__Key: "bDFIYTdVS3orMkgzbmFRR29TWHk1UDNxVHIwL3BPMFJ1bDRFNUNXN0NxYm5kazJWZElnbHNDQkVtdjZGWjMrYngvWHptS2dDNVRXVi9DY1puSjVRK2ZCbS9kQ29yVlNoNk1qcURHQ0VLRFFRUytvSWN4ZXZDbis4VFg4UHozc3pUaFZSRzI4Y1pNcXV0dlhlakp5V2UxS2szRXdxcXh0MlNzV1NsVXFIcEQ5QTFFNWpQemRiU3N3U3Q1UFJLRStQdFMxOG54Y29BL2duQUxxdWtTWFpyZUFRVlJUbFVuRUVlWk1ROGVNNGdXKzZKNFNnaEdUZlNEc0ZBcHZrQU4xVUdxcDRsUGtZVjFiY3JDUk9MWTBtWDBMQjR4N1Evam1WZ0gvaGxwdUgxTmhlU3VKRnMxeC9TeTdUT2Nnb0srUW1NQktPbWRVN21EYU5UcEZaQytrUmQzVUlncUhVYU9GN0R2OUs4WjhENXZjPQ=="
     ports:
       - "8080"
+
   db:
     environment:
-      MSSQL_SA_PASSWORD: Strong!Passw0rd
+      MSSQL_SA_PASSWORD: YourStrong!Passw0rd
     ports:
       - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      timeout: 3s

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 public class ParishMappingService
 {
-    private readonly sokAppContext _context;
+    private readonly ParishDbContext _context;
 
-    public ParishMappingService(sokAppContext context)
+    public ParishMappingService(ParishDbContext context)
     {
         _context = context;
     }

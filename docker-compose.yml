@@ -11,8 +11,6 @@ services:
     restart: always
     environment:
       - ACCEPT_EULA=Y
-    ports:
-      - "1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
 
