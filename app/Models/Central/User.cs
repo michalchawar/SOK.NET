@@ -29,9 +29,14 @@ namespace app.Models.Central
         public string? Email { get; set; } = default!;
 
         /// <summary>
-        /// Unikalny identyfikator parafii, do której przypisany jest u¿ytkownik.
+        /// Identyfikator parafii, do której przypisany jest u¿ytkownik.
         /// </summary>
-        public Guid ParishUniqueId { get; set; }
+        public int ParishId { get; set; }
+
+        /// <summary>
+        /// Parafia, do której przypisany jest u¿ytkownik (relacja nawigacyjna).
+        /// </summary>
+        public ParishEntry Parish { get; set; } = default!;
     }
 
     public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
@@ -49,7 +54,10 @@ namespace app.Models.Central
             // (brak automatycznie generowanych pól)
 
             // Relacje
-            // (User nie jest podrzêdny wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+            builder.HasOne(u => u.Parish)
+                .WithMany(p => p.Users)
+                .HasForeignKey(u => u.ParishId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
