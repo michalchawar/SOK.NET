@@ -7,9 +7,9 @@ using app.Models.Enums;
 
 namespace app.Data
 {
-    public class sokAppContext : DbContext
+    public class ParishDbContext : DbContext
     {
-        public sokAppContext(DbContextOptions<sokAppContext> options)
+        public ParishDbContext(DbContextOptions<ParishDbContext> options)
             : base(options)
         {
         }
@@ -58,4 +58,28 @@ namespace app.Data
             modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
         }
     }
+
+    /// <summary>
+    /// Interfejs fabryki kontekstów bazy danych dla parafii.
+    /// </summary>
+    public interface IParishDbContextFactory
+    {
+        ParishDbContext Create(string plainConnectionString);
+    }
+
+    /// <summary>
+    /// Implementacja fabryki kontekstów bazy danych dla parafii.
+    /// </summary>
+    public class ParishDbContextFactory : IParishDbContextFactory
+    {
+        public ParishDbContext Create(string cs)
+        {
+            var opts = new DbContextOptionsBuilder<ParishDbContext>()
+                .UseSqlServer(cs)
+                .Options;
+
+            return new ParishDbContext(opts);
+        }
+    }
+
 }
