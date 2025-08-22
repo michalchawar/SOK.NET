@@ -6,8 +6,19 @@ namespace app.Services
     /// Interfejs do szyfrowania i deszyfrowania danych.
     /// </summary>
     public interface ICryptoService 
-    { 
+    {
+        /// <summary>
+        /// Szyfruje podaną wiadomość jawną za pomocą algorytmu AES.
+        /// </summary>
+        /// <param name="plainMessage">Wiadomość (w kodowaniu UTF-8) do zaszyfrowania</param>
+        /// <returns>Szyfrogram w kodowaniu Base64</returns>
         string Encrypt(string plainMessage); 
+        
+        /// <summary>
+        /// Deszyfruje zaszyfrowaną przez metodę Encrypt wiadomość.
+        /// </summary>
+        /// <param name="encryptedMessage">Szyfrogram utworzony przez metodę Encrypt w kodowaniu Base64</param>
+        /// <returns>Tekst jawny wiadomości przed zaszyfrowaniem</returns>
         string Decrypt(string encryptedMessage); 
     }
 
@@ -20,7 +31,7 @@ namespace app.Services
 
         public CryptoService(IConfiguration cfg)
         {
-            _key = Convert.FromBase64String(cfg["Crypto:Key"]);
+            _key = Convert.FromBase64String(cfg["Crypto:Key"]!);
         }
 
         public string Encrypt(string plain)
@@ -29,27 +40,27 @@ namespace app.Services
             aes.Key = _key;
             aes.GenerateIV();
             
-            using var enc = aes.CreateEncryptor();
-            var pt = System.Text.Encoding.UTF8.GetBytes(plain);
-            var ct = enc.TransformFinalBlock(pt, 0, pt.Length);
+            using var encryptor = aes.CreateEncryptor();
+            var plainText  = System.Text.Encoding.UTF8.GetBytes(plain);
+            var cypherText = encryptor.TransformFinalBlock(plainText, 0, plainText.Length);
             
             // zapisz IV + CT (base64)
-            return Convert.ToBase64String(aes.IV.Concat(ct).ToArray());
+            return Convert.ToBase64String(aes.IV.Concat(cypherText).ToArray());
         }
 
-        public string Decrypt(string enc)
+        public string Decrypt(string encrypted)
         {
-            var all = Convert.FromBase64String(enc);
+            var all = Convert.FromBase64String(encrypted);
             
             using var aes = Aes.Create();
             aes.Key = _key;
             aes.IV = all.Take(16).ToArray();
             
-            using var dec = aes.CreateDecryptor();
-            var ct = all.Skip(16).ToArray();
-            var pt = dec.TransformFinalBlock(ct, 0, ct.Length);
+            using var decryptor = aes.CreateDecryptor();
+            var cypherText = all.Skip(16).ToArray();
+            var plainText  = decryptor.TransformFinalBlock(cypherText, 0, cypherText.Length);
             
-            return System.Text.Encoding.UTF8.GetString(pt);
+            return System.Text.Encoding.UTF8.GetString(plainText);
         }
     }
 

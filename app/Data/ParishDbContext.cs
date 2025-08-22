@@ -4,14 +4,18 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using app.Models;
 using app.Models.Enums;
+using app.Services.ParishService;
 
 namespace app.Data
 {
     public class ParishDbContext : DbContext
     {
-        public ParishDbContext(DbContextOptions<ParishDbContext> options)
+        private readonly ICurrentParishService _currentParishService;
+
+        public ParishDbContext(DbContextOptions<ParishDbContext> options, ICurrentParishService currentParishService)
             : base(options)
         {
+            _currentParishService = currentParishService;
         }
 
         public DbSet<app.Models.Address> Addresses { get; set; } = default!;
@@ -57,29 +61,16 @@ namespace app.Data
             modelBuilder.ApplyConfiguration(new VisitEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
         }
-    }
 
-    /// <summary>
-    /// Interfejs fabryki kontekstów bazy danych dla parafii.
-    /// </summary>
-    public interface IParishDbContextFactory
-    {
-        ParishDbContext Create(string plainConnectionString);
-    }
-
-    /// <summary>
-    /// Implementacja fabryki kontekstów bazy danych dla parafii.
-    /// </summary>
-    public class ParishDbContextFactory : IParishDbContextFactory
-    {
-        public ParishDbContext Create(string cs)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var opts = new DbContextOptionsBuilder<ParishDbContext>()
-                .UseSqlServer(cs)
-                .Options;
+            string parishConnectionString = _currentParishService.ConnectionString 
+                ?? throw new InvalidOperationException($"Connection string for the parish with UID {_currentParishService.ParishUid} is not set.");
 
-            return new ParishDbContext(opts);
+            if (!string.IsNullOrEmpty(parishConnectionString))
+            {
+                optionsBuilder.UseSqlServer(parishConnectionString);
+            }
         }
     }
-
 }
