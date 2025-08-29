@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using app.Data;
 using app.Services;
-using app.Services.ParishService;
+using app.Services.Parish;
 using app.Middleware;
 using app.Extensions;
 

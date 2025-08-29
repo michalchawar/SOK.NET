@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using app.Models;
 using app.Models.Enums;
 using app.Services.ParishService;
+using app.Models.Parish;
 
 namespace app.Data
 {
@@ -18,25 +18,25 @@ namespace app.Data
             _currentParishService = currentParishService;
         }
 
-        public DbSet<app.Models.Address> Addresses { get; set; } = default!;
-        public DbSet<app.Models.Agenda> Agendas { get; set; } = default!;
-        public DbSet<app.Models.Building> Buildings { get; set; } = default!;
-        public DbSet<app.Models.BuildingAssignment> BuildingAssignments { get; set; } = default!;
-        public DbSet<app.Models.City> Cities { get; set; } = default!;
-        public DbSet<app.Models.Day> Days { get; set; } = default!;
-        public DbSet<app.Models.FormSubmission> FormSubmissions { get; set; } = default!;
-        public DbSet<app.Models.ParishInfo> ParishInfo { get; set; } = default!;
-        public DbSet<app.Models.Plan> Plans { get; set; } = default!;
-        public DbSet<app.Models.Schedule> Schedules { get; set; } = default!;
-        public DbSet<app.Models.Street> Streets { get; set; } = default!;
-        public DbSet<app.Models.StreetSpecifier> StreetSpecifiers { get; set; } = default!;
-        public DbSet<app.Models.Submission> Submissions { get; set; } = default!;
-        public DbSet<app.Models.SubmissionSnapshot> SubmissionSnapshots { get; set; } = default!;
-        public DbSet<app.Models.Submitter> Submitters { get; set; } = default!;
-        public DbSet<app.Models.SubmitterSnapshot> SubmitterSnapshots { get; set; } = default!;
-        public DbSet<app.Models.User> Users { get; set; } = default!;
-        public DbSet<app.Models.Visit> Visits { get; set; } = default!;
-        public DbSet<app.Models.VisitSnapshot> VisitSnapshots { get; set; } = default!;
+        public DbSet<Parish.Address> Addresses { get; set; } = default!;
+        public DbSet<Parish.Agenda> Agendas { get; set; } = default!;
+        public DbSet<Parish.Building> Buildings { get; set; } = default!;
+        public DbSet<Parish.BuildingAssignment> BuildingAssignments { get; set; } = default!;
+        public DbSet<Parish.City> Cities { get; set; } = default!;
+        public DbSet<Parish.Day> Days { get; set; } = default!;
+        public DbSet<Parish.FormSubmission> FormSubmissions { get; set; } = default!;
+        public DbSet<ParishInfo> ParishInfo { get; set; } = default!;
+        public DbSet<Plan> Plans { get; set; } = default!;
+        public DbSet<Schedule> Schedules { get; set; } = default!;
+        public DbSet<Street> Streets { get; set; } = default!;
+        public DbSet<StreetSpecifier> StreetSpecifiers { get; set; } = default!;
+        public DbSet<Submission> Submissions { get; set; } = default!;
+        public DbSet<SubmissionSnapshot> SubmissionSnapshots { get; set; } = default!;
+        public DbSet<Submitter> Submitters { get; set; } = default!;
+        public DbSet<SubmitterSnapshot> SubmitterSnapshots { get; set; } = default!;
+        public DbSet<User> Users { get; set; } = default!;
+        public DbSet<Visit> Visits { get; set; } = default!;
+        public DbSet<VisitSnapshot> VisitSnapshots { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,7 +59,9 @@ namespace app.Data
             modelBuilder.ApplyConfiguration(new SubmitterSnapshotEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitEntityTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());,
+
+            base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -71,6 +73,8 @@ namespace app.Data
             {
                 optionsBuilder.UseSqlServer(parishConnectionString);
             }
+
+            base.OnConfiguring(optionsBuilder);
         }
     }
 }
