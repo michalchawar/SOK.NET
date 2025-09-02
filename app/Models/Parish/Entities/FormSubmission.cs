@@ -6,7 +6,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje pojedyncze zg³oszenie formularza przez u¿ytkownika (anonimowego lub zalogowanego).

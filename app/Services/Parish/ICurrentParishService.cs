@@ -16,15 +16,19 @@ namespace app.Services.Parish
         public string? ParishUid { get; }
 
         /// <summary>
-        /// ConnectionString wybranej parafii w postaci jawnej.
+        /// <c>ConnectionString</c> wybranej parafii w postaci jawnej.
         /// </summary>
         public string? ConnectionString { get; }
 
         /// <summary>
-        /// Ustawia wybran¹ parafiê na podstawie jej publicznego unikalnego identyfikatora (UID).
+        /// Ustawia wybran¹ parafiê na podstawie jej publicznego unikalnego identyfikatora <paramref name="parishUid"/>.
         /// </summary>
-        /// <param name="parishUid">Publiczny unikalny identyfikator parafii (UID)</param>
-        /// <returns>True jeœli parafia zosta³a znaleziona i ustawiona, false w przeciwnym wypadku</returns>
+        /// <param name="parishUid">Publiczny unikalny identyfikator parafii (<c>UID</c>).</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentuj¹cy asynchroniczn¹ operacjê,
+        /// którego zawartoœci¹ jest wartoœæ wskazuj¹ca, czy uda³o siê znaleŸæ
+        /// i ustawiæ parafiê o okreœlonym <paramref name="parishUid"/>.
+        /// </returns>
         Task<bool> SetParish(string parishUid);
     }
 }

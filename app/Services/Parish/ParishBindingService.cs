@@ -1,14 +1,15 @@
 using app.Models.Parish;
+using app.Models.Parish.Entities;
 using app.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace app.Services.Parish
 {
     /// <summary>
-    /// Klasa do mapowania danych z bazy danych na obiekt Parafia.
-    /// Pobiera jednostkowe informacje z tabeli ParishInfo bie¿¹cej parafii
-    /// i tworzy obiekt Parish z odpowiednimi w³aœciwoœciami 
-    /// (w tym z obiektami typu Diocese i Address).
+    /// Klasa do mapowania danych z bazy danych na obiekt <see cref="Parish"/>.
+    /// Pobiera jednostkowe informacje z informacji <see cref="ParishInfo"/> bie¿¹cej parafii
+    /// i tworzy obiekt <see cref="Parish"/> z odpowiednimi w³aœciwoœciami 
+    /// (w tym z obiektami <see cref="Diocese"/> i <see cref="Address"/>).
     /// </summary>
     public class ParishBindingService
     {
@@ -20,9 +21,16 @@ namespace app.Services.Parish
         }
 
         /// <summary>
-        /// Pobiera informacje o parafii z bazy danych i mapuje je na obiekt Parish.
+        /// Pobiera informacje o parafii z bazy danych i binduje je na obiekt <see cref="Parish"/>.
         /// </summary>
-        /// <returns>Obiekt Parish, reprezentuj¹cy wybran¹ w kontekœcie ParishDbContext parafiê</returns>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
+        /// zawieraj¹cy obiekt <see cref="Models.Parish.Parish"/>, reprezentuj¹cy wybran¹ parafiê.
+        /// </returns>
+        /// <remarks>
+        /// Wybrana parafia jest okreœlona przez kontekst dostêpu do bazy danych
+        /// <see cref="ParishDbContext"/>, a konkretnie jego aktualn¹ konfiguracjê.
+        /// </remarks>
         public async Task<Models.Parish.Parish> GetParishAsync()
         {
             var infos = await _context.ParishInfo

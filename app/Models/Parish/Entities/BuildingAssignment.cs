@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel.DataAnnotations;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje przypisanie budynku do agendy i harmonogramu.

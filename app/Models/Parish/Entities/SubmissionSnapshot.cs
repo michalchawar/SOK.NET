@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata;
 using app.Models.Parish.Enums;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje archiwalny stan zg³oszenia (Submission) w danym momencie.
@@ -100,12 +100,12 @@ namespace app.Models.Parish
         /// <summary>
         /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
         /// </summary>
-        public int ChangeAuthorId { get; set; } = default!;
+        public int? ChangeAuthorId { get; set; } = default!;
 
         /// <summary>
         /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja nawigacyjna).
         /// </summary>
-        public User ChangeAuthor { get; set; } = default!;
+        public User? ChangeAuthor { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator zg³oszenia, którego dotyczy snapshot.

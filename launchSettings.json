@@ -4,7 +4,16 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "app": "StartDebugging"
+        "app": "StartDebugging",
+        "db": "StartWithoutDebugging"
+      }
+    },
+    "Database": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "app": "DoNotStart",
+        "db": "StartWithoutDebugging"
       }
     }
   }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje pojedynczy dzieñ w planie wizyt.

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje adres fizyczny.
@@ -88,12 +88,12 @@ namespace app.Models.Parish
             builder.HasOne(a => a.Street)
                 .WithMany()
                 .HasForeignKey(a => a.StreetId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(a => a.City)
                 .WithMany()
                 .HasForeignKey(a => a.CityId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje plan wizyt duszpasterskich dla danej parafii.
@@ -27,12 +27,12 @@ namespace app.Models.Parish
         /// <summary>
         /// Identyfikator u¿ytkownika, który jest autorem planu.
         /// </summary>
-        public int AuthorId { get; set; }
+        public int? AuthorId { get; set; }
 
         /// <summary>
-        /// Autor planu (relacja nawigacyjna).
+        /// Autor planu (relacja opcjonalna).
         /// </summary>
-        public User Author { get; set; } = default!;
+        public User? Author { get; set; } = default!;
 
         /// <summary>
         /// Lista harmonogramów (Schedule) powi¹zanych z planem.

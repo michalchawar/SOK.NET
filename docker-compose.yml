@@ -1,6 +1,7 @@
-services:
+﻿services:
   app:
     image: ${DOCKER_REGISTRY-}app
+    container_name: app
     build:
       context: .
       dockerfile: app/Dockerfile
@@ -8,6 +9,7 @@ services:
       - db
   db:
     image: mcr.microsoft.com/mssql/server:2022-CU20-ubuntu-22.04
+    container_name: db
     restart: always
     environment:
       - ACCEPT_EULA=Y

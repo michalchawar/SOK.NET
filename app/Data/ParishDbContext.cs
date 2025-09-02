@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using app.Models.Parish.Entities;
+using app.Services.Parish;
 using Microsoft.EntityFrameworkCore;
-using app.Models.Enums;
-using app.Services.ParishService;
-using app.Models.Parish;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace app.Data
 {
     public class ParishDbContext : DbContext
     {
         private readonly ICurrentParishService _currentParishService;
+        
+        public string OverrideConnectionString = string.Empty;
 
         public ParishDbContext(DbContextOptions<ParishDbContext> options, ICurrentParishService currentParishService)
             : base(options)
@@ -18,13 +17,13 @@ namespace app.Data
             _currentParishService = currentParishService;
         }
 
-        public DbSet<Parish.Address> Addresses { get; set; } = default!;
-        public DbSet<Parish.Agenda> Agendas { get; set; } = default!;
-        public DbSet<Parish.Building> Buildings { get; set; } = default!;
-        public DbSet<Parish.BuildingAssignment> BuildingAssignments { get; set; } = default!;
-        public DbSet<Parish.City> Cities { get; set; } = default!;
-        public DbSet<Parish.Day> Days { get; set; } = default!;
-        public DbSet<Parish.FormSubmission> FormSubmissions { get; set; } = default!;
+        public DbSet<Address> Addresses { get; set; } = default!;
+        public DbSet<Agenda> Agendas { get; set; } = default!;
+        public DbSet<Building> Buildings { get; set; } = default!;
+        public DbSet<BuildingAssignment> BuildingAssignments { get; set; } = default!;
+        public DbSet<City> Cities { get; set; } = default!;
+        public DbSet<Day> Days { get; set; } = default!;
+        public DbSet<FormSubmission> FormSubmissions { get; set; } = default!;
         public DbSet<ParishInfo> ParishInfo { get; set; } = default!;
         public DbSet<Plan> Plans { get; set; } = default!;
         public DbSet<Schedule> Schedules { get; set; } = default!;
@@ -59,22 +58,72 @@ namespace app.Data
             modelBuilder.ApplyConfiguration(new SubmitterSnapshotEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitEntityTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());,
+            modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string parishConnectionString = _currentParishService.ConnectionString 
-                ?? throw new InvalidOperationException($"Connection string for the parish with UID {_currentParishService.ParishUid} is not set.");
+            if (optionsBuilder.IsConfigured)
+            {
+                return;
+            }
 
+            // Dynamiczne ustawiamy connection string na podstawie aktualnej parafii
+            string? parishConnectionString = _currentParishService.ConnectionString;
+
+            //  Jeśli ustawiono OverrideConnectionString, to go używamy
+            if (!string.IsNullOrEmpty(OverrideConnectionString))
+            {
+                parishConnectionString = OverrideConnectionString;
+            }
+
+            // Jeśli connection string jest ustawiony, to konfigurujemy DbContext
             if (!string.IsNullOrEmpty(parishConnectionString))
             {
                 optionsBuilder.UseSqlServer(parishConnectionString);
             }
+            else
+            {
+                Console.WriteLine($"Connection string for the parish with UID {_currentParishService.ParishUid} is not set.");
+            }
 
             base.OnConfiguring(optionsBuilder);
+        }
+    }
+
+
+    // Prosty stub serwisu ICurrentParishService do użycia w czasie projektowania (migracje, narzędzia EF Core)
+    public class DesignTimeParishService : ICurrentParishService
+    {
+        public string? ConnectionString { get; set; } = string.Empty;
+        public string? ParishUid { get; set; } = string.Empty;
+
+        public async Task<bool> SetParish(string parishUid)
+        {
+            return false;
+        }
+    }
+
+    public class ParishDbContextFactory : IDesignTimeDbContextFactory<ParishDbContext>
+    {
+        public ParishDbContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ParishDbContext>();
+
+            // fallback do LocalDB (żeby migracje działały lokalnie)
+            var connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=ParishDbDummy;Trusted_Connection=True;";
+
+            optionsBuilder.UseSqlServer(connectionString);
+
+            // podajemy stub serwisu zamiast prawdziwego
+            var fakeService = new DesignTimeParishService
+            {
+                ConnectionString = connectionString
+            };
+
+            return new ParishDbContext(optionsBuilder.Options, fakeService);
         }
     }
 }

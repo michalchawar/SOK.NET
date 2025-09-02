@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Emit;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje agendê, czyli planowane wizyty w danym dniu dla jednego ksiêdza.

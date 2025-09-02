@@ -1,37 +1,49 @@
 ﻿using Microsoft.Extensions.Options;
-using app.Services.ParishService;
+using app.Services.Parish;
 
 namespace app.Middleware
 {
     /// <summary>
-    /// Middleware odpowiedzialne za ustawienie odpowiedniej parafii (tenant'a) na podstawie ciasteczka
+    /// Middleware odpowiedzialne za ustawienie odpowiedniej parafii (tenant'a).
     /// </summary>
     public class ParishResolver : IMiddleware
     {
         private readonly ICurrentParishService _currentParishService;
-        private readonly ILogger<ParishResolver> _logger;
+        //private readonly ILogger<ParishResolver> _logger;
 
-        public ParishResolver(ICurrentParishService currentParishService, ILogger<ParishResolver> logger)
+        public ParishResolver(ICurrentParishService currentParishService)
         {
             _currentParishService = currentParishService;
-            _logger = logger;
+            //_logger = logger;
         }
 
         /// <summary>
-        /// Przetwarza żądanie HTTP, ustawiając odpowiednią parafię (tenant'a) na podstawie ciasteczka
+        /// Przetwarza żądanie HTTP, ustawiając odpowiednią parafię (tenant'a)
+        /// na podstawie użytkownika, ustawionego przez middleware uwierzytelniające.
         /// </summary>
+        /// <param name="context">Kontekst HTTP.</param>
+        /// <param name="next">Następny element w potoku przetwarzania żądań.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/> reprezentujący operację asynchroniczną.
+        /// </returns>
+        /// <remarks>
+        /// Metoda pobiera identyfikator parafii (parishUid) z claimów użytkownika,
+        /// powinny one być ustawione przez middleware uwierzytelniające, domyślnie jest to Identity.
+        /// </remarks>
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            if (context.Request.Cookies.TryGetValue("parishUid", out var cookieValue))
+            var parishUid = context.User.FindFirst("parishUid")?.Value;
+            if (!string.IsNullOrEmpty(parishUid))
             {
-                var done = await _currentParishService.SetParish(cookieValue);
-
+                var done = await _currentParishService.SetParish(parishUid);
                 if (done)
-                    _logger.LogInformation($"Using the parish with UID: {cookieValue}");
+                    Console.WriteLine($"ParishResolver: Using the parish with UID: {parishUid}");
+                    //_logger.LogInformation($"Using the parish with UID: {parishUid}");
             }
             else
             {
-                _logger.LogInformation("No parish cookie found in the request.");
+                Console.WriteLine("ParishResolver: No parish cookie found in the request.");
+                //_logger.LogInformation("No parish cookie found in the request.");
             }
 
             await next(context);

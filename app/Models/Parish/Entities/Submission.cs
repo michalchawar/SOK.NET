@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using app.Models.Parish.Enums;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje zg³oszenie z³o¿one przez prywatn¹ osobê zg³aszaj¹c¹ 
@@ -60,7 +60,7 @@ namespace app.Models.Parish
         /// <summary>
         /// Identyfikator osoby zg³aszaj¹cej (Submitter).
         /// </summary>
-        public string SubmitterId { get; set; } = default!;
+        public int SubmitterId { get; set; } = default!;
 
         /// <summary>
         /// Osoba zg³aszaj¹ca (relacja nawigacyjna).

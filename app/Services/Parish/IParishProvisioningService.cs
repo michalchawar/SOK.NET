@@ -1,5 +1,5 @@
 ﻿using app.Data;
-using app.Models.Central;
+using app.Models.Central.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -17,21 +17,28 @@ namespace app.Services.Parish
     public interface IParishProvisioningService
     {
         /// <summary>
-        /// Tworzy nową parafię w systemie.
-        /// Przygotowuje bazę danych dla niej (łącznie z użytkownikiem bazy i migracjami)
-        /// i zapisuje connection string w modelu, a model w centralnej bazie.
+        /// Tworzy nową parafię w systemie. Przygotowuje bazę danych dla niej 
+        /// (łącznie z użytkownikiem bazy i migracjami) i zapisuje zaszyfrowany 
+        /// <c>ConnectionString</c> w modelu <see cref="ParishEntry"/>, 
+        /// a model w centralnej bazie.
         /// </summary>
-        /// <param name="parishUid">Publiczny unikalny identyfikator parafii (UID)</param>
-        /// <param name="parishName">Nazwa parafii</param>
-        /// <returns>Obiekt ParishEntry, reprezentujący nowo utworzoną parafię</returns>
+        /// <param name="parishUid">Publiczny unikalny identyfikator parafii (<c>UID</c>).</param>
+        /// <param name="parishName">Nazwa parafii.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację,
+        /// którego zawartością jest nowo utworzony wpis <see cref="ParishEntry"/>.
+        /// </returns>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="SystemException"></exception>
         Task<ParishEntry> CreateParishAsync(string parishUid, string parishName);
 
         /// <summary>
         /// Sprawdza, czy wszystkie parafialne bazy istnieją i mają aktualne migracje.
         /// Jeśli nie, to je tworzy i/lub wykonuje migracje.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację.
+        /// </returns>
         Task EnsureAllParishDatabasesReadyAsync();
     }
 }

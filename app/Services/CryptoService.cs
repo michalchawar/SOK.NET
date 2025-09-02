@@ -14,23 +14,23 @@ namespace app.Services
             _key = Convert.FromBase64String(cfg["Crypto:Key"]!);
         }
 
-        public string Encrypt(string plain)
+        public string Encrypt(string plainMessage)
         {
             using var aes = Aes.Create();
             aes.Key = _key;
             aes.GenerateIV();
             
             using var encryptor = aes.CreateEncryptor();
-            var plainText  = System.Text.Encoding.UTF8.GetBytes(plain);
+            var plainText  = System.Text.Encoding.UTF8.GetBytes(plainMessage);
             var cypherText = encryptor.TransformFinalBlock(plainText, 0, plainText.Length);
             
             // zapisz IV + CT (base64)
             return Convert.ToBase64String(aes.IV.Concat(cypherText).ToArray());
         }
 
-        public string Decrypt(string encrypted)
+        public string Decrypt(string encryptedMessage)
         {
-            var all = Convert.FromBase64String(encrypted);
+            var all = Convert.FromBase64String(encryptedMessage);
             
             using var aes = Aes.Create();
             aes.Key = _key;

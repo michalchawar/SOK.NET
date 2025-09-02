@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata;
 using app.Models.Parish.Enums;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje archiwalny stan wizyty w danym momencie.
@@ -66,14 +66,14 @@ namespace app.Models.Parish
         public DateTime ChangeTime { get; private set; }
 
         /// <summary>
-        /// Username u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
+        /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
         /// </summary>
-        public string ChangeAuthorLogin { get; set; } = default!;
+        public int? ChangeAuthorId { get; set; } = default!;
 
         /// <summary>
         /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja nawigacyjna).
         /// </summary>
-        public User ChangeAuthor { get; set; } = default!;
+        public User? ChangeAuthor { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator wizyty, której dotyczy snapshot.
@@ -110,7 +110,7 @@ namespace app.Models.Parish
 
             builder.HasOne(vs => vs.ChangeAuthor)
                 .WithMany()
-                .HasForeignKey("ChangeAuthorId")
+                .HasForeignKey(vs => vs.ChangeAuthorId)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

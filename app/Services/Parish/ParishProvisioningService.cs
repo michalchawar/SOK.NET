@@ -1,12 +1,8 @@
 ﻿using app.Data;
-using app.Models.Central;
+using app.Models.Central.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using NuGet.Protocol.Plugins;
 using System.Security.Cryptography;
-using System.Xml.Linq;
 
 namespace app.Services.Parish
 {
@@ -41,8 +37,8 @@ namespace app.Services.Parish
             }
 
             // Generuj unikalne nazwy bazy danych i użytkownika oraz silne hasło
-            string dbName   = "Parish_" + RandomNumberGenerator.GetHexString(8);
-            string userName = "tenant_" + RandomNumberGenerator.GetHexString(8);
+            string dbName   = "Parish_" + RandomNumberGenerator.GetHexString(16);
+            string userName = "Tenant_" + RandomNumberGenerator.GetHexString(16);
             string userPwd  = RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxyz0123456789!@#$%", 16);
 
             // Utwórz connection string na podstawie connection stringa administratora
@@ -65,6 +61,7 @@ namespace app.Services.Parish
                 ParishName = parishName,
                 EncryptedConnectionString = _crypto.Encrypt(cs)
             };
+            //return parish;
             _central.Parishes.Add(parish);
 
             await _central.SaveChangesAsync();
@@ -72,11 +69,6 @@ namespace app.Services.Parish
             return parish;
         }
 
-        /// <summary>
-        /// Sprawdza, czy wszystkie parafialne bazy istnieją i mają aktualne migracje.
-        /// Jeśli nie, to je tworzy i/lub wykonuje migracje.
-        /// </summary>
-        /// <returns></returns>
         public async Task EnsureAllParishDatabasesReadyAsync()
         {
             var parishes = await _central.Parishes.AsNoTracking().ToListAsync();
@@ -89,11 +81,11 @@ namespace app.Services.Parish
         }
 
         /// <summary>
-        /// Sprawdza, czy baza danych i użytkownik z podanego ConnectionStringa istnieją
+        /// Sprawdza, czy baza danych i użytkownik z podanego <c>ConnectionString</c> istnieją
         /// i czy baza ma zastosowane wszystkie migracje. Jeśli nie, to adekwatnie tworzy bazę,
         /// użytkownika i/lub wykonuje migracje.
         /// </summary>
-        /// <param name="connectionString">ConnectionString użytkownika danej bazy</param>
+        /// <param name="connectionString"><c>ConnectionString</c> użytkownika danej bazy.</param>
         /// <returns></returns>
         private async Task EnsureParishDatabaseReadyAsync(string connectionString)
         {
@@ -122,7 +114,7 @@ namespace app.Services.Parish
             // Utwórz kontekst indywidualnej bazy
             using IServiceScope scope = _services.CreateScope();
             ParishDbContext context = scope.ServiceProvider.GetRequiredService<ParishDbContext>();
-            context.Database.SetConnectionString(adminCs);
+            context.OverrideConnectionString = adminCs;
 
             // Używając kontekstu dostępu do bazy danych indywidualnej parafii
             // z konta administratora sprawdź i wykonaj migracje
@@ -136,12 +128,14 @@ namespace app.Services.Parish
         }
 
         /// <summary>
-        /// Tworzy bazę danych o podanej nazwie, jeśli nie istnieje.
+        /// Tworzy bazę danych o nazwie <paramref name="dbName"/>, jeśli nie istnieje.
         /// </summary>
-        /// <param name="connection">Obiekt SqlConnection, reprezentujący 
-        ///                          połączenie z serwerem przez konto z odpowiednimi uprawnieniami</param>
-        /// <param name="dbName">Nazwa bazy danych</param>
-        /// <returns></returns>
+        /// <param name="connection">Obiekt <see cref="SqlConnection"/>, reprezentujący 
+        ///                          połączenie z serwerem przez konto z odpowiednimi uprawnieniami.</param>
+        /// <param name="dbName">Nazwa bazy danych.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację.
+        /// </returns>
         private static async Task CreateDatabase(SqlConnection connection, string dbName)
         {
             // 1) CREATE DATABASE
@@ -151,8 +145,11 @@ namespace app.Services.Parish
                 cmd.CommandText = $@"
                         IF DB_ID(@db) IS NULL
                         BEGIN
-                            EXEC('CREATE DATABASE [{dbName}]');
+                            DECLARE @sql NVARCHAR(MAX) = 
+                                'CREATE DATABASE ' + quotename(@db) + ';';
+                            EXEC(@sql);
                         END";
+                            //EXEC('CREATE DATABASE quotename({dbName})');
 
                 cmd.Parameters.AddWithValue("@db", dbName);
                 await cmd.ExecuteNonQueryAsync();
@@ -160,13 +157,16 @@ namespace app.Services.Parish
         }
 
         /// <summary>
-        /// Tworzy login na poziomie serwera o podanej nazwie i haśle, jeśli nie istnieje.
+        /// Tworzy login na poziomie serwera o nazwie <paramref name="userName"/> 
+        /// i haśle <paramref name="userPwd"/>, jeśli nie istnieje użytkownik o tej nazwie.
         /// </summary>
-        /// <param name="connection">Obiekt SqlConnection, reprezentujący 
-        ///                          połączenie z serwerem przez konto z odpowiednimi uprawnieniami</param>
-        /// <param name="userName">Nazwa użytkownika docelowego</param>
-        /// <param name="userPwd">Hasło użytkownika docelowego</param>
-        /// <returns></returns>
+        /// <param name="connection">Obiekt <see cref="SqlConnection"/>, reprezentujący 
+        ///                          połączenie z serwerem przez konto z odpowiednimi uprawnieniami.</param>
+        /// <param name="userName">Nazwa użytkownika docelowego.</param>
+        /// <param name="userPwd">Hasło użytkownika docelowego.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację.
+        /// </returns>
         private static async Task CreateLogin(SqlConnection connection, string userName, string userPwd)
         {
             // 2) CREATE LOGIN (server level)
@@ -176,8 +176,11 @@ namespace app.Services.Parish
                 cmd.CommandText = $@"
                         IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = @login)
                         BEGIN
-                            CREATE LOGIN [{userName}] WITH PASSWORD = @pwd, CHECK_POLICY = OFF;
+                            DECLARE @sql NVARCHAR(MAX) = 
+                                'CREATE LOGIN ' + quotename(@login) + ' WITH PASSWORD = ' + quotename(@pwd, '''') + ' , CHECK_POLICY = OFF';
+                            EXEC(@sql);
                         END";
+                            //CREATE LOGIN @login WITH PASSWORD = '@pwd', CHECK_POLICY = OFF;
 
                 cmd.Parameters.AddWithValue("@login", userName);
                 cmd.Parameters.AddWithValue("@pwd", userPwd);
@@ -186,14 +189,17 @@ namespace app.Services.Parish
         }
 
         /// <summary>
-        /// Tworzy użytkownika w danej bazie danych o podanej nazwie, jeśli nie istnieje,
-        /// o loginie odpowiadającym jego nazwie. Przypisuje mu role db_datareader i db_datawriter.
+        /// Tworzy użytkownika w danej bazie danych o nazwie <paramref name="dbName"/>, jeśli nie istnieje,
+        /// o loginie odpowiadającym jego nazwie (<paramref name="userName"/>). 
+        /// Przypisuje mu role <c>db_datareader</c> i <c>db_datawriter</c>.
         /// </summary>
-        /// <param name="connection">Obiekt SqlConnection, reprezentujący 
-        ///                          połączenie z serwerem przez konto z odpowiednimi uprawnieniami</param>
-        /// <param name="dbName">Nazwa bazy danych, do której dostęp ma mieć użytkownik</param>
+        /// <param name="connection">Obiekt <see cref="SqlConnection"/>, reprezentujący 
+        ///                          połączenie z serwerem przez konto z odpowiednimi uprawnieniami.</param>
+        /// <param name="dbName">Nazwa bazy danych, do której dostęp ma mieć użytkownik.</param>
         /// <param name="userName">Nazwa użytkownika. Musi istnieć login o tej samej nazwie.</param>
-        /// <returns></returns
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację.
+        /// </returns
         private static async Task CreateUser(SqlConnection connection, string dbName, string userName)
         {
             // WIP: Sprawdź czy istnieje login o podanej nazwie
@@ -213,23 +219,31 @@ namespace app.Services.Parish
                         USE [{dbName}];
                         IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = @user)
                         BEGIN
-                            CREATE USER [{userName}] FOR LOGIN [{userName}];
-                            ALTER ROLE db_datareader ADD MEMBER [{userName}];
-                            ALTER ROLE db_datawriter ADD MEMBER [{userName}];
+                            DECLARE @sql NVARCHAR(MAX) = 
+                                'CREATE USER ' + quotename(@user) + ' FOR LOGIN ' + quotename(@user) + ';' +
+                                'ALTER ROLE db_datareader ADD MEMBER ' + quotename(@user) + ';' +
+                                'ALTER ROLE db_datawriter ADD MEMBER ' + quotename(@user) + ';';
+                            EXEC(@sql);
                         END";
+                            //CREATE USER @user FOR LOGIN @user;
+                            //ALTER ROLE db_datareader ADD MEMBER @user;
+                            //ALTER ROLE db_datawriter ADD MEMBER @user;
 
+                cmd.Parameters.AddWithValue("@db", dbName);
                 cmd.Parameters.AddWithValue("@user", userName);
                 await cmd.ExecuteNonQueryAsync();
             }
         }
 
         /// <summary>
-        /// Zwraca nazwę serwera na podstawie connection stringa.
+        /// Zwraca nazwę serwera na podstawie <c>ConnectionString</c> (<paramref name="connectionString"/>).
         /// </summary>
-        /// <param name="cs">Gotowy ConnectionString</param>
-        /// <returns></returns>
-        private static string GetServerFromConnectionString(string cs)
-            => new SqlConnectionStringBuilder(cs).DataSource;
+        /// <param name="connectionString">Gotowy <c>ConnectionString</c> do bazy danych.</param>
+        /// <returns>
+        /// Nazwa serwera, który wskazuje <paramref name="connectionString"/>.
+        /// </returns>
+        private static string GetServerFromConnectionString(string connectionString)
+            => new SqlConnectionStringBuilder(connectionString).DataSource;
     }
 
 }

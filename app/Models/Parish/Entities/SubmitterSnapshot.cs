@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje archiwalny stan danych osoby zg³aszaj¹cej (Submitter) w danym momencie.
@@ -55,12 +55,12 @@ namespace app.Models.Parish
         /// <summary>
         /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
         /// </summary>
-        public int ChangeAuthorId { get; set; } = default!;
+        public int? ChangeAuthorId { get; set; } = default!;
 
         /// <summary>
-        /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja nawigacyjna).
+        /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja opcjonalna).
         /// </summary>
-        public User ChangeAuthor { get; set; } = default!;
+        public User? ChangeAuthor { get; set; } = default!;
     }
 
     public class SubmitterSnapshotEntityTypeConfiguration : IEntityTypeConfiguration<SubmitterSnapshot>

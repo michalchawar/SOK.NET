@@ -7,7 +7,8 @@ namespace app.Services.Parish
 {
     /// <summary>
     /// Implementacja serwisu do ³adowania i przechowywania aktualnie wybranej parafii.
-    /// Parafia jest pobierana z centralnej bazy danych na podstawie jej publicznego unikalnego identyfikatora (UID).
+    /// Parafia jest pobierana z centralnej bazy danych na podstawie jej publicznego 
+    /// unikalnego identyfikatora (<c>UID</c>).
     /// </summary>
     public class CurrentParishService : ICurrentParishService
     {

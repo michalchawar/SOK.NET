@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace app.Models.Parish
+namespace app.Models.Parish.Entities
 {
     /// <summary>
     /// Reprezentuje budynek, który mo¿e byæ przypisany do parafii i zawieraæ wiele adresów oraz mieszkañ.

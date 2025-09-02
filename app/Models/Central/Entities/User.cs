@@ -1,67 +1,25 @@
 using app.Models.Central.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace app.Models.Central
+namespace app.Models.Central.Entities
 {
     /// <summary>
     /// Reprezentuje u¿ytkownika systemu i jego przynale¿noœæ.
     /// Przechowuje dane do identyfikacji (login, e-mail) i unikatowy identyfikator parafii, do której nale¿y.
     /// </summary>
-    public class User
+    public class User : IdentityUser
     {
-        /// <summary>
-        /// Unikalny identyfikator u¿ytkownika (klucz g³ówny).
-        /// </summary>
-        [Key]
-        public int Id { get; set; }
 
         /// <summary>
-        /// Nazwa (login) u¿ytkownika (unikalny w systemie).
-        /// </summary>
-        [MaxLength(64)]
-        public string Username { get; set; } = default!;
-
         /// <summary>
         /// Nazwa wyœwietlana u¿ytkownika (np. imiê i nazwisko).
         /// </summary>
         [MaxLength(128)]
         public string DisplayName { get; set; } = default!;
-
-        /// <summary>
-        /// Adres e-mail u¿ytkownika (opcjonalny).
-        /// </summary>
-        [MaxLength(256)]
-        public string? Email { get; set; } = default!;
-
-        /// <summary>
-        /// Hash has³a u¿ytkownika.
-        /// </summary>
-        [MaxLength(256)]
-        public string PasswordHash { get; set; } = default!;
-
-        /// <summary>
-        /// Token odœwie¿ania JWT, u¿ywany do uzyskiwania nowych tokenów dostêpu.
-        /// </summary>
-        public string? RefreshToken { get; set; } = default!;
-
-        /// <summary>
-        /// Czas wygaœniêcia tokenu odœwie¿ania.
-        /// </summary>
-        public DateTime? RefreshTokenExpiryTime { get; set; }
-
-        /// <summary>
-        /// Okreœla, czy konto u¿ytkownika jest aktywne w systemie.
-        /// </summary>
-        [DefaultValue(true)]
-        public bool IsActive { get; set; }
-
-        /// <summary>
-        /// Zbiór ról przypisanych u¿ytkownikowi.
-        /// </summary>
-        public HashSet<Role> Roles { get; set; } = new HashSet<Role>();
 
         /// <summary>
         /// Identyfikator parafii, do której przypisany jest u¿ytkownik.
@@ -82,8 +40,7 @@ namespace app.Models.Central
             // (zdefiniowany przez atrybut [Key] w modelu)
 
             // Indeksy i unikalnoœæ
-            builder.HasIndex(u => u.Username)
-                .IsUnique();
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
 
             // Generowane pola
             // (brak automatycznie generowanych pól)

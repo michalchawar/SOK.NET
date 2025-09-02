@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel.DataAnnotations;
 
-namespace app.Models.Central
+namespace app.Models.Central.Entities
 {
     /// <summary>
     /// Reprezentuje parafiê w systemie.
