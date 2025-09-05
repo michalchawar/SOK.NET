@@ -70,7 +70,7 @@ namespace app.Data.Seeding
             var parish = await context.Parishes.FirstOrDefaultAsync();
             if (parish == null)
             {
-                parish = await parishProvisioning.CreateParishAsync(new Guid().ToString(), "Przykładowa parafia");
+                parish = await parishProvisioning.CreateParishAsync(Guid.NewGuid().ToString(), "Przykładowa parafia");
             }
 
             // 4. Upewnij się, że istnieje administrator

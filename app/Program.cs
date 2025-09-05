@@ -4,6 +4,7 @@ using app.Extensions;
 using app.Middleware;
 using app.Models.Central.Entities;
 using app.Services;
+using app.Services.Identity;
 using app.Services.Parish;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,8 @@ builder.Services.ConfigureApplicationCookie(options =>
         options.ExpireTimeSpan = TimeSpan.FromHours(6);
     });
 
+// Rejestracja fabryki do tworzenia obiektu ClaimsPrincipal z dodatkowymi danymi
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AppClaimsPrincipalFactory>();
 
 // Rejestracja usługi do szyfrowania i deszyfrowania danych
 builder.Services.AddSingleton<ICryptoService, CryptoService>();

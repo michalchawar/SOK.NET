@@ -32,7 +32,7 @@ namespace app.Middleware
         /// </remarks>
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var parishUid = context.User.FindFirst("parishUid")?.Value;
+            var parishUid = context.User.FindFirst("ParishUniqueId")?.Value;
             if (!string.IsNullOrEmpty(parishUid))
             {
                 var done = await _currentParishService.SetParish(parishUid);
