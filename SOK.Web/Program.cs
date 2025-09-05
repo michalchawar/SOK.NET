@@ -1,13 +1,13 @@
-﻿using SOK.Web.Data;
-using SOK.Web.Data.Seeding;
-using SOK.Web.Extensions;
+﻿using Microsoft.AspNetCore.Identity;
+using SOK.Application.Common.Interface;
+using SOK.Application.Services.Implementation;
+using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Central;
+using SOK.Infrastructure.Extensions;
+using SOK.Infrastructure.Identity;
+using SOK.Infrastructure.Persistence.Context;
+using SOK.Infrastructure.Provisioning;
 using SOK.Web.Middleware;
-using SOK.Web.Models.Central.Entities;
-using SOK.Web.Services;
-using SOK.Web.Services.Identity;
-using SOK.Web.Services.Parish;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +16,9 @@ builder.Services.AddScoped<ICurrentParishService, CurrentParishService>();
 
 // Rejestracja kontekstów baz danych
 builder.Services.RegisterDatabaseContexts(builder.Configuration).MigrateCentralDatabase();
+
+// Rejestracja repozytoriów
+builder.Services.RegisterRepositories();
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
@@ -59,11 +62,8 @@ using (var scope = app.Services.CreateScope())
     var prov = services.GetRequiredService<IParishProvisioningService>();
     await prov.EnsureAllParishDatabasesReadyAsync();
 
-    var context = services.GetRequiredService<CentralDbContext>();
-    var userManager = services.GetRequiredService<UserManager<User>>();
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-    await CentralDbSeeder.SeedAsync(context, userManager, roleManager, prov);
+    var seeder = services.GetRequiredService<IDbSeeder>();
+    await seeder.SeedAsync();
 }
 
 // Konfiguracja pipelinu żądań HTTP

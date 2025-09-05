@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using SOK.Web.Services.Parish;
+﻿using SOK.Application.Services.Interface;
 
 namespace SOK.Web.Middleware
 {
@@ -35,10 +34,10 @@ namespace SOK.Web.Middleware
             var parishUid = context.User.FindFirst("ParishUniqueId")?.Value;
             if (!string.IsNullOrEmpty(parishUid))
             {
-                var done = await _currentParishService.SetParish(parishUid);
+                var done = await _currentParishService.SetParishAsync(parishUid);
                 if (done)
                     Console.WriteLine($"ParishResolver: Using the parish with UID: {parishUid}");
-                    //_logger.LogInformation($"Using the parish with UID: {parishUid}");
+                //_logger.LogInformation($"Using the parish with UID: {parishUid}");
             }
             else
             {

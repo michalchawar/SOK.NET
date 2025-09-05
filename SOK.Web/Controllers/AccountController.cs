@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using SOK.Web.Models.Central.Entities;
-using SOK.Web.Models.Central.ViewModels;
+using SOK.Domain.Entities.Central;
+using SOK.Web.ViewModels.Central;
 
 namespace SOK.Web.Controllers
 {
@@ -27,7 +27,7 @@ namespace SOK.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        public async Task<IActionResult> Login(LoginVM model, string? returnUrl = null)
         {
             if (!ModelState.IsValid) return View(model);
 
