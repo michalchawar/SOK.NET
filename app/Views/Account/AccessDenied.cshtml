@@ -1,0 +1,10 @@
+﻿@{
+    ViewData["Title"] = "Brak dostępu";
+}
+
+<h2>@ViewData["Title"]</h2>
+<p class="text-danger">
+    Nie masz uprawnień, aby zobaczyć tę stronę.
+</p>
+
+<a asp-controller="Account" asp-action="Login" class="btn btn-link">Powrót do logowania</a>

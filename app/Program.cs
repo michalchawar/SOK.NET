@@ -1,40 +1,70 @@
-﻿using Microsoft.EntityFrameworkCore;
-using app.Data;
+﻿using app.Data;
+using app.Data.Seeding;
+using app.Extensions;
+using app.Middleware;
+using app.Models.Central.Entities;
 using app.Services;
+using app.Services.Identity;
+using app.Services.Parish;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Rejestracja usługi IParishGetter i IParishSetter
-builder.Services.AddScoped<IParishGetter, ParishService>();
-builder.Services.AddScoped<IParishSetter, ParishService>();
+// Rejestracja usługi do wybierania i przechowywania aktualnie wybranej parafii (tenant'a)
+builder.Services.AddScoped<ICurrentParishService, CurrentParishService>();
 
-// Rejestracja konfiguracji parafii (tenant'ów) z pliku konfiguracyjnego
-builder.Services.Configure<ParishConfigurationSection>(
-    builder.Configuration.GetSection("Parishes"));
+// Rejestracja kontekstów baz danych
+builder.Services.RegisterDatabaseContexts(builder.Configuration).MigrateCentralDatabase();
 
-// Rejestracja kontekstu bazy danych dla centralnej bazy danych
-builder.Services.AddDbContext<centralDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("centralDbContext") ?? throw new InvalidOperationException("Connection string 'centralDbContext' not found.")));
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+    {
+        options.Password.RequireUppercase = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 4;
+        options.Password.RequireNonAlphanumeric = false;
+    })
+    .AddEntityFrameworkStores<CentralDbContext>()
+    .AddDefaultTokenProviders();
 
-// Rejestracja middleware do obsługi wielu parafii (tenant'ów)
-builder.Services.AddScoped<MultiParishServiceMiddleware>();
+builder.Services.ConfigureApplicationCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(6);
+    });
 
-// Rejestracja kontekstu bazy danych dla indywidualnych parafii (tenant'ów)
-builder.Services.AddDbContext<sokAppContext>((services, options) =>
-{
-    var parish = services.GetService<IParishGetter>()?.Parish;
+// Rejestracja fabryki do tworzenia obiektu ClaimsPrincipal z dodatkowymi danymi
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AppClaimsPrincipalFactory>();
 
-    var connectionString = parish?.ConnectionString ?? throw new InvalidOperationException(string.Format("Connection string for parish with UID '{uid}' not found.", parish?.UniqueId));
-    options.UseSqlServer(connectionString);
-});
+// Rejestracja usługi do szyfrowania i deszyfrowania danych
+builder.Services.AddSingleton<ICryptoService, CryptoService>();
+
+// Rejestracja usługi do provisioningu baz danych parafii
+builder.Services.AddTransient<IParishProvisioningService, ParishProvisioningService>();
+
+// Rejestracja middleware do rozpoznawania parafii (tenant'a)
+builder.Services.AddTransient<ParishResolver>();
 
 // Dodanie usług do kontenera
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Rejestracja middleware do czytania ciasteczka i ustawiania aktualnej parafii (tenant'a)
-app.UseMiddleware<MultiParishServiceMiddleware>();
+// Migracja indywidualnych baz danych przy starcie aplikacji
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var prov = services.GetRequiredService<IParishProvisioningService>();
+    await prov.EnsureAllParishDatabasesReadyAsync();
+
+    var context = services.GetRequiredService<CentralDbContext>();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+    await CentralDbSeeder.SeedAsync(context, userManager, roleManager, prov);
+}
 
 // Konfiguracja pipelinu żądań HTTP
 if (!app.Environment.IsDevelopment())
@@ -45,7 +75,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Rejestracja middleware do czytania ciasteczka i ustawiania aktualnej parafii (tenant'a)
+app.UseMiddleware<ParishResolver>();
 
 app.MapControllerRoute(
     name: "default",
