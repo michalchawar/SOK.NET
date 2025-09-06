@@ -10,7 +10,7 @@
       # Klucz do szyfrowania connection stringów tenantów (AES)
       Crypto__Key: "J0BQomj4ichywU/Lm2FlG4CMzVqHclmxydZOz2KQBDI="
     ports:
-      - "8080"
+      - "8060:8080"
 
   db:
     environment:

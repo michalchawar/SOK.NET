@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "watch:css": "npx @tailwindcss/cli -i wwwroot/css/site.css -o wwwroot/css/site.min.css -m --watch",
-    "watch:bs": "browser-sync start --proxy \"http://localhost:40817\" --files \"wwwroot/css/*.css, Views/**/*.cshtml\" --no-ui --reload-delay 150"
+    "watch:bs": "browser-sync start --proxy \"http://localhost:8060\" --files \"wwwroot/css/*.css, Views/**/*.cshtml\" --no-ui --reload-delay 500"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
     "daisyui": "^5.1.7",
+    "eslint": "^9.35.0",
     "tailwindcss": "^4.1.13"
   },
   "dependencies": {
