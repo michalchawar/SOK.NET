@@ -1,0 +1,13 @@
+// tailwind.config.js
+module.exports = {
+    content: [
+        "./Views/**/*.cshtml",
+        "./wwwroot/**/*.js"
+    ],
+    theme: {
+        extend: {},
+    },
+    plugins: [
+        require("daisyui")
+    ],
+}

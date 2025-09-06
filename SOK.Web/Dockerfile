@@ -2,6 +2,17 @@
 
 # Ten etap jest używany podczas uruchamiania z programu VS w trybie szybkim (domyślnie dla konfiguracji debugowania)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+
+# Install node
+#RUN apt-get update && \
+#    apt-get upgrade -y && \
+#    apt-get install -y curl && \
+#    curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh && \
+#    bash nodesource_setup.sh && \
+#    rm -r nodesource_setup.sh && \
+#    apt-get install -y nodejs
+
+# Ustawienia
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080

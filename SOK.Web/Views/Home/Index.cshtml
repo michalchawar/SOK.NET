@@ -3,6 +3,8 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome, @Context.User.FindFirst("DisplayName").Value</h1>
+    <h1 class="text-xl">Welcome, @Context.User.FindFirst("DisplayName").Value</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+    <input type="range" min="0" max="100" value="40" class="range range-primary" />
 </div>

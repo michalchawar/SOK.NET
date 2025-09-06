@@ -4,29 +4,28 @@
     ViewData["Title"] = "Logowanie";
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="flex justify-center align-middle">
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+        <legend class="fieldset-legend">Zaloguj się</legend>
 
-<form asp-action="Login" method="post">
-    <div asp-validation-summary="All" class="text-danger"></div>
+        <form asp-action="Login" method="post" class="">
+            <div asp-validation-summary="All" class="text-danger"></div>
 
-    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            <input type="hidden" class="input" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
-    <div class="form-group">
-        <label asp-for="Username"></label>
-        <input asp-for="Username" class="form-control" />
-        <span asp-validation-for="Username" class="text-danger"></span>
-    </div>
+            <label asp-for="Username" class="label"></label>
+            <input asp-for="Username" class="input" />
+            <span asp-validation-for="Username" class="text-danger"></span>
 
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
+            <label asp-for="Password" class="label"></label>
+            <input asp-for="Password" class="input" type="password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
 
-    <div class="form-group form-check">
-        <input asp-for="RememberMe" class="form-check-input" />
-        <label asp-for="RememberMe" class="form-check-label"></label>
-    </div>
+            <label asp-for="RememberMe" class="label">
+                <input asp-for="RememberMe" class="checkbox" />
+            </label>
 
-    <button type="submit" class="btn btn-primary">Zaloguj</button>
-</form>
+            <button type="submit" class="btn bg-primary">Zaloguj</button>
+        </form>
+    </fieldset>
+</div>
