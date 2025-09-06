@@ -43,11 +43,13 @@ namespace SOK.Web.Controllers
 
                 if (result.Succeeded)
                 {
+                    TempData["success"] = "Pomyślnie zalogowano.";
                     return Redirect(returnUrl ?? "/");
                 }
             }
 
-            ModelState.AddModelError("", "Nieprawidłowa nazwa użytkownika lub hasło.");
+            //ModelState.AddModelError("", "Nieprawidłowa nazwa użytkownika lub hasło.");
+            TempData["error"] = "Nieprawidłowa nazwa użytkownika lub hasło.";
             return View(model);
         }
 

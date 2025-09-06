@@ -4,11 +4,11 @@ namespace SOK.Web.ViewModels.Central
 {
     public class LoginVM
     {
-        [Required]
+        [Required(ErrorMessage = "Podaj nazwę użytkownika")]
         [Display(Name = "Nazwa użytkownika")]
         public string Username { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Podaj hasło")]
         [DataType(DataType.Password)]
         [Display(Name = "Hasło")]
         public string Password { get; set; } = string.Empty;
