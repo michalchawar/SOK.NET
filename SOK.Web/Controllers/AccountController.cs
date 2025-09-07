@@ -43,7 +43,7 @@ namespace SOK.Web.Controllers
 
                 if (result.Succeeded)
                 {
-                    TempData["success"] = "Pomyślnie zalogowano.";
+                    TempData["success"] = "Zostałeś zalogowany.";
                     return Redirect(returnUrl ?? "/");
                 }
             }
@@ -53,11 +53,15 @@ namespace SOK.Web.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            bool isLoggedIn = _signInManager.IsSignedIn(HttpContext.User);
+
+            if (isLoggedIn)
+            {
+                await _signInManager.SignOutAsync();
+                TempData["info"] = "Zostałeś wylogowany.";
+            }
             return RedirectToAction("Login", "Account");
         }
 
