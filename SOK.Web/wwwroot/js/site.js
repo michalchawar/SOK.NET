@@ -3,6 +3,11 @@
 //
 /// <reference path="../lib/jquery/dist/jquery.js" />
 
+const sidebarWidthClass = {
+    collapsed: "w-16",
+    expanded: "w-68"
+}
+
 const notifications = {
 
     _createNotification: function (type = this._types.default, text = '') {
@@ -99,4 +104,18 @@ function reflow(element) {
         element = document.documentElement;
     }
     void (element.offsetHeight);
+}
+
+function sidebarChangeState(event) {
+    let sidebar = $("#sidebar");
+    let button = $("#sidebarExpandCheckbox");
+
+    // Sidebar expanded
+    if (button.is(":checked")) {
+        sidebar.removeClass(sidebarWidthClass.collapsed).addClass(sidebarWidthClass.expanded);
+    }
+    // Sidebar collapsed
+    else {
+        sidebar.removeClass(sidebarWidthClass.expanded).addClass(sidebarWidthClass.collapsed);
+    }
 }

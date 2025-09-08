@@ -12,6 +12,12 @@
     --color-error: var(--color-rose-600);
 }
 
+@layer utilities {
+    .navbar {
+        @apply py-1;
+        min-height: 2rem;
+    }
+}
 
 html {
   font-size: 14px;
