@@ -1,0 +1,34 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SOK.Domain.Entities.Parish;
+
+namespace SOK.Infrastructure.Persistence.Configurations.Parish
+{
+    public class SubmissionEntityTypeConfiguration : IEntityTypeConfiguration<Submission>
+    {
+        public void Configure(EntityTypeBuilder<Submission> builder)
+        {
+            // Klucz g³ówny
+            // (zdefiniowany przez atrybut [Key] w modelu)
+
+            // Indeksy i unikalnoœæ
+            builder.HasIndex(s => s.UniqueId)
+                .IsUnique();
+
+            // Generowane pola
+            builder.Property(s => s.UniqueId)
+                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+
+            // Relacje
+            builder.HasOne(s => s.Submitter)
+                .WithMany(s => s.Submissions)
+                .HasForeignKey(s => s.SubmitterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(s => s.Address)
+                .WithOne(a => a.Submission)
+                .HasForeignKey<Submission>(s => s.AddressId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}

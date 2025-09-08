@@ -1,0 +1,37 @@
+﻿@model LoginVM
+
+@{
+    ViewData["Title"] = "Logowanie";
+}
+
+<div class="my-auto flex justify-center">
+    <form asp-action="Login" method="post" class="">
+        <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+            <legend class="fieldset-legend">Zaloguj się</legend>
+
+            <div asp-validation-summary="ModelOnly" class="text-error"></div>
+
+            <input type="hidden" class="input" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+            <label asp-for="Username" class="label"></label>
+            <input asp-for="Username" class="input" />
+            <span asp-validation-for="Username" class="text-error"></span>
+
+            <label asp-for="Password" class="label"></label>
+            <input asp-for="Password" class="input" type="password" />
+            <span asp-validation-for="Password" class="text-error"></span>
+
+            <label asp-for="RememberMe" class="label">
+                <input asp-for="RememberMe" class="checkbox" />
+                @Html.LabelFor(l => l.RememberMe)
+            </label>
+
+            <button type="submit" class="btn bg-primary mt-2">Zaloguj</button>
+        </fieldset>
+    </form>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

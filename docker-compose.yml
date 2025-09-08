@@ -1,10 +1,10 @@
 ﻿services:
   app:
     image: ${DOCKER_REGISTRY-}app
-    container_name: app
+    container_name: web
     build:
       context: .
-      dockerfile: app/Dockerfile
+      dockerfile: SOK.Web/Dockerfile
     depends_on:
       - db
   db:

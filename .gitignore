@@ -119,3 +119,6 @@ local.settings.json
 coverage*.json
 coverage*.xml
 coverage*.info
+/SOK.Web/node_modules
+/SOK.Web/wwwroot/css/site.min.css
+/SOK.Web/wwwroot/css/site.output.css
