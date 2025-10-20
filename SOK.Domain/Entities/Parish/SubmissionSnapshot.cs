@@ -20,7 +20,7 @@ namespace SOK.Domain.Entities.Parish
         /// Publiczny unikalny identyfikator zg³oszenia w momencie utworzenia snapshotu.
         /// W wiêkszoœci przypadków wszystkie snapshoty dla danego zg³oszenia bêd¹ mia³y ten sam UniqueId.
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Token dostêpu do zg³oszenia w momencie utworzenia snapshotu.

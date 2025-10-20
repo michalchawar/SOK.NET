@@ -17,7 +17,7 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// Publiczny unikalny identyfikator osoby zg³aszaj¹cej (GUID).
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Imiê osoby zg³aszaj¹cej.
@@ -52,5 +52,13 @@ namespace SOK.Domain.Entities.Parish
         /// Historia zmian danych osoby zg³aszaj¹cej (snapshoty).
         /// </summary>
         public ICollection<SubmitterSnapshot> History { get; set; } = new List<SubmitterSnapshot>();
+
+        public bool IsEqual(Submitter other)
+        {
+            return this.Name == other.Name
+                && this.Surname == other.Surname
+                && this.Email == other.Email
+                && this.Phone == other.Phone;
+        }
     }
 }

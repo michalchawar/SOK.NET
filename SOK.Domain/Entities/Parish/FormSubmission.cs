@@ -84,12 +84,6 @@ namespace SOK.Domain.Entities.Parish
         public string City { get; set; } = default!;
 
         /// <summary>
-        /// Nazwa diecezji w momencie sk³adania zg³oszenia.
-        /// </summary>
-        [MaxLength(128)]
-        public string Diocese { get; set; } = default!;
-
-        /// <summary>
         /// Metoda zg³oszenia (np. formularz papierowy, online, telefonicznie).
         /// </summary>
         [DefaultValue(SubmitMethod.NotRegistered)]

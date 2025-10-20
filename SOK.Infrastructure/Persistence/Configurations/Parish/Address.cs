@@ -23,16 +23,6 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .WithMany(b => b.Addresses)
                 .HasForeignKey(a => a.BuildingId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne(a => a.Street)
-                .WithMany()
-                .HasForeignKey(a => a.StreetId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasOne(a => a.City)
-                .WithMany()
-                .HasForeignKey(a => a.CityId)
-                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

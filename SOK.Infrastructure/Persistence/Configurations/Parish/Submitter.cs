@@ -16,8 +16,7 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .IsUnique();
 
             // Generowane pola
-            builder.Property(s => s.UniqueId)
-                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+            // (brak automatycznie generowanych pól)
 
             // Relacje
             // (Submitter nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)

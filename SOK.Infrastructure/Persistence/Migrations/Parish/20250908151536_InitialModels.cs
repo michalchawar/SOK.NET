@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Parish
+namespace SOK.Infrastructure.Persistence.Migrations.Parish
 {
     /// <inheritdoc />
     public partial class InitialModels : Migration
@@ -58,7 +59,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UniqueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)"),
+                    UniqueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                     Surname = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -238,9 +239,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ApartmentNumber = table.Column<int>(type: "int", nullable: true),
                     ApartmentLetter = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true),
-                    BuildingId = table.Column<int>(type: "int", nullable: false),
-                    StreetId = table.Column<int>(type: "int", nullable: false),
-                    CityId = table.Column<int>(type: "int", nullable: false)
+                    BuildingId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -251,16 +250,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                         principalTable: "Buildings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Addresses_Cities_CityId",
-                        column: x => x.CityId,
-                        principalTable: "Cities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Addresses_Streets_StreetId",
-                        column: x => x.StreetId,
-                        principalTable: "Streets",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -301,8 +290,8 @@ namespace SOK.Infrastructure.Migrations.Parish
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UniqueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)"),
-                    AccessToken = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    UniqueId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AccessToken = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false, defaultValueSql: "CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)"),
                     SubmitterNotes = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     AdminMessage = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     AdminNotes = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
@@ -549,16 +538,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                 columns: new[] { "BuildingId", "ApartmentNumber", "ApartmentLetter" },
                 unique: true,
                 filter: "[ApartmentNumber] IS NOT NULL AND [ApartmentLetter] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Addresses_CityId",
-                table: "Addresses",
-                column: "CityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Addresses_StreetId",
-                table: "Addresses",
-                column: "StreetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Agendas_DayId",

@@ -9,11 +9,11 @@ using SOK.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Parish
+namespace SOK.Infrastructure.Persistence.Migrations.Parish
 {
     [DbContext(typeof(ParishDbContext))]
-    [Migration("20250902111720_InitialModels")]
-    partial class InitialModels
+    [Migration("20250910111753_FormSubmissionUnusedFields")]
+    partial class FormSubmissionUnusedFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,17 +58,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Property<int>("BuildingId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StreetId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CityId");
-
-                    b.HasIndex("StreetId");
 
                     b.HasIndex("BuildingId", "ApartmentNumber", "ApartmentLetter")
                         .IsUnique()
@@ -261,11 +251,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("Diocese")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
@@ -486,8 +471,10 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.Property<string>("AccessToken")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
 
                     b.Property<int>("AddressId")
                         .HasColumnType("int");
@@ -517,9 +504,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .HasColumnType("nvarchar(512)");
 
                     b.Property<Guid>("UniqueId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -646,9 +631,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .HasColumnType("nvarchar(64)");
 
                     b.Property<Guid>("UniqueId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -837,23 +820,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SOK.Domain.Entities.Parish.City", "City")
-                        .WithMany()
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("SOK.Domain.Entities.Parish.Street", "Street")
-                        .WithMany()
-                        .HasForeignKey("StreetId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Building");
-
-                    b.Navigation("City");
-
-                    b.Navigation("Street");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Agenda", b =>

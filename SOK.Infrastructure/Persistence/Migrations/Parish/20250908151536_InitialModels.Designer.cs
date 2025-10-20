@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOK.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Parish
+namespace SOK.Infrastructure.Persistence.Migrations.Parish
 {
     [DbContext(typeof(ParishDbContext))]
-    partial class ParishDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250908151536_InitialModels")]
+    partial class InitialModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,10 +58,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Property<int>("BuildingId")
                         .HasColumnType("int");
 
-
-
                     b.HasKey("Id");
-
 
                     b.HasIndex("BuildingId", "ApartmentNumber", "ApartmentLetter")
                         .IsUnique()
@@ -251,6 +251,11 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Diocese")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");

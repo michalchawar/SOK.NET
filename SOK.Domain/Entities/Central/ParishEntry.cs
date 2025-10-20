@@ -17,7 +17,7 @@ namespace SOK.Domain.Entities.Central
         /// <summary>
         /// Publiczny unikalny identyfikator parafii (unikalny w systemie).
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Nazwa parafii, widoczna dla administratora.

@@ -18,7 +18,7 @@ namespace SOK.Domain.Entities.Parish
         /// Publiczny unikalny identyfikator zg³aszaj¹cego w momencie utworzenia snapshotu.
         /// W wiêkszoœci przypadków wszystkie snapshoty dla danego zg³aszaj¹cego bêd¹ mia³y ten sam UniqueId.
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Imiê osoby zg³aszaj¹cej w momencie utworzenia snapshotu.

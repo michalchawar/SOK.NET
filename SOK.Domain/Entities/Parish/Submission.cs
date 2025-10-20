@@ -20,7 +20,7 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// Publiczny unikalny identyfikator zg³oszenia (GUID), wykorzystywany g³ównie do udostêpniania lub autoryzacji (w po³¹czeniu z AccessToken).
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Token dostêpu do zg³oszenia, u¿ywany do autoryzacji w po³¹czeniu z UniqueId.
