@@ -25,7 +25,7 @@ namespace SOK.Infrastructure.Repositories
             return await dbSet.AnyAsync(filter);
         }
 
-        public async Task<T> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false)
         {
             return await GetQueryable(filter, includeProperties, tracked)
                 .FirstOrDefaultAsync();

@@ -11,6 +11,9 @@ using SOK.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Rejestracja usługi do szyfrowania i deszyfrowania danych
+builder.Services.AddSingleton<ICryptoService, CryptoService>();
+
 // Rejestracja usługi do wybierania i przechowywania aktualnie wybranej parafii (tenant'a)
 builder.Services.AddScoped<ICurrentParishService, CurrentParishService>();
 
@@ -19,6 +22,9 @@ builder.Services.RegisterDatabaseContexts(builder.Configuration).MigrateCentralD
 
 // Rejestracja repozytoriów
 builder.Services.RegisterRepositories();
+
+// Rejestracja usług danych
+builder.Services.RegisterServices();
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
@@ -39,9 +45,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Rejestracja fabryki do tworzenia obiektu ClaimsPrincipal z dodatkowymi danymi
 builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AppClaimsPrincipalFactory>();
-
-// Rejestracja usługi do szyfrowania i deszyfrowania danych
-builder.Services.AddSingleton<ICryptoService, CryptoService>();
 
 // Rejestracja usługi do provisioningu baz danych parafii
 builder.Services.AddTransient<IParishProvisioningService, ParishProvisioningService>();
