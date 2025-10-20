@@ -14,15 +14,33 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
             // Indeksy i unikalnoœæ
             builder.HasIndex(a => new { a.BuildingId, a.ApartmentNumber, a.ApartmentLetter })
                 .IsUnique();
+            builder.HasIndex(a => a.FilterableString);
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            builder.Property(a => a.FilterableString)
+                .HasComputedColumnSql(
+                    // ³¹czymy dane w ró¿nych kolejnoœciach i ma³ymi literami
+                    "LOWER(CONCAT_WS(' ', " +
+                        "COALESCE(StreetType, ''), " +
+                        "COALESCE(StreetName, ''), " +
+                        "CONCAT(" +
+                            "COALESCE(BuildingNumber, ''), " +
+                            "COALESCE(BuildingLetter, '')), " +
+                        "CONCAT(" +
+                            "COALESCE(ApartmentNumber, ''), " +
+                            "COALESCE(ApartmentLetter, '')), " +
+                        "COALESCE(CityName, '')" +
+                    "))",
+                    stored: true);
 
             // Relacje
             builder.HasOne(a => a.Building)
                 .WithMany(b => b.Addresses)
                 .HasForeignKey(a => a.BuildingId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Wyzwalacze
+            builder.ToTable(t => t.HasTrigger("TR_Address_InsertOrUpdate_Cache"));
         }
     }
 }

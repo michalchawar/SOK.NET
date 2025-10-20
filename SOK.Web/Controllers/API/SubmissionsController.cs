@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SOK.Application.Common.DTO;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -29,7 +30,7 @@ namespace SOK.Web.Controllers.API
             [FromQuery] int pageSize = 5)
         {
             List<Submission> submissions = await _submissionService
-                .GetSubmissionsPaginated(null, page, pageSize);
+                .GetSubmissionsPaginated(CreateSubmissionFilter(address, submitter), page, pageSize);
 
             List<SubmissionDto> result = submissions.Select(s => new SubmissionDto(s)).ToList();
 
@@ -76,7 +77,29 @@ namespace SOK.Web.Controllers.API
             string address = "", 
             string submitter = "")
         {
-            return default!;
+            // Rozbij tekst po spacji i slashu, odrzuć puste fragmenty
+            static string BuildLikePattern(string input)
+            {
+                if (string.IsNullOrWhiteSpace(input))
+                    return string.Empty;
+
+                var parts = input
+                    .ToLower()
+                    .Split(new[] { ' ', '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Sklejamy z wildcardami pomiędzy i na początku/końcu
+                return $"%{string.Join("%", parts)}%";
+            }
+
+            var addressPattern = BuildLikePattern(address);
+            var submitterPattern = BuildLikePattern(submitter);
+
+            // Generujemy dynamiczne wyrażenie do filtrowania i zwracamy je
+            return s =>
+                (string.IsNullOrEmpty(addressPattern) ||
+                    EF.Functions.Like(s.Address.FilterableString, addressPattern)) &&
+                (string.IsNullOrEmpty(submitterPattern) ||
+                    EF.Functions.Like(s.Submitter.FilterableString, submitterPattern));
         }
     }
 }

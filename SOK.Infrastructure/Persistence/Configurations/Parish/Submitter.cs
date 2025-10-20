@@ -14,9 +14,21 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
             // Indeksy i unikalnoœæ
             builder.HasIndex(s => s.UniqueId)
                 .IsUnique();
+            builder.HasIndex(s => s.FilterableString);
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            builder.Property(s => s.FilterableString)
+                .HasComputedColumnSql(
+                    // ³¹czymy dane w ró¿nych kolejnoœciach i ma³ymi literami
+                    "LOWER(CONCAT_WS(' ', " +
+                        "COALESCE(Name, ''), " +
+                        "COALESCE(Surname, ''), " +
+                        "COALESCE(Name, ''), " +
+                        "COALESCE(Email, ''), " +
+                        "COALESCE(Phone, '')" +
+                    "))",
+                    stored: true);
+
 
             // Relacje
             // (Submitter nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)

@@ -53,6 +53,17 @@ namespace SOK.Domain.Entities.Parish
         /// </summary>
         public ICollection<SubmitterSnapshot> History { get; set; } = new List<SubmitterSnapshot>();
 
+
+        /// <summary>
+        /// Reprezentacja tekstowa zg³aszaj¹cego do celów filtrowania.
+        /// </summary>
+        /// <remarks>
+        /// £¹czny tekst do wyszukiwania (imiê, nazwisko, e-mail, telefon w ró¿nych kolejnoœciach),
+        /// generowany automatycznie w bazie danych.
+        /// </remarks>
+        [MaxLength(1024)]
+        public string FilterableString { get; private set; } = string.Empty;
+
         public bool IsEqual(Submitter other)
         {
             return this.Name == other.Name

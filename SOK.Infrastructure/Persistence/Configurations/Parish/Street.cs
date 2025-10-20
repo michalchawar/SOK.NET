@@ -28,6 +28,9 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .WithMany(c => c.Streets)
                 .HasForeignKey(s => s.CityId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Wyzwalacze
+            builder.ToTable(t => t.HasTrigger("TR_Street_Update_AddressCache"));
         }
     }
 }

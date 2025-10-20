@@ -19,6 +19,9 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
 
             // Relacje
             // (City nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+
+            // Wyzwalacze
+            builder.ToTable(t => t.HasTrigger("TR_City_Update_AddressCache"));
         }
     }
 }

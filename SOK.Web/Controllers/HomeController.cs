@@ -20,7 +20,7 @@ namespace SOK.Web.Controllers
         public IActionResult Index()
         {
             var submission = _context.Submissions.FirstOrDefault();
-            ViewData["test"] = submission.Visit?.Id;
+            ViewData["test"] = submission?.Visit?.Id;
             return View();
         }
 

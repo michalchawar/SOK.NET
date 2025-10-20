@@ -27,6 +27,9 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
             builder.HasMany(b => b.Agendas)
                 .WithMany(a => a.BuildingsAssigned)
                 .UsingEntity<BuildingAssignment>();
+
+            // Wyzwalacze
+            builder.ToTable(t => t.HasTrigger("TR_Building_Update_AddressCache"));
         }
     }
 }
