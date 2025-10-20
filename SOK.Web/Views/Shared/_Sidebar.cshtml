@@ -1,39 +1,38 @@
-﻿@* <button class="btn btn-soft">
-	<i class="bi bi-arrow-bar-right"></i>
-</button> *@
-
-<label class="swap swap-rotate tooltip tooltip-right self-end rounded-md px-3 py-2 text-lg transition-colors hover:bg-base-100"
-data-tip="Przełącz boczny pasek">
+﻿<label class="swap swap-rotate tooltip tooltip-right self-end rounded-md px-3 py-2 text-lg transition-colors hover:bg-base-100"
+   data-tip="Przełącz boczny pasek">
 	<input type="checkbox" id="sidebarExpandCheckbox" />
 
 	<i class="swap-off bi bi-arrow-bar-right"></i>
 	<i class="swap-on bi bi-arrow-bar-left"></i>
 </label>
 
-<div class="flex flex-col gap-1 whitespace-nowrap">
+<div class="font-noto-sans flex flex-col gap-1 text-lg font-medium whitespace-nowrap">
 	<a asp-controller="Home" asp-action="Index" role="button" 
-	class="flex h-12 w-full items-center overflow-x-clip rounded-md text-lg font-semibold transition-colors hover:bg-(--color-primary) hover:text-white">
+	   class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors hover:bg-(--color-primary) hover:text-white">
 		<div class="flex min-w-12 justify-center">
 			<i class="bi bi-house-fill text-2xl"></i>
 		</div>
-		Strona główna
+		Przegląd
 	</a>
-	<a asp-controller="Home" asp-action="Index" role="button"
-	   class="flex h-12 w-full items-center overflow-x-clip rounded-md text-lg font-semibold transition-colors hover:bg-neutral-700 hover:text-white">
+	<a asp-controller="Submissions" asp-action="Index" role="button"
+	   class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors
+			hover:bg-(--color-primary) hover:text-white">
 		<div class="flex min-w-12 justify-center pb-1">
 			<i class="bi bi-envelope-paper-fill text-2xl"></i>
 		</div>
 		Zgłoszenia
 	</a>
 	<a asp-controller="Home" asp-action="Index" role="button"
-	   class="flex h-12 w-full items-center overflow-x-clip rounded-md text-lg font-semibold transition-colors hover:bg-neutral-700 hover:text-white">
+	   class="flex h-12 w-full cursor-not-allowed items-center gap-1 overflow-x-clip rounded-md transition-colors
+			hover:bg-neutral-700 hover:text-white">
 		<div class="flex min-w-12 justify-center pb-1">
 			<i class="bi bi-calendar-week-fill text-2xl"></i>
 		</div>
 		Plan kolędy
 	</a>
 	<a asp-controller="Home" asp-action="Index" role="button"
-	   class="flex h-12 w-full items-center overflow-x-clip rounded-md text-lg font-semibold transition-colors hover:bg-neutral-700 hover:text-white">
+	   class="flex h-12 w-full cursor-not-allowed items-center gap-1 overflow-x-clip rounded-md transition-colors
+			hover:bg-neutral-700 hover:text-white">
 		<div class="flex min-w-12 justify-center">
 			<i class="bi bi-plus-square-dotted text-2xl"></i>
 		</div>

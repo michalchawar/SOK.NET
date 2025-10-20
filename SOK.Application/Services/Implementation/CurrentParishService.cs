@@ -13,6 +13,7 @@ namespace SOK.Application.Services.Implementation
     public class CurrentParishService : ICurrentParishService
     {
         private readonly IUnitOfWorkCentral _uow;
+        private readonly ICryptoService _cryptoService;
 
         /// <inheritdoc/>
         public string? ParishUid { get; private set; }
@@ -20,9 +21,10 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc/>
         public string? ConnectionString { get; private set; }
 
-        public CurrentParishService(IUnitOfWorkCentral central)
+        public CurrentParishService(IUnitOfWorkCentral central, ICryptoService cryptoService)
         {
             _uow = central;
+            _cryptoService = cryptoService;
         }
 
         /// <inheritdoc/>
@@ -33,7 +35,7 @@ namespace SOK.Application.Services.Implementation
             if (parish != null)
             {
                 ParishUid = parishUid;
-                ConnectionString = parish.EncryptedConnectionString;
+                ConnectionString = _cryptoService.Decrypt(parish.EncryptedConnectionString);
 
                 return true;
             }

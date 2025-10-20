@@ -1,0 +1,198 @@
+﻿using Microsoft.AspNetCore.Http;
+using SOK.Application.Common.DTO;
+using SOK.Application.Common.Interface;
+using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
+using System.Linq.Expressions;
+
+namespace SOK.Application.Services.Implementation
+{
+    public class SubmissionService : ISubmissionService
+    {
+        private readonly IUnitOfWorkParish _uow;
+
+        public SubmissionService(IUnitOfWorkParish uow)
+        {
+            _uow = uow;
+        }
+
+        public async Task<Submission?> GetSubmissionByIdAsync(int id)
+        {
+            return 
+                (await _uow.Submission.GetWithIncludesAsync(
+                    s => s.Id == id,
+                    submitter: true,
+                    address: true))
+                .FirstOrDefault();
+        }
+        
+        public async Task<Submission?> GetSubmissionByUidAsync(string submissionUid)
+        {
+            Guid submissionGuid = Guid.Parse(submissionUid);
+
+            Submission? result = 
+                (await _uow.Submission.GetWithIncludesAsync(
+                    s => s.UniqueId == submissionGuid,
+                    submitter: true,
+                    address: true,
+                    visit: true))
+                .FirstOrDefault();
+
+            return result;
+        }
+
+        public async Task<List<Submission>> GetSubmissionsPaginated(
+            Expression<Func<Submission, bool>>? filter = null,
+            int page = 1,
+            int pageSize = 1)
+        {
+            if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
+            if (page < 1) throw new ArgumentException("Page must be positive.");
+
+            List<Submission> result = 
+                await _uow.Submission.GetWithIncludesAsync(
+                    filter,
+                    pageSize: pageSize,
+                    page: page,
+                    submitter: true,
+                    address: true);
+
+            return result;
+        }
+
+        public async Task CreateSubmissionAsync(SubmissionCreationRequestDto submissionDto)
+        {
+            // Budynek musi istnieć w momencie tworzenia zgłoszenia
+            Building? building = await _uow.Building
+                .GetAsync(b => b.Id == submissionDto.Building.Id, "Addresses");
+
+            if (building == null)
+                throw new ArgumentException($"Cannot create submission for non-existent building " +
+                    $"(of number {submissionDto.Building.Number + submissionDto.Building.Letter})");
+
+            Street? street = await _uow.Street
+                .GetAsync(s => s.Id == building.StreetId, "Type,City");
+
+            // Harmonogram również musi istnieć w momencie tworzenia zgłoszenia
+            Schedule? schedule = await _uow.Schedule
+                .GetAsync(s => s.Id == submissionDto.Schedule.Id);
+
+            if (schedule == null)
+                throw new ArgumentException($"Cannot create submission for non-existent schedule " +
+                    $"(schedule '{submissionDto.Schedule.Name}')");
+
+            // Sprawdzamy, czy zgłaszający figuruje już w bazie
+            Submitter? submitter = await _uow.Submitter
+                .GetAsync(s => s.IsEqual(submissionDto.Submitter));
+            if (submitter == null) 
+                submitter = submissionDto.Submitter;
+
+            // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
+            Submission submission = new Submission
+            {
+                Submitter = submitter,
+                SubmitterNotes = submissionDto.SubmitterNotes.Trim([' ', '\n', '\r']),
+                AdminMessage = string.Empty,
+                AdminNotes = string.Empty,
+                NotesStatus = NotesFulfillmentStatus.NA,
+                Address = null,
+                FormSubmission = null,
+                Visit = null
+            };
+
+            if (!string.IsNullOrEmpty(submission.SubmitterNotes))
+                submission.NotesStatus = NotesFulfillmentStatus.Pending;
+
+            // Znajdujemy lub tworzymy adres
+            Address? address = building.Addresses
+                .FirstOrDefault(a => a.ApartmentNumber == submissionDto.ApartmentNumber
+                                  && a.ApartmentLetter == submissionDto.ApartmentLetter);
+            // Jeśli adres istnieje, to nie może mieć zgłoszenia
+            if (address != null)
+            {
+                address = await _uow.Address.GetAsync(a => a.Id == address.Id, "Submission");
+                if (address!.Submission != null)
+                    throw new InvalidOperationException($"Cannot create submission for address: '{address.ToString()}'. Address already has a submission.");
+                
+                address.Submission = submission;
+                submission.Address = address;
+            }
+            // Jeśli adres nie istnieje to utwórz
+            else
+            {
+                address = new Address
+                {
+                    ApartmentNumber = submissionDto.ApartmentNumber,
+                    ApartmentLetter = submissionDto.ApartmentLetter,
+                    Building = building,
+                    Submission = submission
+                };
+            }
+            submission.Address = address;
+
+            // Tworzymy FormSubmission
+            FormSubmission fs = new FormSubmission
+            {
+                Name = submitter.Name,
+                Surname = submitter.Surname,
+                Email = submitter.Email,
+                Phone = submitter.Phone,
+                SubmitterNotes = submission.SubmitterNotes,
+                ScheduleName = schedule.Name,
+                Apartment = address.ApartmentNumber + address.ApartmentLetter,
+                Building = building.Number + building.Letter,
+                StreetSpecifier = street!.Type.FullName,
+                Street = street.Name,
+                City = street.City.Name,
+                Method = submissionDto.Method,
+                IP = submissionDto.IPAddress,
+                Author = submissionDto.Author,
+                Submission = submission
+            };
+            submission.FormSubmission = fs;
+
+            // Tworzymy wizytę
+            Visit visit = new Visit
+            {
+                OrdinalNumber = null,
+                Status = VisitStatus.Unplanned,
+                Agenda = null,
+                Schedule = schedule, // !!!! Pobierz i sprawdź Schedule
+                Submission = submission
+            };
+            submission.Visit = visit;
+
+            // Automatycznie dodadzą się powiązane obiekty
+            _uow.Submission.Add(submission);
+            await _uow.SaveAsync();
+
+            return;
+        }
+
+        public async Task<bool> DeleteSubmissionAsync(int id)
+        {
+            try
+            {
+                Submission? submission = await _uow.Submission.GetAsync(s => s.Id == id);
+                if (submission != null)
+                {
+                    _uow.Submission.Remove(submission);
+                    await _uow.SaveAsync();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task UpdateSubmissionAsync(Submission submission)
+        {
+            _uow.Submission.Update(submission);
+            await _uow.SaveAsync();
+        }
+    }
+}

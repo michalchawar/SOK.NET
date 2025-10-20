@@ -23,8 +23,8 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<string> GetValueAsync(string optionName)
         {
-            ParishInfo option = await _uow.ParishInfo.GetAsync(pi => pi.Name == optionName);
-            return option.Value;
+            ParishInfo? option = await _uow.ParishInfo.GetAsync(pi => pi.Name == optionName);
+            return option?.Value ?? string.Empty;
         }
 
         /// <inheritdoc />
@@ -70,9 +70,7 @@ namespace SOK.Application.Services.Implementation
                 {
                     ApartmentNumber = int.Parse(infos.GetValueOrDefault("Address.ApartmentNumber", "0")),
                     ApartmentLetter = infos.GetValueOrDefault("Address.ApartmentLetter"),
-                    Building = building,
-                    Street = street,
-                    City = city
+                    Building = building
                 }
             };
 
