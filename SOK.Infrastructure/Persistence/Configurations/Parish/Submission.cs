@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SOK.Domain.Entities.Parish;
 
@@ -18,6 +19,11 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
             // Generowane pola
             builder.Property(s => s.AccessToken)
                 .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+
+            builder.Property(s => s.SubmitTime)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             // Relacje
             builder.HasOne(s => s.Submitter)

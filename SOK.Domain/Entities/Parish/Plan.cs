@@ -27,7 +27,7 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// Autor planu (relacja opcjonalna).
         /// </summary>
-        public User? Author { get; set; } = default!;
+        public ParishMember? Author { get; set; } = default!;
 
         /// <summary>
         /// Lista harmonogramów (Schedule) powi¹zanych z planem.

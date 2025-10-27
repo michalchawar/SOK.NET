@@ -25,7 +25,7 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .HasForeignKey(a => a.DayId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(a => a.AssignedUsers)
+            builder.HasMany(a => a.AssignedMembers)
                 .WithMany(u => u.AssignedAgendas);
         }
     }

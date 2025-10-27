@@ -111,7 +111,7 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// U¿ytkownik, który utworzy³ zg³oszenie (relacja opcjonalna).
         /// </summary>
-        public User? Author { get; set; } = default!;
+        public ParishMember? Author { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator powi¹zanego zg³oszenia g³ównego (Submission).

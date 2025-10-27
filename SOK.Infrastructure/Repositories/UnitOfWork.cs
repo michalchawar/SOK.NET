@@ -40,6 +40,7 @@ namespace SOK.Infrastructure.Repositories
         public IAgendaRepository Agenda { get; private set; }
         public IPlanRepository Plan { get; private set; }
         public IDayRepository Day { get; private set; }
+        public IParishMemberRepository ParishMember { get; private set; }
 
         public UnitOfWorkParish(ParishDbContext db) : base(db)
         {
@@ -54,6 +55,7 @@ namespace SOK.Infrastructure.Repositories
             Agenda = new AgendaRepository(db);
             Plan = new PlanRepository(db);
             Day = new DayRepository(db);
+            ParishMember = new ParishMemberRepository(db);
         }
     }
 }

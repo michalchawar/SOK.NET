@@ -55,9 +55,11 @@
                         <b>{{ s.submitter.surname }}</b> {{ s.submitter.name }}
                     </div>
                     <div class="col-start-2 row-span-full flex justify-end px-5">
-                        <div class="text-md flex flex-col justify-center text-center opacity-50">
+                        <div class="flex flex-col justify-center text-center text-sm opacity-50">
                             <i class="bi bi-arrow-counterclockwise text-2xl"></i>
-                            3 dni
+                            {{ 
+                                new Date(Date.now() - new Date(s.submitTime + "Z")).getUTCMinutes() 
+                            }} minut temu
                         </div>
                     </div>
                 </div>
@@ -102,8 +104,34 @@
           let response = await fetch(`/api/submissions?address=${encodeURIComponent(this.filters.address)}&submitter=${encodeURIComponent(this.filters.person)}`);
           this.submissions = await response.json();
 
+          this.submissions.forEach(s => {
+              s.timeAgo = computeTimeDiffString(s.submitTime + "Z");
+          });
+
           this.isDataLoaded = true;
-        }
+        },
       }
     }).mount("#submissionsApp");
+
+    function computeNounEnding(number, declination) {
+        if (number == 1) return declination[0];
+        if (number > 10 && number < 20) return declination[2];
+        if (number % 10 >= 2 && number % 10 <= 4) return declination[1];
+        return declination[2];
+    };
+    function computeTimeDiffString(date) {
+        let diff = new Date(Date.now() - new Date(date));
+        let result = `${diff.getUTCSeconds()} sekund${computeNounEnding(diff.getUTCSeconds(), ["sekundę", "sekundy", "sekund"])} temu`;
+
+        if (diff.getUTCMinutes())
+            result = `${diff.getUTCMinutes()} {computeNounEnding(diff.getUTCMinutes(), ["minutę", "minuty", "minut"])} temu`;
+        if (diff.getUTCHours())
+            result = `${diff.getUTCHours()} {computeNounEnding(diff.getUTCHours(), ["godzinę", "godziny", "godzin"])} temu`;
+        if (diff.getUTCDate())
+            result = `${diff.getUTCDate()} {computeNounEnding(diff.getUTCDate(), ["dzień", "dni", "dni"])} temu`;
+        if (diff.getUTCMonth())
+            result = `${diff.getUTCMonth()} {computeNounEnding(diff.getUTCMonth(), ["miesiąc", "miesiące", "miesięcy"])} temu`;
+
+        return result;
+    };
 </script>

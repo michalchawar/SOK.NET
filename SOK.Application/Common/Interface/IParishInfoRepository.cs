@@ -7,6 +7,8 @@ namespace SOK.Application.Common.Interface
     {
         void Update(ParishInfo parishInfo);
 
+        Task<string?> GetValueAsync(string name);
+
         Task<Dictionary<string, string>> ToDictionaryAsync();
     }
 }

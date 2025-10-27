@@ -55,3 +55,7 @@ body {
 body {
   margin-bottom: 60px;
 }
+
+.collapse-title.p-0::after {
+    top: 0;
+}

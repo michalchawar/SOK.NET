@@ -13,13 +13,10 @@ namespace SOK.Application.Common.DTO
         public int BuildingNumber { get; set; }
         public string BuildingLetter { get; set; } = string.Empty;
 
-        public int StreetId { get; set; }
         public string StreetName { get; set; } = string.Empty;
         
-        public int StreetSpecifierId { get; set; }
         public string StreetType { get; set; } = string.Empty;
 
-        public int CityId { get; set; }
         public string CityName { get; set; } = string.Empty;
 
         public AddressDto(Address address)
@@ -28,18 +25,14 @@ namespace SOK.Application.Common.DTO
             ApartmentNumber = address.ApartmentNumber;
             ApartmentLetter = address.ApartmentLetter ?? string.Empty;
             
-            BuildingId = address.Building.Id;
-            BuildingNumber = address.Building.Number;
-            BuildingLetter = address.Building.Letter ?? string.Empty;
+            BuildingId = address.BuildingId;
+            BuildingNumber = address.BuildingNumber ?? -1;
+            BuildingLetter = address.BuildingLetter ?? string.Empty;
 
-            StreetId = address.Building.Street.Id;
-            StreetName = address.Building.Street.Name;
+            StreetName = address.StreetName ?? string.Empty;
+            StreetType = address.StreetType ?? string.Empty;
 
-            StreetSpecifierId = address.Building.Street.Type.Id;
-            StreetType = address.Building.Street.Type.FullName;
-
-            CityId = address.Building.Street.City.Id;
-            CityName = address.Building.Street.City.Name;
+            CityName = address.CityName ?? string.Empty;
         }
     }
 }

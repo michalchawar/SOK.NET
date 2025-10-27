@@ -28,6 +28,7 @@ namespace SOK.Infrastructure.Repositories
             int page = 1,
             bool submitter = false, 
             bool address = false,
+            bool addressFull = false,
             bool visit = false,
             bool history = false, 
             bool formSubmission = false,
@@ -43,7 +44,10 @@ namespace SOK.Infrastructure.Repositories
             if (submitter)
                 query = query.Include(s => s.Submitter);
 
-            if (address) 
+            if (address)
+                query = query.Include(s => s.Address);
+
+            if (addressFull) 
                 query = query
                     .Include(s => s.Address)
                         .ThenInclude(a => a.Building)

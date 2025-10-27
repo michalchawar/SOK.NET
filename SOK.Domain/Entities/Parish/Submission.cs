@@ -54,6 +54,11 @@ namespace SOK.Domain.Entities.Parish
         public NotesFulfillmentStatus NotesStatus { get; set; }
 
         /// <summary>
+        /// Data i godzina rejestracji zg³oszenia.
+        /// </summary>
+        public DateTime SubmitTime { get; private set; }
+
+        /// <summary>
         /// Identyfikator osoby zg³aszaj¹cej (Submitter).
         /// </summary>
         public int SubmitterId { get; set; } = default!;

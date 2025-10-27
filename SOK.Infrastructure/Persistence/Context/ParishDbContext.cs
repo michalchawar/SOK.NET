@@ -25,6 +25,7 @@ namespace SOK.Infrastructure.Persistence.Context
         public DbSet<Day> Days { get; set; } = default!;
         public DbSet<FormSubmission> FormSubmissions { get; set; } = default!;
         public DbSet<ParishInfo> ParishInfo { get; set; } = default!;
+        public DbSet<ParishMember> Members { get; set; } = default!;
         public DbSet<Plan> Plans { get; set; } = default!;
         public DbSet<Schedule> Schedules { get; set; } = default!;
         public DbSet<Street> Streets { get; set; } = default!;
@@ -33,7 +34,6 @@ namespace SOK.Infrastructure.Persistence.Context
         public DbSet<SubmissionSnapshot> SubmissionSnapshots { get; set; } = default!;
         public DbSet<Submitter> Submitters { get; set; } = default!;
         public DbSet<SubmitterSnapshot> SubmitterSnapshots { get; set; } = default!;
-        public DbSet<User> Users { get; set; } = default!;
         public DbSet<Visit> Visits { get; set; } = default!;
         public DbSet<VisitSnapshot> VisitSnapshots { get; set; } = default!;
 
@@ -56,7 +56,7 @@ namespace SOK.Infrastructure.Persistence.Context
             modelBuilder.ApplyConfiguration(new SubmissionSnapshotEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new SubmitterEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new SubmitterSnapshotEntityTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ParishMemberEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
 

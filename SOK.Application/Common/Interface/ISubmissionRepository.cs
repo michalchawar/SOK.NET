@@ -13,6 +13,7 @@ namespace SOK.Application.Common.Interface
             int page = 1,
             bool submitter = false,
             bool address = false,
+            bool addressFull = false,
             bool visit = false,
             bool history = false,
             bool formSubmission = false,

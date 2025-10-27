@@ -17,7 +17,7 @@
             <div class="navbar-start">
             </div>
             <div class="navbar-center">
-                <a class="btn btn-ghost text-xl">@(ViewData["Title"] ?? "SOK")</a>
+                <h2 class="text-xl font-bold">@(ViewData["Title"] ?? "SOK")</h2>
             </div>
             <div class="navbar-end">
                 <a asp-controller="Account" asp-action="Logout"
@@ -40,7 +40,7 @@
         </main>
     </div>
 
-    <footer class="footer footer-center bg-base-300 text-base-content fixed bottom-0 left-0 p-4 sm:footer-horizontal">
+    <footer class="footer footer-center bg-base-300 text-base-content fixed bottom-0 left-0 z-10 p-4 sm:footer-horizontal">
         <aside>
             <p>Copyright © 2025 - All right reserved by SOK</p>
         </aside>

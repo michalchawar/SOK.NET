@@ -4,22 +4,22 @@ using SOK.Domain.Entities.Parish;
 
 namespace SOK.Infrastructure.Persistence.Configurations.Parish
 {
-    public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
+    public class ParishMemberEntityTypeConfiguration : IEntityTypeConfiguration<ParishMember>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<ParishMember> builder)
         {
             // Klucz g³ówny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
             // Indeksy i unikalnoœæ
-            builder.HasIndex(u => u.Username)
+            builder.HasIndex(u => u.CentralUserId)
                 .IsUnique();
 
             // Generowane pola
             // (brak automatycznie generowanych pól)
 
             // Relacje
-            // (User nie jest podrzêdny wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+            // (ParishMember nie jest podrzêdny wzglêdem ¿adnej encji, nie konfigurujemy relacji)
         }
     }
 }

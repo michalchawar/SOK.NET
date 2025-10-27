@@ -65,18 +65,18 @@ namespace SOK.Application.Services.Implementation
         {
             // Budynek musi istnieć w momencie tworzenia zgłoszenia
             Building? building = await _uow.Building
-                .GetAsync(b => b.Id == submissionDto.Building.Id, "Addresses");
+                .GetAsync(b => b.Id == submissionDto.Building.Id, "Addresses", tracked: true);
 
             if (building == null)
                 throw new ArgumentException($"Cannot create submission for non-existent building " +
                     $"(of number {submissionDto.Building.Number + submissionDto.Building.Letter})");
 
             Street? street = await _uow.Street
-                .GetAsync(s => s.Id == building.StreetId, "Type,City");
+                .GetAsync(s => s.Id == building.StreetId, "Type,City", tracked: true);
 
             // Harmonogram również musi istnieć w momencie tworzenia zgłoszenia
             Schedule? schedule = await _uow.Schedule
-                .GetAsync(s => s.Id == submissionDto.Schedule.Id);
+                .GetAsync(s => s.Id == submissionDto.Schedule.Id, tracked: true);
 
             if (schedule == null)
                 throw new ArgumentException($"Cannot create submission for non-existent schedule " +
@@ -84,17 +84,21 @@ namespace SOK.Application.Services.Implementation
 
             // Sprawdzamy, czy zgłaszający figuruje już w bazie
             Submitter? submitter = await _uow.Submitter
-                .GetAsync(s => s.IsEqual(submissionDto.Submitter));
+                .GetAsync(Submitter.IsEqualExpression(submissionDto.Submitter), tracked: true);
             if (submitter == null) 
                 submitter = submissionDto.Submitter;
+
+            submissionDto.SubmitterNotes = string.IsNullOrWhiteSpace(submissionDto.SubmitterNotes) ? null : submissionDto.SubmitterNotes.Trim([' ', '\n', '\r']);
+            submissionDto.AdminNotes = string.IsNullOrWhiteSpace(submissionDto.AdminNotes) ? null : submissionDto.AdminNotes.Trim([' ', '\n', '\r']);
+            submissionDto.ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']).ToLower();
 
             // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
             Submission submission = new Submission
             {
                 Submitter = submitter,
-                SubmitterNotes = submissionDto.SubmitterNotes.Trim([' ', '\n', '\r']),
-                AdminMessage = string.Empty,
-                AdminNotes = string.Empty,
+                SubmitterNotes = submissionDto.SubmitterNotes,
+                AdminMessage = null,
+                AdminNotes = submissionDto.AdminNotes,
                 NotesStatus = NotesFulfillmentStatus.NA,
                 Address = null,
                 FormSubmission = null,
@@ -111,7 +115,7 @@ namespace SOK.Application.Services.Implementation
             // Jeśli adres istnieje, to nie może mieć zgłoszenia
             if (address != null)
             {
-                address = await _uow.Address.GetAsync(a => a.Id == address.Id, "Submission");
+                address = await _uow.Address.GetAsync(a => a.Id == address.Id, "Submission", tracked: true);
                 if (address!.Submission != null)
                     throw new InvalidOperationException($"Cannot create submission for address: '{address.ToString()}'. Address already has a submission.");
                 
@@ -124,7 +128,7 @@ namespace SOK.Application.Services.Implementation
                 address = new Address
                 {
                     ApartmentNumber = submissionDto.ApartmentNumber,
-                    ApartmentLetter = submissionDto.ApartmentLetter,
+                    ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']),
                     Building = building,
                     Submission = submission
                 };
@@ -146,7 +150,7 @@ namespace SOK.Application.Services.Implementation
                 Street = street.Name,
                 City = street.City.Name,
                 Method = submissionDto.Method,
-                IP = submissionDto.IPAddress,
+                IP = submissionDto.IPAddress ?? "",
                 Author = submissionDto.Author,
                 Submission = submission
             };
@@ -158,7 +162,7 @@ namespace SOK.Application.Services.Implementation
                 OrdinalNumber = null,
                 Status = VisitStatus.Unplanned,
                 Agenda = null,
-                Schedule = schedule, // !!!! Pobierz i sprawdź Schedule
+                Schedule = schedule,
                 Submission = submission
             };
             submission.Visit = visit;

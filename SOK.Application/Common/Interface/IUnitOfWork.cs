@@ -23,5 +23,6 @@
         IAgendaRepository Agenda { get; }
         IPlanRepository Plan { get; }
         IDayRepository Day { get; }
+        IParishMemberRepository ParishMember { get; }
     }
 }

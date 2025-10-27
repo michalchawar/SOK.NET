@@ -25,13 +25,19 @@ namespace SOK.Infrastructure.Repositories
             return await dbSet.AnyAsync(filter);
         }
 
-        public async Task<T?> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false)
+        public async Task<T?> GetAsync(
+            Expression<Func<T, bool>> filter, 
+            string? includeProperties = null, 
+            bool tracked = false)
         {
             return await GetQueryable(filter, includeProperties, tracked)
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, bool tracked = false)
+        public async Task<IEnumerable<T>> GetAllAsync(
+            Expression<Func<T, bool>>? filter = null, 
+            string? includeProperties = null, 
+            bool tracked = false)
         {
             return await GetQueryable(filter, includeProperties, tracked)
                 .ToListAsync();
@@ -42,7 +48,10 @@ namespace SOK.Infrastructure.Repositories
             dbSet.Remove(entity);
         }
 
-        protected IQueryable<T> GetQueryable(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, bool tracked = false)
+        protected IQueryable<T> GetQueryable(
+            Expression<Func<T, bool>>? filter = null, 
+            string? includeProperties = null, 
+            bool tracked = false)
         {
             IQueryable<T> query = tracked ? dbSet : dbSet.AsNoTracking();
 

@@ -85,6 +85,6 @@ namespace SOK.Domain.Entities.Parish
         /// Lista u¿ytkowników przypisanych do agendy. Agenda mo¿e nie mieæ przypisanych u¿ytkowników. 
         /// U¿ytkownicy mog¹ mieæ ró¿ne role.
         /// </summary>
-        public ICollection<User> AssignedUsers { get; set; } = new List<User>();
+        public ICollection<ParishMember> AssignedMembers { get; set; } = new List<ParishMember>();
     }
 }

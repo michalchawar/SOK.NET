@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 
 namespace SOK.Domain.Entities.Parish
 {
@@ -70,6 +71,14 @@ namespace SOK.Domain.Entities.Parish
                 && this.Surname == other.Surname
                 && this.Email == other.Email
                 && this.Phone == other.Phone;
+        }
+
+        public static Expression<Func<Submitter, bool>> IsEqualExpression(Submitter other)
+        {
+            return s => s.Name == other.Name
+                && s.Surname == other.Surname
+                && s.Email == other.Email
+                && s.Phone == other.Phone;
         }
     }
 }

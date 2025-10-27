@@ -22,6 +22,11 @@ namespace SOK.Infrastructure.Repositories
             dbSet.Update(parish);
         }
 
+        public async Task<string?> GetValueAsync(string name)
+        {
+            return (await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == name))?.Value;
+        }
+
         public async Task<Dictionary<string, string>> ToDictionaryAsync()
         {
             return await GetQueryable()

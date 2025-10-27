@@ -30,7 +30,7 @@ namespace SOK.Web.Controllers.API
             [FromQuery] int pageSize = 5)
         {
             List<Submission> submissions = await _submissionService
-                .GetSubmissionsPaginated(CreateSubmissionFilter(address, submitter), page, pageSize);
+                .GetSubmissionsPaginated(CreateSubmissionFilter(address ?? string.Empty, submitter ?? string.Empty), page, pageSize);
 
             List<SubmissionDto> result = submissions.Select(s => new SubmissionDto(s)).ToList();
 

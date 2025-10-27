@@ -15,6 +15,7 @@ namespace SOK.Application.Common.DTO
         public string AdminMessage { get; set; } = string.Empty;
         public string AdminNotes { get; set; } = string.Empty;
         public NotesFulfillmentStatus NotesStatus { get; set; }
+        public DateTime SubmitTime { get; set; }
 
         public SubmissionDto(Submission submission)
         {
@@ -24,6 +25,7 @@ namespace SOK.Application.Common.DTO
             AdminMessage = submission.AdminMessage ?? string.Empty;
             AdminNotes = submission.AdminNotes ?? string.Empty;
             NotesStatus = submission.NotesStatus;
+            SubmitTime = submission.SubmitTime;
 
             Submitter = new SubmitterDto(submission.Submitter);
             Address = new AddressDto(submission.Address);

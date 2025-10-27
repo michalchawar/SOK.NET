@@ -57,6 +57,6 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja opcjonalna).
         /// </summary>
-        public User? ChangeAuthor { get; set; } = default!;
+        public ParishMember? ChangeAuthor { get; set; } = default!;
     }
 }

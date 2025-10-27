@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -127,7 +128,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 await current.SetParishAsync(parishUid);
 
                 ParishDbContext context = scope.ServiceProvider.GetRequiredService<ParishDbContext>();
-                
+                ISubmissionService submissionService = scope.ServiceProvider.GetRequiredService<ISubmissionService>();
+
                 City 
                     city = new City { Name = "Miasto", DisplayName = "Miasto" };
                 context.Add(city);
@@ -147,62 +149,112 @@ namespace SOK.Infrastructure.Persistence.Seeding
                     building3 = new Building { Street = street1, Number = 6 },
                     building4 = new Building { Street = street1, Number = 8 },
                     building5 = new Building { Street = street2, Number = 1 },
-                    building6 = new Building { Street = street1, Number = 2 },
+                    building6 = new Building { Street = street2, Number = 2 },
                     building7 = new Building { Street = street1, Number = 3, Letter = "a" },
                     building8 = new Building { Street = street1, Number = 3, Letter = "b" };
                 context.AddRange([building1, building2, building3, building4, building5, building6, 
                     building7, building8]);
 
-                Address 
-                    address1 = new Address { Building = building1, ApartmentNumber = 4 },
-                    address2 = new Address { Building = building1, ApartmentNumber = 7 },
-                    address3 = new Address { Building = building2, ApartmentNumber = 13, ApartmentLetter = "b" },
-                    address4 = new Address { Building = building2, ApartmentNumber = 2 },
-                    address5 = new Address { Building = building2, ApartmentNumber = 1 },
-                    address6 = new Address { Building = building3, ApartmentNumber = 5 },
-                    address7 = new Address { Building = building5, ApartmentNumber = 3 },
-                    address8 = new Address { Building = building5, ApartmentNumber = 6 },
-                    address9 = new Address { Building = building5, ApartmentNumber = 4 },
-                   address10 = new Address { Building = building5, ApartmentNumber = 3 },
-                   address11 = new Address { Building = building6, ApartmentNumber = 9 },
-                   address12 = new Address { Building = building6, ApartmentNumber = 11 },
-                   address13 = new Address { Building = building7, ApartmentNumber = 1 },
-                   address14 = new Address { Building = building8, ApartmentNumber = 4 };
-                context.AddRange([address1, address2, address3, address4, address5, address6, address7,
-                    address8, address9, address10, address11, address12, address13, address14]);
+                Plan plan = new Plan();
+                context.AddRange([plan]);
 
-                Submitter 
-                    submitter1 = new Submitter { Name = "Jan", Surname = "Kowalski", Email = "jankowalski@test.testtest" },
-                    submitter2 = new Submitter { Name = "Adam", Surname = "Sadowski", Email = "adamsad@test.testtest" },
-                    submitter3 = new Submitter { Name = "Tymon", Surname = "Michalik" },
-                    submitter4 = new Submitter { Name = "Aurelia", Surname = "Żak", Email = "aurweks312@test.testtest" },
-                    submitter5 = new Submitter { Name = "Marcel", Surname = "Zieliński", Phone = "546328964" },
-                    submitter6 = new Submitter { Name = "Jakub", Surname = "Mazurek", Email = "mazur231@test.testtest" },
-                    submitter7 = new Submitter { Name = "Julita i Zdzisław", Surname = "Szczepańscy", Email = "szczep1542@test.testtest" },
-                    submitter8 = new Submitter { Name = "Ewa", Surname = "Kowal", Email = "awdszrw13@test.testtest", Phone = "465213782" },
-                    submitter9 = new Submitter { Name = "Karol", Surname = "Kasprzak", Email = "karolskrez@test.testtest" },
-                   submitter10 = new Submitter { Name = "Fryderyk", Surname = "Przybylski" },
-                   submitter11 = new Submitter { Name = "Apolonia", Surname = "Kosińska", Email = "kosapol@test.testtest", Phone = "694783274" };
-                context.AddRange([submitter1, submitter2, submitter3, submitter4, submitter5, submitter6,
-                    submitter7, submitter8, submitter9, submitter10, submitter11]);
+                Schedule 
+                    schedule1 = new Schedule { Name = "W terminie", ShortName = "T", Plan = plan },
+                    schedule2 = new Schedule { Name = "Dodatkowa",  ShortName = "D", Plan = plan };
+                context.AddRange([schedule1, schedule2]);
 
-                Submission 
-                    submission1 = new Submission { Submitter = submitter1, Address = address1 },
-                    submission2 = new Submission { Submitter = submitter2, Address = address2 },
-                    submission3 = new Submission { Submitter = submitter3, Address = address3 },
-                    submission4 = new Submission { Submitter = submitter4, Address = address4 },
-                    submission5 = new Submission { Submitter = submitter4, Address = address5 },
-                    submission6 = new Submission { Submitter = submitter5, Address = address6 },
-                    submission7 = new Submission { Submitter = submitter6, Address = address7 },
-                    submission8 = new Submission { Submitter = submitter7, Address = address8 },
-                    submission9 = new Submission { Submitter = submitter8, Address = address9 },
-                   submission10 = new Submission { Submitter = submitter9, Address = address10 },
-                   submission11 = new Submission { Submitter = submitter9, Address = address11 },
-                   submission12 = new Submission { Submitter = submitter10, Address = address12 },
-                   submission13 = new Submission { Submitter = submitter11, Address = address13 };
-                context.AddRange([submission1, submission2, submission3, submission4, submission5, submission6,
-                    submission7, submission8, submission9, submission10, submission11, submission12, submission13]);
+                await context.SaveChangesAsync();
 
+                var submissions = new[] {
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Jan", Surname = "Kowalski", Email = "jankowalski@test.testtest" },
+                        Building = building1,
+                        ApartmentNumber = 4,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Adam", Surname = "Sadowski", Email = "adamsad@test.testtest" },
+                        Building = building1,
+                        ApartmentNumber = 7,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Tymon", Surname = "Michalik" },
+                        Building = building2,
+                        ApartmentNumber = 13,
+                        ApartmentLetter = "b",
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Aurelia", Surname = "Żak", Email = "aurweks312@test.testtest" },
+                        Building = building2,
+                        ApartmentNumber = 2,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Marcel", Surname = "Zieliński", Phone = "546328964" },
+                        Building = building3,
+                        ApartmentNumber = 5,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Jakub", Surname = "Mazurek", Email = "mazur231@test.testtest" },
+                        Building = building5,
+                        ApartmentNumber = 3,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Julita i Zdzisław", Surname = "Szczepańscy", Email = "szczep1542@test.testtest" },
+                        Building = building5,
+                        ApartmentNumber = 6,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Ewa", Surname = "Kowal", Email = "awdszrw13@test.testtest", Phone = "465213782" },
+                        Building = building5,
+                        ApartmentNumber = 4,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Karol", Surname = "Kasprzak", Email = "karolskrez@test.testtest" },
+                        Building = building5,
+                        ApartmentNumber = 7,
+                        ApartmentLetter = "A",
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Karol", Surname = "Kasprzak", Email = "karolskrez@test.testtest" },
+                        Building = building6,
+                        ApartmentNumber = 9,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Fryderyk", Surname = "Przybylski" },
+                        Building = building6,
+                        ApartmentNumber = 11,
+                        Schedule = schedule1
+                    },
+                    new SubmissionCreationRequestDto {
+                        Submitter = new Submitter { Name = "Apolonia", Surname = "Kosińska", Email = "kosapol@test.testtest", Phone = "694783274" },
+                        Building = building7,
+                        ApartmentNumber = 1,
+                        Schedule = schedule1
+                    }
+                };
+
+                foreach (var request in submissions)
+                {
+                    try
+                    {
+                        await submissionService.CreateSubmissionAsync(request);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error while seeding submissions: {ex.Message}");
+                    }
+                }
+
+                context.Add(new ParishInfo { Name = "DefaultScheduleId", Value = schedule1.Id.ToString() });
                 await context.SaveChangesAsync();
             }
             catch (Exception ex)

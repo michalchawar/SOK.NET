@@ -6,7 +6,7 @@ namespace SOK.Domain.Entities.Parish
     /// Reprezentuje u¿ytkownika systemu (np. administratora, ksiêdza, ministranta).
     /// Przechowuje dane logowania, status, role oraz powi¹zania z parafi¹ i agendami.
     /// </summary>
-    public class User
+    public class ParishMember
     {
         /// <summary>
         /// Unikalny identyfikator u¿ytkownika (klucz g³ówny).
@@ -15,10 +15,10 @@ namespace SOK.Domain.Entities.Parish
         public int Id { get; set; }
 
         /// <summary>
-        /// Nazwa (login) u¿ytkownika (unikalny w systemie).
+        /// Identyfikator odpowiadaj¹cego u¿ytkownika w bazie centralnej.
         /// </summary>
-        [MaxLength(64)]
-        public string Username { get; set; } = default!;
+        [MaxLength(36)]
+        public string CentralUserId { get; set; } = default!;
 
         /// <summary>
         /// Lista agend, do których u¿ytkownik jest przypisany (np. jako ksi¹dz lub ministrant).
