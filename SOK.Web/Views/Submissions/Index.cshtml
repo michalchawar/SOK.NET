@@ -57,9 +57,7 @@
                     <div class="col-start-2 row-span-full flex justify-end px-5">
                         <div class="flex flex-col justify-center text-center text-sm opacity-50">
                             <i class="bi bi-arrow-counterclockwise text-2xl"></i>
-                            {{ 
-                                new Date(Date.now() - new Date(s.submitTime + "Z")).getUTCMinutes() 
-                            }} minut temu
+                            {{ s.timeAgo }}
                         </div>
                     </div>
                 </div>
@@ -103,6 +101,8 @@
 
           let response = await fetch(`/api/submissions?address=${encodeURIComponent(this.filters.address)}&submitter=${encodeURIComponent(this.filters.person)}`);
           this.submissions = await response.json();
+        
+          console.log(this.submissions);
 
           this.submissions.forEach(s => {
               s.timeAgo = computeTimeDiffString(s.submitTime + "Z");
@@ -116,22 +116,32 @@
     function computeNounEnding(number, declination) {
         if (number == 1) return declination[0];
         if (number > 10 && number < 20) return declination[2];
-        if (number % 10 >= 2 && number % 10 <= 4) return declination[1];
+        if ((number % 10) >= 2 && (number % 10) <= 4) return declination[1];
         return declination[2];
     };
     function computeTimeDiffString(date) {
-        let diff = new Date(Date.now() - new Date(date));
-        let result = `${diff.getUTCSeconds()} sekund${computeNounEnding(diff.getUTCSeconds(), ["sekundę", "sekundy", "sekund"])} temu`;
+        let diff = Date.now() - new Date(date);
+        let interval = {
+            seconds: Math.floor(diff / 1000),
+            minutes: Math.floor(diff / (1000 * 60)),
+            hours: Math.floor(diff / (1000 * 60 * 60)),
+            days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+            weeks: Math.floor(diff / (1000 * 60 * 60 * 24 * 7)),
+            months: Math.floor(diff / (1000 * 60 * 60 * 24 * 30)),
+            years: Math.floor(diff / (1000 * 60 * 60 * 24 * 365))
+        }
 
-        if (diff.getUTCMinutes())
-            result = `${diff.getUTCMinutes()} {computeNounEnding(diff.getUTCMinutes(), ["minutę", "minuty", "minut"])} temu`;
-        if (diff.getUTCHours())
-            result = `${diff.getUTCHours()} {computeNounEnding(diff.getUTCHours(), ["godzinę", "godziny", "godzin"])} temu`;
-        if (diff.getUTCDate())
-            result = `${diff.getUTCDate()} {computeNounEnding(diff.getUTCDate(), ["dzień", "dni", "dni"])} temu`;
-        if (diff.getUTCMonth())
-            result = `${diff.getUTCMonth()} {computeNounEnding(diff.getUTCMonth(), ["miesiąc", "miesiące", "miesięcy"])} temu`;
+        if (interval.years)
+            return `${interval.years} ${computeNounEnding(interval.years, ["rok", "lata", "lat"])} temu`;
+        if (interval.months)
+            return `${interval.months} ${computeNounEnding(interval.months, ["miesiąc", "miesiące", "miesięcy"])} temu`;
+        if (interval.days)
+            return `${interval.days} ${computeNounEnding(interval.days, ["dzień", "dni", "dni"])} temu`;
+        if (interval.hours)
+            return `${interval.hours} ${computeNounEnding(interval.hours, ["godzinę", "godziny", "godzin"])} temu`;
+        if (interval.minutes)
+            return `${interval.minutes} ${computeNounEnding(interval.minutes, ["minutę", "minuty", "minut"])} temu`;
 
-        return result;
+        return `${interval.seconds} ${computeNounEnding(interval.seconds, ["sekundę", "sekundy", "sekund"])} temu`;
     };
 </script>
