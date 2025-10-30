@@ -1,9 +1,10 @@
 ﻿using SOK.Application.Common.DTO;
+using SOK.Domain.Entities.Parish;
 
 namespace SOK.Application.Services.Interface
 {
     /// <summary>
-    /// Usługa do obsługi obiektów ParishInfo.
+    /// Usługa do obsługi obiektów <see cref="ParishInfo"/>.
     /// </summary>
     public interface IParishInfoService
     {
@@ -26,9 +27,9 @@ namespace SOK.Application.Services.Interface
         /// którego zawartością jest wartość informacji.
         /// </returns>
         /// <remarks>
-        /// Jeśli informacja nie figuruje w bazie danych, funkcja zwraca <see cref="string.Empty"/>.
+        /// Jeśli informacja nie figuruje w bazie danych, funkcja zwraca <see cref="null"/>.
         /// </remarks>
-        Task<string> GetValueAsync(string optionName);
+        Task<string?> GetValueAsync(string optionName);
 
         /// <summary>
         /// Aktualizuje wartość informacji o nazwie <paramref name="optionName"/>.
@@ -46,8 +47,9 @@ namespace SOK.Application.Services.Interface
         /// </summary>
         /// <returns>
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
-        /// którego zawartością jest słownik nazw informacji i odpowiadających im wartości.
+        /// którego zawartością jest słownik nazw informacji i odpowiadających im wartości
+        /// konkretnego typu <see cref="Dictionary{string, string}"/>.
         /// </returns>
-        Task<Dictionary<string, string>> GetDictionary();
+        Task<Dictionary<string, string>> GetDictionaryAsync();
     }
 }

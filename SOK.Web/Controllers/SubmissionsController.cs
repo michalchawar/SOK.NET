@@ -13,36 +13,45 @@ namespace SOK.Web.Controllers
     [Authorize]
     public class SubmissionsController : Controller
     {
-        private readonly IUnitOfWorkParish _uow;
         private readonly ISubmissionService _submissionService;
+        private readonly IScheduleService _scheduleService;
+        private readonly IBuildingService _buildingService;
+        private readonly IParishMemberService _parishMemberService;
+        private readonly IStreetService _streetService;
         private readonly UserManager<Domain.Entities.Central.User> _userManager;
 
         public SubmissionsController(
-            IUnitOfWorkParish uow, 
             ISubmissionService submissionService,
+            IScheduleService scheduleService,
+            IBuildingService buildingService,
+            IStreetService streetService,
+            IParishMemberService parishMemberService,
             UserManager<Domain.Entities.Central.User> userManager)
         {
-            _uow = uow;
             _submissionService = submissionService;
+            _scheduleService = scheduleService;
+            _buildingService = buildingService;
+            _parishMemberService = parishMemberService;
+            _streetService = streetService;
             _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            Address? randomAddress = await _uow.Address.GetRandomAsync();
-            Submitter? randomSubmitter = await _uow.Submitter.GetRandomAsync();
+            Submission? randomSubmission = await _submissionService.GetRandomSubmissionAsync();
 
-            if (randomAddress != null)
-                ViewData["SampleAddress"] = $"{randomAddress.Building.Street.Name} {randomAddress.Building.Number}{randomAddress.Building.Letter}/" +
-                    $"{randomAddress.ApartmentNumber}{randomAddress.ApartmentLetter}";
+            if (randomSubmission != null)
+            {
+                ViewData["SampleAddress"] = $"{randomSubmission.Address.StreetName} {randomSubmission.Address.BuildingNumber}{randomSubmission.Address.BuildingLetter}/" +
+                    $"{randomSubmission.Address.ApartmentNumber}{randomSubmission.Address.ApartmentLetter}";
+                ViewData["SampleSurname"] = randomSubmission.Submitter.Surname;
+            }
             else
+            {
                 ViewData["SampleAddress"] = "Brzozowa 45/2";
-
-            if (randomSubmitter != null)
-                ViewData["SampleSurname"] = randomSubmitter.Surname;
-            else
                 ViewData["SampleSurname"] = "Kowalski";
+            }
 
             return View();
         }
@@ -60,8 +69,8 @@ namespace SOK.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> New(NewSubmissionVM model)
         {
-            var building = await _uow.Building.GetAsync(b => b.Id == model.BuildingId);
-            var schedule = await _uow.Schedule.GetAsync(s => s.Id == model.ScheduleId);
+            Building? building = await _buildingService.GetBuildingAsync(model.BuildingId);
+            Schedule? schedule = await _scheduleService.GetScheduleAsync(model.ScheduleId);
 
             bool parishMemberFound = int.TryParse(_userManager.GetUserId(this.User), out int userId);
 
@@ -87,7 +96,7 @@ namespace SOK.Web.Controllers
                     AdminNotes = model.AdminNotes,
                     ApartmentNumber = string.IsNullOrWhiteSpace(model.Apartment) ? null : int.Parse(new string(model.Apartment.TakeWhile(c => char.IsDigit(c)).ToArray())),
                     ApartmentLetter = string.IsNullOrWhiteSpace(model.Apartment) ? null : new string(model.Apartment.SkipWhile(c => char.IsDigit(c)).ToArray()),
-                    Author = parishMemberFound ? await _uow.ParishMember.GetAsync(pm => pm.Id == userId) : null,
+                    Author = parishMemberFound ? await _parishMemberService.GetParishMemberAsync(userId) : null,
                     Method = model.Method,
                     IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
                 };
@@ -113,7 +122,7 @@ namespace SOK.Web.Controllers
 
         protected async Task PopulateNewSubmissionVM(NewSubmissionVM vm)
         {
-            var streets = (await _uow.Street.GetAllAsync(includeProperties: "Buildings")).OrderBy(s => s.Name);
+            var streets = await _streetService.GetAllStreetsAsync(buildings: true);
 
             vm.StreetList = streets.Select(s => new SelectListItem
             {
@@ -130,14 +139,14 @@ namespace SOK.Web.Controllers
                 })
             );
 
-            var schedules = (await _uow.Schedule.GetAllAsync()).OrderBy(s => s.Name);
-            string defaultScheduleId = await _uow.ParishInfo.GetValueAsync("DefaultScheduleId") ?? "";
+            var schedules = (await _scheduleService.GetActiveSchedules()).OrderBy(s => s.Name);
+            Schedule? defaultSchedule = await _scheduleService.GetDefaultScheduleAsync();
 
             vm.ScheduleList = schedules.Select(s => new SelectListItem
             {
                 Text = s.Name,
                 Value = s.Id.ToString(),
-                Selected = s.Id.ToString() == defaultScheduleId
+                Selected = s.Id == defaultSchedule?.Id
             });
             
             if (!vm.ScheduleList.Any(sl => sl.Selected))

@@ -26,21 +26,29 @@ namespace SOK.Infrastructure.Repositories
         }
 
         public async Task<T?> GetAsync(
-            Expression<Func<T, bool>> filter, 
-            string? includeProperties = null, 
+            Expression<Func<T, bool>> filter,
+            Expression<Func<T, object>>? orderBy = null,
+            string? includeProperties = null,
             bool tracked = false)
         {
-            return await GetQueryable(filter, includeProperties, tracked)
-                .FirstOrDefaultAsync();
+            return await GetQueryable(
+                filter: filter,
+                orderBy: orderBy,
+                includeProperties: includeProperties,
+                tracked: tracked).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(
-            Expression<Func<T, bool>>? filter = null, 
-            string? includeProperties = null, 
+            Expression<Func<T, bool>>? filter = null,
+            Expression<Func<T, object>>? orderBy = null,
+            string? includeProperties = null,
             bool tracked = false)
         {
-            return await GetQueryable(filter, includeProperties, tracked)
-                .ToListAsync();
+            return await GetQueryable(
+                filter: filter, 
+                orderBy: orderBy,
+                includeProperties: includeProperties, 
+                tracked: tracked).ToListAsync();
         }
 
         public void Remove(T entity)
@@ -49,8 +57,9 @@ namespace SOK.Infrastructure.Repositories
         }
 
         protected IQueryable<T> GetQueryable(
-            Expression<Func<T, bool>>? filter = null, 
-            string? includeProperties = null, 
+            Expression<Func<T, bool>>? filter = null,
+            Expression<Func<T, object>>? orderBy = null,
+            string? includeProperties = null,
             bool tracked = false)
         {
             IQueryable<T> query = tracked ? dbSet : dbSet.AsNoTracking();
@@ -68,6 +77,9 @@ namespace SOK.Infrastructure.Repositories
                     query = query.Include(includeProp.Trim());
                 }
             }
+
+            if (orderBy != null)
+                query = query.OrderBy(orderBy);
 
             return query;
         }

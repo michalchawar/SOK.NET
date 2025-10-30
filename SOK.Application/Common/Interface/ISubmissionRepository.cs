@@ -7,7 +7,7 @@ namespace SOK.Application.Common.Interface
     {
         void Update(Submission submission);
 
-        Task<List<Submission>> GetWithIncludesAsync(
+        Task<IEnumerable<Submission>> GetPaginatedAsync(
             Expression<Func<Submission, bool>>? filter,
             int pageSize = 1,
             int page = 1,
@@ -18,5 +18,7 @@ namespace SOK.Application.Common.Interface
             bool history = false,
             bool formSubmission = false,
             bool tracked = false);
+
+        Task<Submission?> GetRandomAsync();
     }
 }

@@ -1,15 +1,17 @@
 ﻿using SOK.Domain.Entities.Parish;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace SOK.Application.Common.Interface
 {
     public interface ISubmitterRepository : IRepository<Submitter>
     {
-        Task<Submitter?> GetRandomAsync();
         void Update(Submitter submitter);
+
+        Task<IEnumerable<Submitter>> GetPaginatedAsync(
+            Expression<Func<Submitter, bool>>? filter,
+            int pageSize = 1,
+            int page = 1,
+            bool submissions = false,
+            bool tracked = false);
     }
 }

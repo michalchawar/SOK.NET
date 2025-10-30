@@ -1,5 +1,4 @@
 ﻿using SOK.Domain.Entities.Parish;
-using System.Linq.Expressions;
 
 namespace SOK.Application.Common.Interface
 {
@@ -8,6 +7,10 @@ namespace SOK.Application.Common.Interface
         void Update(ParishInfo parishInfo);
 
         Task<string?> GetValueAsync(string name);
+        
+        Task SetValueAsync(string name, string value);
+
+        Task ClearValueAsync(string name);
 
         Task<Dictionary<string, string>> ToDictionaryAsync();
     }

@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 
 namespace SOK.Application.Services.Implementation
 {
+    /// <inheritdoc />
     public class SubmissionService : ISubmissionService
     {
         private readonly IUnitOfWorkParish _uow;
@@ -17,22 +18,24 @@ namespace SOK.Application.Services.Implementation
             _uow = uow;
         }
 
-        public async Task<Submission?> GetSubmissionByIdAsync(int id)
+        /// <inheritdoc />
+        public async Task<Submission?> GetSubmissionAsync(int id)
         {
             return 
-                (await _uow.Submission.GetWithIncludesAsync(
+                (await _uow.Submission.GetPaginatedAsync(
                     s => s.Id == id,
                     submitter: true,
                     address: true))
                 .FirstOrDefault();
         }
-        
-        public async Task<Submission?> GetSubmissionByUidAsync(string submissionUid)
+
+        /// <inheritdoc />
+        public async Task<Submission?> GetSubmissionAsync(string submissionUid)
         {
             Guid submissionGuid = Guid.Parse(submissionUid);
 
             Submission? result = 
-                (await _uow.Submission.GetWithIncludesAsync(
+                (await _uow.Submission.GetPaginatedAsync(
                     s => s.UniqueId == submissionGuid,
                     submitter: true,
                     address: true,
@@ -42,7 +45,8 @@ namespace SOK.Application.Services.Implementation
             return result;
         }
 
-        public async Task<List<Submission>> GetSubmissionsPaginated(
+        /// <inheritdoc />
+        public async Task<IEnumerable<Submission>> GetSubmissionsPaginated(
             Expression<Func<Submission, bool>>? filter = null,
             int page = 1,
             int pageSize = 1)
@@ -50,29 +54,29 @@ namespace SOK.Application.Services.Implementation
             if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
             if (page < 1) throw new ArgumentException("Page must be positive.");
 
-            List<Submission> result = 
-                await _uow.Submission.GetWithIncludesAsync(
+            List<Submission> result = [.. await _uow.Submission.GetPaginatedAsync(
                     filter,
                     pageSize: pageSize,
                     page: page,
                     submitter: true,
-                    address: true);
+                    address: true)];
 
             return result;
         }
 
+        /// <inheritdoc />
         public async Task CreateSubmissionAsync(SubmissionCreationRequestDto submissionDto)
         {
             // Budynek musi istnieć w momencie tworzenia zgłoszenia
             Building? building = await _uow.Building
-                .GetAsync(b => b.Id == submissionDto.Building.Id, "Addresses", tracked: true);
+                .GetAsync(b => b.Id == submissionDto.Building.Id, includeProperties: "Addresses", tracked: true);
 
             if (building == null)
                 throw new ArgumentException($"Cannot create submission for non-existent building " +
                     $"(of number {submissionDto.Building.Number + submissionDto.Building.Letter})");
 
             Street? street = await _uow.Street
-                .GetAsync(s => s.Id == building.StreetId, "Type,City", tracked: true);
+                .GetAsync(s => s.Id == building.StreetId, includeProperties: "Type,City", tracked: true);
 
             // Harmonogram również musi istnieć w momencie tworzenia zgłoszenia
             Schedule? schedule = await _uow.Schedule
@@ -115,7 +119,7 @@ namespace SOK.Application.Services.Implementation
             // Jeśli adres istnieje, to nie może mieć zgłoszenia
             if (address != null)
             {
-                address = await _uow.Address.GetAsync(a => a.Id == address.Id, "Submission", tracked: true);
+                address = await _uow.Address.GetAsync(a => a.Id == address.Id, includeProperties: "Submission", tracked: true);
                 if (address!.Submission != null)
                     throw new InvalidOperationException($"Cannot create submission for address: '{address.ToString()}'. Address already has a submission.");
                 
@@ -174,6 +178,7 @@ namespace SOK.Application.Services.Implementation
             return;
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteSubmissionAsync(int id)
         {
             try
@@ -193,10 +198,17 @@ namespace SOK.Application.Services.Implementation
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdateSubmissionAsync(Submission submission)
         {
             _uow.Submission.Update(submission);
             await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<Submission?> GetRandomSubmissionAsync()
+        {
+            return await _uow.Submission.GetRandomAsync();
         }
     }
 }

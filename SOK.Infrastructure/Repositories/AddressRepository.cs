@@ -20,7 +20,7 @@ namespace SOK.Infrastructure.Repositories
             Expression<Func<Address, bool>> filter, 
             bool tracked = false)
         {
-            var query = GetQueryable(filter, null, tracked);
+            var query = GetQueryable(filter: filter, tracked: tracked);
             query = query
                 .Include(a => a.Building)
                     .ThenInclude(b => b.Street)
@@ -34,7 +34,7 @@ namespace SOK.Infrastructure.Repositories
 
         public async Task<Address?> GetRandomAsync()
         {
-            var query = GetQueryable(null, null, false);
+            var query = GetQueryable(tracked: false);
             query = query
                 .Include(a => a.Building)
                     .ThenInclude(b => b.Street)

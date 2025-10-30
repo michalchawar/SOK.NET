@@ -29,8 +29,8 @@ namespace SOK.Web.Controllers.API
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 5)
         {
-            List<Submission> submissions = await _submissionService
-                .GetSubmissionsPaginated(CreateSubmissionFilter(address ?? string.Empty, submitter ?? string.Empty), page, pageSize);
+            List<Submission> submissions = [.. await _submissionService
+                .GetSubmissionsPaginated(CreateSubmissionFilter(address ?? string.Empty, submitter ?? string.Empty), page, pageSize)];
 
             List<SubmissionDto> result = submissions.Select(s => new SubmissionDto(s)).ToList();
 
@@ -41,7 +41,7 @@ namespace SOK.Web.Controllers.API
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            Submission? submission = await _submissionService.GetSubmissionByIdAsync(id);
+            Submission? submission = await _submissionService.GetSubmissionAsync(id);
             if (submission == null)
             {
                 return NotFound();

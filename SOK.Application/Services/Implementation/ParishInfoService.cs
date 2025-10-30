@@ -2,11 +2,6 @@
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SOK.Application.Services.Implementation
 {
@@ -21,10 +16,10 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<string> GetValueAsync(string optionName)
+        public async Task<string?> GetValueAsync(string optionName)
         {
             ParishInfo? option = await _uow.ParishInfo.GetAsync(pi => pi.Name == optionName);
-            return option?.Value ?? string.Empty;
+            return option?.Value ?? null;
         }
 
         /// <inheritdoc />
@@ -78,6 +73,6 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetDictionary() => await _uow.ParishInfo.ToDictionaryAsync();
+        public async Task<Dictionary<string, string>> GetDictionaryAsync() => await _uow.ParishInfo.ToDictionaryAsync();
     }
 }

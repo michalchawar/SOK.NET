@@ -2,8 +2,6 @@
 using SOK.Application.Common.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Infrastructure.Persistence.Context;
-using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
@@ -22,7 +20,7 @@ namespace SOK.Infrastructure.Repositories
             dbSet.Update(submission);
         }
 
-        public async Task<List<Submission>> GetWithIncludesAsync(
+        public async Task<IEnumerable<Submission>> GetPaginatedAsync(
             Expression<Func<Submission, bool>>? filter,
             int pageSize = 1,
             int page = 1,
@@ -34,7 +32,7 @@ namespace SOK.Infrastructure.Repositories
             bool formSubmission = false,
             bool tracked = false)
         {
-            var query = GetQueryable(filter, tracked: tracked);
+            var query = GetQueryable(filter: filter, tracked: tracked);
 
             if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
             if (page < 1) throw new ArgumentException("Page must be positive.");
@@ -73,6 +71,21 @@ namespace SOK.Infrastructure.Repositories
                 query = query.Include(s => s.FormSubmission);
 
             return await query.ToListAsync();
+        }
+
+        public async Task<Submission?> GetRandomAsync()
+        {
+            var query = GetQueryable(tracked: false);
+            query = query
+                .Include(s => s.Address)
+                .Include(s => s.Submitter);
+
+            var rand = new Random();
+            var skipCount = (int)(rand.NextDouble() * dbSet.Count());
+
+            query = query.Skip(skipCount);
+
+            return await query.FirstOrDefaultAsync();
         }
     }
 }

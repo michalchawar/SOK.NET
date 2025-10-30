@@ -2,12 +2,10 @@
 using SOK.Application.Common.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Infrastructure.Persistence.Context;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
 {
+    /// <inheritdoc />
     public class ParishInfoRepository : Repository<ParishInfo, ParishDbContext>, IParishInfoRepository
     {
         private readonly ParishDbContext _db;
@@ -17,20 +15,55 @@ namespace SOK.Infrastructure.Repositories
             _db = db;
         }
 
+        /// <inheritdoc />
         public void Update(ParishInfo parish)
         {
             dbSet.Update(parish);
         }
 
+        /// <inheritdoc />
         public async Task<string?> GetValueAsync(string name)
         {
             return (await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == name))?.Value;
         }
 
+        /// <inheritdoc />
+        public async Task SetValueAsync(string name, string value)
+        {
+            ParishInfo? parishInfo = await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == name);
+
+            if (parishInfo != null)
+            {
+                parishInfo.Value = value;
+                Update(parishInfo);
+            }
+            else
+            {
+                ParishInfo newParishInfo = new ParishInfo
+                {
+                    Name = name,
+                    Value = value
+                };
+                await dbSet.AddAsync(newParishInfo);
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<Dictionary<string, string>> ToDictionaryAsync()
         {
             return await GetQueryable()
                 .ToDictionaryAsync(pi => pi.Name, pi => pi.Value);
+        }
+
+        /// <inheritdoc />
+        public async Task ClearValueAsync(string name)
+        {
+            ParishInfo? parishInfo = await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == name);
+
+            if (parishInfo is not null)
+            {
+                dbSet.Remove(parishInfo);
+            }
         }
     }
 }

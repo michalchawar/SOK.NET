@@ -1,14 +1,20 @@
 ﻿using SOK.Domain.Entities.Parish;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace SOK.Application.Common.Interface
 {
     public interface IPlanRepository : IRepository<Plan>
     {
+        Task<IEnumerable<Plan>> GetPaginatedAsync(
+            Expression<Func<Plan, bool>>? filter,
+            int pageSize = 1,
+            int page = 1,
+            bool author = false, 
+            bool schedules = false,
+            bool submissions = false,
+            bool days = false,
+            bool tracked = false);
+
         void Update(Plan plan);
     }
 }
