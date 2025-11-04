@@ -46,11 +46,15 @@ namespace SOK.Infrastructure.Extensions
         /// </returns>
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
-            // Rejestracja IParishInfoService
+            // Rejestracja usług
             services.AddScoped<IParishInfoService, ParishInfoService>();
-
-            // Rejestracja ISubmissionService
             services.AddScoped<ISubmissionService, SubmissionService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
+            services.AddScoped<IPlanService, PlanService>();
+            services.AddScoped<IParishMemberService, ParishMemberService>();
+            services.AddScoped<ISubmitterService, SubmitterService>();
+            services.AddScoped<IBuildingService, BuildingService>();
+            services.AddScoped<IStreetService, StreetService>();
 
             return services;
         }
