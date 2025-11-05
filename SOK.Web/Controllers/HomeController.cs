@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SOK.Infrastructure.Persistence.Context;
+using SOK.Web.Filters;
 using System.Diagnostics;
 
 namespace SOK.Web.Controllers
 {
     [Authorize]
+    [ActivePage("Home")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

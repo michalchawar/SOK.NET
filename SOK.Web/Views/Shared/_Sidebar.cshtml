@@ -1,42 +1,77 @@
-﻿<label class="swap swap-rotate tooltip tooltip-right self-end rounded-md px-3 py-2 text-lg transition-colors hover:bg-base-100"
-   data-tip="Przełącz boczny pasek">
+﻿@using Microsoft.AspNetCore.Razor.Language.Intermediate
+
+@functions {
+	private class SidebarOption
+	{
+		public string DisplayName { get; set; } = string.Empty;
+		public string Controller { get; set; } = string.Empty;
+		public string Action { get; set; } = string.Empty;
+		public string Icon { get; set; } = string.Empty;
+		public bool Disabled { get; set; } = false;
+		public bool Active { get; set; } = false;
+	}
+}
+
+<label
+	class="swap swap-rotate tooltip tooltip-right self-end rounded-md px-3 py-2 text-lg transition-colors hover:bg-base-100"
+	data-tip="Przełącz boczny pasek">
 	<input type="checkbox" id="sidebarExpandCheckbox" />
 
 	<i class="swap-off bi bi-arrow-bar-right"></i>
 	<i class="swap-on bi bi-arrow-bar-left"></i>
 </label>
 
+@{
+	var activePage = ViewData["ActivePage"] as string;
+
+	var menuOptions = new List<SidebarOption>
+	{
+		new SidebarOption
+		{
+			DisplayName = "Przegląd",
+			Controller = "Home",
+			Action = "Index",
+			Icon = "house-fill",
+			Active = activePage == "Home",
+		},
+		new SidebarOption
+		{
+			DisplayName = "Zgłoszenia",
+			Controller = "Submissions",
+			Action = "Index",
+			Icon = "envelope-paper-fill",
+			Active = activePage == "Submissions",
+		},
+		new SidebarOption
+		{
+			DisplayName = "Plan kolędy",
+			Controller = "Calendar",
+			Action = "Index",
+			Icon = "calendar-week-fill",
+			Active = activePage == "Calendar",
+		},
+		new SidebarOption
+		{
+			DisplayName = "Utwórz zgłoszenie",
+			Controller = "Submissions",
+			Action = "New",
+			Icon = "plus-square-dotted",
+			Active = activePage == "NewSubmission",
+		},
+	};
+}
+
 <div class="font-noto-sans flex flex-col gap-1 text-lg font-medium whitespace-nowrap">
-	<a asp-controller="Home" asp-action="Index" role="button" 
-	   class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors hover:bg-(--color-primary) hover:text-white">
-		<div class="flex min-w-12 justify-center">
-			<i class="bi bi-house-fill text-2xl"></i>
-		</div>
-		Przegląd
-	</a>
-	<a asp-controller="Submissions" asp-action="Index" role="button"
-	   class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors
-			hover:bg-(--color-primary) hover:text-white">
-		<div class="flex min-w-12 justify-center pb-1">
-			<i class="bi bi-envelope-paper-fill text-2xl"></i>
-		</div>
-		Zgłoszenia
-	</a>
-	<a asp-controller="Home" asp-action="Index" role="button"
-	   class="flex h-12 w-full cursor-not-allowed items-center gap-1 overflow-x-clip rounded-md transition-colors
-			hover:bg-neutral-700 hover:text-white">
-		<div class="flex min-w-12 justify-center pb-1">
-			<i class="bi bi-calendar-week-fill text-2xl"></i>
-		</div>
-		Plan kolędy
-	</a>
-	<a asp-controller="Submissions" asp-action="New" role="button"
-	   class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors hover:bg-(--color-primary) hover:text-white">
-		<div class="flex min-w-12 justify-center">
-			<i class="bi bi-plus-square-dotted text-2xl"></i>
-		</div>
-		Utwórz zgłoszenie
-	</a>
+	@foreach (var option in menuOptions)
+	{
+		<a asp-controller="@option.Controller" asp-action="@option.Action" role="button"
+			class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors hover:bg-primary hover:text-white @(option.Active ? "bg-base-100 text-white" : "") @(option.Disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : "")">
+			<div class="flex min-w-12 justify-center">
+				<i class="bi bi-@option.Icon text-2xl"></i>
+			</div>
+			@option.DisplayName
+		</a>
+	}
 </div>
 
 <script>

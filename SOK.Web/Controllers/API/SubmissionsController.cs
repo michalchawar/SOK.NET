@@ -14,10 +14,12 @@ namespace SOK.Web.Controllers.API
     public class SubmissionsController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;
+        private readonly IPlanService _planService;
 
-        public SubmissionsController(ISubmissionService submissionService)
+        public SubmissionsController(ISubmissionService submissionService, IPlanService planService)
         {
             _submissionService = submissionService;
+            _planService = planService;
         }
 
         // GET: api/<SubmissionsController>
@@ -29,8 +31,13 @@ namespace SOK.Web.Controllers.API
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 5)
         {
+            Plan? activePlan = await _planService.GetActivePlanAsync();
+
             List<Submission> submissions = [.. await _submissionService
-                .GetSubmissionsPaginated(CreateSubmissionFilter(address ?? string.Empty, submitter ?? string.Empty), page, pageSize)];
+                .GetSubmissionsPaginated(
+                    CreateSubmissionFilter(address ?? string.Empty, submitter ?? string.Empty, activePlan?.Id ?? -1),
+                    page,
+                    pageSize)];
 
             List<SubmissionDto> result = submissions.Select(s => new SubmissionDto(s)).ToList();
 
@@ -74,8 +81,9 @@ namespace SOK.Web.Controllers.API
         }
 
         protected Expression<Func<Submission, bool>> CreateSubmissionFilter(
-            string address = "", 
-            string submitter = "")
+            string address = "",
+            string submitter = "",
+            int? planId = null)
         {
             // Rozbij tekst po spacji i slashu, odrzuć puste fragmenty
             static string BuildLikePattern(string input)
@@ -96,10 +104,11 @@ namespace SOK.Web.Controllers.API
 
             // Generujemy dynamiczne wyrażenie do filtrowania i zwracamy je
             return s =>
-                (string.IsNullOrEmpty(addressPattern) ||
-                    EF.Functions.Like(s.Address.FilterableString, addressPattern)) &&
-                (string.IsNullOrEmpty(submitterPattern) ||
-                    EF.Functions.Like(s.Submitter.FilterableString, submitterPattern));
+                    (string.IsNullOrEmpty(addressPattern) ||
+                        EF.Functions.Like(s.Address.FilterableString, addressPattern)) &&
+                    (string.IsNullOrEmpty(submitterPattern) ||
+                        EF.Functions.Like(s.Submitter.FilterableString, submitterPattern)) &&
+                    (planId == null || s.PlanId == planId);
         }
     }
 }

@@ -6,11 +6,13 @@ using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Web.Filters;
 using SOK.Web.ViewModels.Parish;
 
 namespace SOK.Web.Controllers
 {
     [Authorize]
+    [ActivePage("Submissions")]
     public class SubmissionsController : Controller
     {
         private readonly ISubmissionService _submissionService;
@@ -57,6 +59,7 @@ namespace SOK.Web.Controllers
         }
 
         [HttpGet]
+        [ActivePage("NewSubmission")]
         public async Task<IActionResult> New()
         {
             NewSubmissionVM model = new NewSubmissionVM();
@@ -105,7 +108,7 @@ namespace SOK.Web.Controllers
                 {
                     await _submissionService.CreateSubmissionAsync(request);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     ModelState.AddModelError(string.Empty, "Wystąpił błąd podczas tworzenia zgłoszenia. Spróbuj ponownie.");
                     await PopulateNewSubmissionVM(model);
