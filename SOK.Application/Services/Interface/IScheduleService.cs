@@ -81,7 +81,9 @@ namespace SOK.Application.Services.Interface
         /// <summary>
         /// Usuwa informację o domyślnym harmonogramie dla aktywnego planu.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
         Task ClearDefaultScheduleAsync();
     }
 }

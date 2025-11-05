@@ -104,6 +104,7 @@ namespace SOK.Application.Services.Implementation
         public async Task ClearDefaultScheduleAsync()
         {
             await _uow.ParishInfo.ClearValueAsync("DefaultScheduleId");
+            await _uow.SaveAsync();
         }
     }
 }

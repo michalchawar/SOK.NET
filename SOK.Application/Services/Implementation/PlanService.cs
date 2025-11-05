@@ -34,7 +34,9 @@ namespace SOK.Application.Services.Implementation
                     filter,
                     pageSize: pageSize,
                     page: page,
-                    author: true)];
+                    author: true,
+                    submissions: true,
+                    days: true)];
 
             return result;
         }
@@ -106,6 +108,13 @@ namespace SOK.Application.Services.Implementation
 
             int planId = int.Parse(planIdStr);
             return await _uow.Plan.GetAsync(p => p.Id == planId);
+        }
+
+        /// <inheritdoc />
+        public async Task ClearActivePlanAsync()
+        {
+            await _uow.ParishInfo.ClearValueAsync("ActivePlanId");
+            await _uow.SaveAsync();
         }
     }
 }
