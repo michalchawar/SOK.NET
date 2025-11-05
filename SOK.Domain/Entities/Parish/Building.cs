@@ -70,14 +70,14 @@ namespace SOK.Domain.Entities.Parish
         public Street Street { get; set; } = default!;
 
         /// <summary>
-        /// Lista przypisañ agend powi¹zanych z budynkiem. To klasa pomocnicza relacji wiele-do-wielu miêdzy agend¹ a budynkami.
+        /// Lista przypisañ dni powi¹zanych z budynkiem. To klasa pomocnicza relacji wiele-do-wielu miêdzy dniem a budynkami.
         /// </summary>
         public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
 
         /// <summary>
-        /// Lista agend, do których budynek jest przypisany. Ka¿dy budynek mo¿e byæ przypisany do wielu agend.
+        /// Lista dni, do których budynek jest przypisany. Ka¿dy budynek mo¿e byæ przypisany do wielu dni w ró¿nych harmonogramach.
         /// </summary>
-        public ICollection<Agenda> Agendas { get; set; } = new List<Agenda>();
+        public ICollection<Day> Days { get; set; } = new List<Day>();
 
         /// <summary>
         /// Lista jednostek adresowych w budynku.

@@ -8,19 +8,19 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<BuildingAssignment> builder)
         {
-            // Klucz g³ówny
-            builder.HasKey(ba => new { ba.AgendaId, ba.BuildingId, ba.ScheduleId });
+            // Klucz gï¿½ï¿½wny
+            builder.HasKey(ba => new { ba.DayId, ba.BuildingId, ba.ScheduleId });
 
-            // Indeksy i unikalnoœæ
-            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+            // Indeksy i unikalnoï¿½ï¿½
+            // (nie ma potrzeby dodatkowych indeksï¿½w poza kluczem gï¿½ï¿½wnym)
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            // (brak automatycznie generowanych pï¿½l)
 
             // Relacje
-            builder.HasOne(ba => ba.Agenda)
+            builder.HasOne(ba => ba.Day)
                 .WithMany(a => a.BuildingAssignments)
-                .HasForeignKey(ba => ba.AgendaId)
+                .HasForeignKey(ba => ba.DayId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(ba => ba.Building)

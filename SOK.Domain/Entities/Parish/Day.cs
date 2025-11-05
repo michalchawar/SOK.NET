@@ -40,6 +40,16 @@ namespace SOK.Domain.Entities.Parish
         public Plan Plan { get; set; } = default!;
 
         /// <summary>
+        /// Lista przypisañ budynków powi¹zanych z dniem. To klasa pomocnicza relacji wiele-do-wielu miêdzy dniem a budynkami.
+        /// </summary>
+        public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
+
+        /// <summary>
+        /// Lista budynków przypisanych do dnia. Ka¿dy budynek mo¿e byæ przypisany do wielu dni w ró¿nych harmonogramach.
+        /// </summary>
+        public ICollection<Building> BuildingsAssigned { get; set; } = new List<Building>();
+
+        /// <summary>
         /// Lista agend przypisanych do tego dnia.
         /// </summary>
         public ICollection<Agenda> Agendas { get; set; } = new List<Agenda>();

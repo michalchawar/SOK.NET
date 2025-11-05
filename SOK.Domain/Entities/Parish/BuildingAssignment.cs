@@ -1,9 +1,9 @@
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje przypisanie budynku do agendy i harmonogramu.
-    /// Pozwala powi¹zaæ konkretny budynek z agend¹ w ramach danego harmonogramu (Schedule).
-    /// Przypisania wykorzystywane s¹ do automatycznego przypisywania wizyt do danych agend
+    /// Reprezentuje przypisanie budynku do dnia i harmonogramu.
+    /// Pozwala powi¹zaæ konkretny budynek z dniem w ramach danego harmonogramu (Schedule).
+    /// Przypisania wykorzystywane s¹ do automatycznego przypisywania wizyt do danych dni
     /// oraz sugerowania agend przy planowaniu wizyt. Aby dane przypisanie by³o wtedy brane pod uwagê,
     /// harmonogram wizyty musi byæ zgodny z harmonogramem przypisania (oraz adres wizyty musi byæ
     /// zgodny z adresem budynku).
@@ -11,14 +11,14 @@ namespace SOK.Domain.Entities.Parish
     public class BuildingAssignment
     {
         /// <summary>
-        /// Identyfikator agendy, do której przypisany jest budynek.
+        /// Identyfikator dnia, do którego przypisany jest budynek.
         /// </summary>
-        public int AgendaId { get; set; }
+        public int DayId { get; set; }
 
         /// <summary>
-        /// Agenda, do której przypisany jest budynek (relacja nawigacyjna).
+        /// Dzieñ, do którego przypisany jest budynek (relacja nawigacyjna).
         /// </summary>
-        public Agenda Agenda { get; set; } = default!;
+        public Day Day { get; set; } = default!;
 
         /// <summary>
         /// Identyfikator budynku, który jest przypisany.
@@ -26,7 +26,7 @@ namespace SOK.Domain.Entities.Parish
         public int BuildingId { get; set; }
 
         /// <summary>
-        /// Budynek, który jest przypisany do agendy (relacja nawigacyjna).
+        /// Budynek, który jest przypisany do dnia (relacja nawigacyjna).
         /// </summary>
         public Building Building { get; set; } = default!;
 

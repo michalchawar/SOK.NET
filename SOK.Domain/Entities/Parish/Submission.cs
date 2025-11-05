@@ -89,8 +89,39 @@ namespace SOK.Domain.Entities.Parish
         public Visit Visit { get; set; } = default!;
 
         /// <summary>
+        /// Identyfikator planu, do którego nale¿y zg³oszenie.
+        /// </summary>
+        /// <remarks>
+        /// Ta w³aœciwoœæ jest ustawiana podczas tworzenia zg³oszenia i nie mo¿e byæ modyfikowana póŸniej.
+        /// </remarks>
+        public int PlanId { get; private set; }
+        
+        /// <summary>
+        /// Plan, do którego nale¿y zg³oszenie (relacja nawigacyjna).
+        /// </summary>
+        /// <remarks>
+        /// Ta w³aœciwoœæ jest ustawiana podczas tworzenia zg³oszenia i nie mo¿e byæ modyfikowana póŸniej.
+        /// </remarks>
+        public Plan Plan { get; private set; } = default!;
+
+        /// <summary>
         /// Historia zmian zg³oszenia (snapshoty).
         /// </summary>
         public ICollection<SubmissionSnapshot> History { get; set; } = new List<SubmissionSnapshot>();
+
+        /// <summary>
+        /// Konstruktor bezparametrowy.
+        /// </summary>
+        public Submission() {}
+
+        /// <summary>
+        /// Konstruktor tworz¹cy zg³oszenie powi¹zane z okreœlonym planem.
+        /// </summary>
+        /// <param name="plan">Plan, do którego nale¿y zg³oszenie.</param>
+        public Submission(Plan plan)
+        {
+            PlanId = plan.Id;
+            Plan = plan;
+        }
     }
 }

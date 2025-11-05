@@ -72,16 +72,6 @@ namespace SOK.Domain.Entities.Parish
         public ICollection<Visit> Visits { get; set; } = new List<Visit>();
 
         /// <summary>
-        /// Lista przypisañ budynków powi¹zanych z agend¹. To klasa pomocnicza relacji wiele-do-wielu miêdzy agend¹ a budynkami.
-        /// </summary>
-        public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
-
-        /// <summary>
-        /// Lista budynków przypisanych do agendy. Ka¿dy budynek mo¿e byæ przypisany do wielu agend.
-        /// </summary>
-        public ICollection<Building> BuildingsAssigned { get; set; } = new List<Building>();
-
-        /// <summary>
         /// Lista u¿ytkowników przypisanych do agendy. Agenda mo¿e nie mieæ przypisanych u¿ytkowników. 
         /// U¿ytkownicy mog¹ mieæ ró¿ne role.
         /// </summary>

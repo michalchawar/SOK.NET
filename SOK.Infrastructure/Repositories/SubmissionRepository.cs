@@ -62,7 +62,7 @@ namespace SOK.Infrastructure.Repositories
                         .ThenInclude(v => v.Schedule)
                     .Include(s => s.Visit)
                         .ThenInclude(v => v.Agenda)
-                            .ThenInclude(a => a.Day);
+                            .ThenInclude(a => a!.Day);
             
             if (history)
                 query = query.Include(s => s.History);

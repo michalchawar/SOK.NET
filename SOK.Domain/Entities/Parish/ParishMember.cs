@@ -15,6 +15,12 @@ namespace SOK.Domain.Entities.Parish
         public int Id { get; set; }
 
         /// <summary>
+        /// Nazwa wyœwietlana u¿ytkownika.
+        /// </summary>
+        [MaxLength(64)]
+        public string DisplayName { get; set; } = default!;
+
+        /// <summary>
         /// Identyfikator odpowiadaj¹cego u¿ytkownika w bazie centralnej.
         /// </summary>
         [MaxLength(36)]

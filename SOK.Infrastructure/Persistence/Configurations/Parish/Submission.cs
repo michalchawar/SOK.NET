@@ -35,6 +35,11 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .WithOne(a => a.Submission)
                 .HasForeignKey<Submission>(s => s.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(s => s.Plan)
+                .WithMany(p => p.Submissions)
+                .HasForeignKey(s => s.PlanId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

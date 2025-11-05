@@ -80,7 +80,7 @@ namespace SOK.Application.Services.Implementation
 
             // Harmonogram również musi istnieć w momencie tworzenia zgłoszenia
             Schedule? schedule = await _uow.Schedule
-                .GetAsync(s => s.Id == submissionDto.Schedule.Id, tracked: true);
+                .GetAsync(s => s.Id == submissionDto.Schedule.Id, includeProperties: "Plan", tracked: true);
 
             if (schedule == null)
                 throw new ArgumentException($"Cannot create submission for non-existent schedule " +
@@ -97,16 +97,16 @@ namespace SOK.Application.Services.Implementation
             submissionDto.ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']).ToLower();
 
             // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
-            Submission submission = new Submission
+            Submission submission = new Submission(schedule.Plan)
             {
                 Submitter = submitter,
                 SubmitterNotes = submissionDto.SubmitterNotes,
                 AdminMessage = null,
                 AdminNotes = submissionDto.AdminNotes,
                 NotesStatus = NotesFulfillmentStatus.NA,
-                Address = null,
-                FormSubmission = null,
-                Visit = null
+                Address = null!,
+                FormSubmission = null!,
+                Visit = null!
             };
 
             if (!string.IsNullOrEmpty(submission.SubmitterNotes))
@@ -192,7 +192,7 @@ namespace SOK.Application.Services.Implementation
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
