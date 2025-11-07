@@ -15,6 +15,13 @@ namespace SOK.Domain.Entities.Parish
         public int Id { get; set; }
 
         /// <summary>
+        /// Nazwa planu.
+        /// </summary>
+        [MinLength(4)]
+        [MaxLength(100)]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
         /// Data i godzina utworzenia planu.
         /// </summary>
         public DateTime CreationTime { get; private set; }
