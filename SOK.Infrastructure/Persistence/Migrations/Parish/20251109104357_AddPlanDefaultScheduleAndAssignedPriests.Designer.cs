@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOK.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Parish
+namespace SOK.Infrastructure.Persistence.Migrations.Parish
 {
     [DbContext(typeof(ParishDbContext))]
-    partial class ParishDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109104357_AddPlanDefaultScheduleAndAssignedPriests")]
+    partial class AddPlanDefaultScheduleAndAssignedPriests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,15 +42,15 @@ namespace SOK.Infrastructure.Migrations.Parish
 
             modelBuilder.Entity("ParishMemberPlan", b =>
                 {
-                    b.Property<int>("ActivePriestsId")
-                        .HasColumnType("int");
-
                     b.Property<int>("AssignedPlansId")
                         .HasColumnType("int");
 
-                    b.HasKey("ActivePriestsId", "AssignedPlansId");
+                    b.Property<int>("AssignedPriestsId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("AssignedPlansId");
+                    b.HasKey("AssignedPlansId", "AssignedPriestsId");
+
+                    b.HasIndex("AssignedPriestsId");
 
                     b.ToTable("ParishMemberPlan");
                 });
@@ -483,10 +486,12 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlanId", "Name")
+                    b.HasIndex("Name")
                         .IsUnique();
 
-                    b.HasIndex("PlanId", "ShortName")
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("ShortName")
                         .IsUnique();
 
                     b.ToTable("Schedules");
@@ -903,15 +908,15 @@ namespace SOK.Infrastructure.Migrations.Parish
 
             modelBuilder.Entity("ParishMemberPlan", b =>
                 {
-                    b.HasOne("SOK.Domain.Entities.Parish.ParishMember", null)
-                        .WithMany()
-                        .HasForeignKey("ActivePriestsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SOK.Domain.Entities.Parish.Plan", null)
                         .WithMany()
                         .HasForeignKey("AssignedPlansId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SOK.Domain.Entities.Parish.ParishMember", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedPriestsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

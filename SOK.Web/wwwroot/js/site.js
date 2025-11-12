@@ -20,7 +20,7 @@ const notifications = {
         `);
 
         let progressElement = timeLeft.create(this._durationInMs);
-        let container = $("#notificationContainer");
+        let container = $("#notification-container");
 
         alertElement.append(progressElement.element);
         container.append(alertElement);
@@ -108,7 +108,7 @@ function reflow(element) {
 
 function sidebarChangeState(event) {
     let sidebar = $("#sidebar");
-    let button = $("#sidebarExpandCheckbox");
+    let button = $("#sidebar-expand-checkbox");
 
     // Sidebar expanded
     if (button.is(":checked")) {

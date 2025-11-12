@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Design;
 using SOK.Application.Common.DTO;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Central;
 using SOK.Infrastructure.Persistence.Context;
 
 namespace SOK.Infrastructure.Persistence.Design
@@ -36,5 +37,7 @@ namespace SOK.Infrastructure.Persistence.Design
         public Task<bool> SetParishAsync(string parishUid) => Task.FromResult(false);
 
         public Task<ParishDto> BindParishAsync() => Task.FromResult(new ParishDto());
+
+        public Task<ParishEntry?> GetCurrentParishAsync() => Task.FromResult(new ParishEntry())!;
     }
 }

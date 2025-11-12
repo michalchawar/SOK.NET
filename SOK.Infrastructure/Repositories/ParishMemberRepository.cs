@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SOK.Application.Common.Interface;
+using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Infrastructure.Persistence.Context;
 using System.Linq.Expressions;
@@ -42,6 +44,21 @@ namespace SOK.Infrastructure.Repositories
         public void Update(ParishMember parishMember)
         {
             dbSet.Update(parishMember);
+        }
+
+        public async Task<User> GenerateUserAsync(string displayName)
+        {
+            Random random = new();
+
+            ParishEntry? parish = await _db.GetCurrentParishAsync();
+            if (parish is null)
+                throw new InvalidOperationException("Cannot create generic user: There is no active parish set.");
+
+            return new User()
+            {
+                UserName = string.Join("-", displayName.ToLower().Replace(".", string.Empty).Replace(",", string.Empty).Split([' ', '-', '/'], StringSplitOptions.TrimEntries).TakeLast(2).Append(random.Next(1000).ToString())),
+                Parish = parish,
+            };
         }
     }
 }

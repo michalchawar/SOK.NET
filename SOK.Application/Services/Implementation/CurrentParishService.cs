@@ -1,6 +1,7 @@
 using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 
 namespace SOK.Application.Services.Implementation
@@ -43,6 +44,12 @@ namespace SOK.Application.Services.Implementation
             {
                 throw new InvalidOperationException($"Parish with UID {parishUid} not found.");
             }
+        }
+
+        /// <inheritdoc />
+        public Task<ParishEntry?> GetCurrentParishAsync()
+        {
+            return _uow.Parishes.GetAsync(p => p.UniqueId.ToString() == ParishUid);
         }
     }
 }

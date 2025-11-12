@@ -75,8 +75,6 @@ namespace SOK.Web.Controllers
             Building? building = await _buildingService.GetBuildingAsync(model.BuildingId);
             Schedule? schedule = await _scheduleService.GetScheduleAsync(model.ScheduleId);
 
-            bool parishMemberFound = int.TryParse(_userManager.GetUserId(this.User), out int userId);
-
             if (building is null)
                 ModelState.AddModelError("Building", "Wystąpił problem z wyborem bramy. Spróbuj ponownie.");
             if (schedule is null)
@@ -99,7 +97,7 @@ namespace SOK.Web.Controllers
                     AdminNotes = model.AdminNotes,
                     ApartmentNumber = string.IsNullOrWhiteSpace(model.Apartment) ? null : int.Parse(new string(model.Apartment.TakeWhile(c => char.IsDigit(c)).ToArray())),
                     ApartmentLetter = string.IsNullOrWhiteSpace(model.Apartment) ? null : new string(model.Apartment.SkipWhile(c => char.IsDigit(c)).ToArray()),
-                    Author = parishMemberFound ? await _parishMemberService.GetParishMemberAsync(userId) : null,
+                    Author = await _parishMemberService.GetParishMemberAsync(this.User),
                     Method = model.Method,
                     IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
                 };

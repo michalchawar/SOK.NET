@@ -47,11 +47,26 @@ namespace SOK.Application.Services.Interface
         /// <summary>
         /// Zapisuje plan w bazie danych.
         /// </summary>
-        /// <param name="plan">Plan, który ma zostać zapisany.</param>
+        /// <param name="plan">Obiekt <see cref="PlanActionRequestDto"/> z danymi planu, który ma zostać utworzony.</param>
         /// <returns>
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
         /// </returns>
-        Task CreatePlanAsync(Plan plan);
+        /// <exception cref="ArgumentException">
+        /// Jeśli ponad jeden obiekt <see cref="PlanScheduleDto"/> jest oznaczony flagą IsDefault.
+        /// </exception>
+        Task CreatePlanAsync(PlanActionRequestDto plan);
+        
+        /// <summary>
+        /// Aktualizuje plan w bazie danych, wraz z jego powiązanymi danymi.
+        /// </summary>
+        /// <param name="plan">Obiekt <see cref="PlanActionRequestDto"/> z danymi planu, który ma zostać zaktualizowany.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Jeśli ponad jeden obiekt <see cref="PlanScheduleDto"/> jest oznaczony flagą IsDefault.
+        /// </exception>
+        Task UpdatePlanAsync(PlanActionRequestDto plan);
 
         /// <summary>
         /// Usuwa plan o podanym identyfikatorze.

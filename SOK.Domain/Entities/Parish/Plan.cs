@@ -27,6 +27,20 @@ namespace SOK.Domain.Entities.Parish
         public DateTime CreationTime { get; private set; }
 
         /// <summary>
+        /// Identyfikator domyœlnego harmonogramu dla planu.
+        /// </summary>
+        public int? DefaultScheduleId { get; set; }
+
+        /// <summary>
+        /// Domyœlny harmonogram (Schedule) powi¹zany z planem (relacja nawigacyjna).
+        /// Odpowiada za mo¿liwoœæ przyjmowania zg³oszeñ przez formularz zewnêtrzny.
+        /// </summary>
+        /// <remarks>
+        /// Mo¿e byæ <see cref="null">, jeœli nie ustawiono domyœlnego harmonogramu.
+        /// </remarks>
+        public Schedule? DefaultSchedule { get; set; } = default!;
+
+        /// <summary>
         /// Identyfikator u¿ytkownika, który jest autorem planu.
         /// </summary>
         public int? AuthorId { get; set; }
@@ -35,6 +49,11 @@ namespace SOK.Domain.Entities.Parish
         /// Autor planu (relacja opcjonalna).
         /// </summary>
         public ParishMember? Author { get; set; } = default!;
+
+        /// <summary>
+        /// Lista ksiê¿y (ParishMember w roli Priest), których mo¿na wybieraæ w planie.
+        /// </summary>
+        public ICollection<ParishMember> ActivePriests { get; set; } = new List<ParishMember>();
 
         /// <summary>
         /// Lista harmonogramów (Schedule) powi¹zanych z planem.

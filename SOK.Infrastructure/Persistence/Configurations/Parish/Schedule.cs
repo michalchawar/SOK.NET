@@ -12,10 +12,10 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
             // (zdefiniowany przez atrybut [Key] w modelu)
 
             // Indeksy i unikalnoœæ
-            builder.HasIndex(s => s.Name)
+            builder.HasIndex(s => new { s.PlanId, s.Name })
                 .IsUnique();
 
-            builder.HasIndex(s => s.ShortName)
+            builder.HasIndex(s => new { s.PlanId, s.ShortName })
                 .IsUnique();
 
             // Generowane pola

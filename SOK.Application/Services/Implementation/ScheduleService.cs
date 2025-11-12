@@ -25,15 +25,13 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<IEnumerable<Schedule>> GetActiveSchedules()
         {
-            string? activePlanIdStr = await _uow.ParishInfo.GetValueAsync("ActivePlanId");
+            // Pobierz aktywny plan
+            Plan? activePlan = await GetActivePlan(includeProperties: "Schedules");
 
-            if (string.IsNullOrEmpty(activePlanIdStr))
+            if (activePlan is null)
                 throw new ArgumentException("No active plan is set.");
 
-            int activePlanId = int.Parse(activePlanIdStr);
-            Plan? activePlan = await _uow.Plan.GetAsync(p => p.Id == activePlanId, includeProperties: "Schedules");
-
-            return activePlan is not null ? new List<Schedule>(activePlan.Schedules) : new List<Schedule>();
+            return [.. activePlan.Schedules];
         }
 
         /// <inheritdoc />
@@ -56,7 +54,7 @@ namespace SOK.Application.Services.Implementation
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -72,32 +70,35 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task SetDefaultScheduleAsync(Schedule schedule)
         {
+            // Pobierz plan powiązany z harmonogramem
             Schedule? entity = await _uow.Schedule.GetAsync(s => s.Id == schedule.Id, includeProperties: "Plan");
-            string? activePlanId = await _uow.ParishInfo.GetValueAsync("ActivePlanId");
 
+            // Pobierz aktywny plan
+            Plan? activePlan = await GetActivePlan(includeProperties: "DefaultSchedule");
+            
             if (entity is null)
                 throw new ArgumentException("Plan does not exist in the database.");
-            if (string.IsNullOrEmpty(activePlanId))
+            if (activePlan is null)
                 throw new ArgumentException("No active plan is set.");
-            if (entity.PlanId.ToString() != activePlanId)
+            if (entity.PlanId != activePlan.Id)
                 throw new ArgumentException("Schedule doesn't belong to active plan.");
 
-            await _uow.ParishInfo.SetValueAsync("DefaultScheduleId", schedule.Id.ToString());
+            activePlan.DefaultSchedule = entity;
+            _uow.Plan.Update(activePlan);
+
             await _uow.SaveAsync();
         }
 
         /// <inheritdoc />
         public async Task<Schedule?> GetDefaultScheduleAsync()
         {
-            string? scheduleIdStr = await _uow.ParishInfo.GetValueAsync("DefaultScheduleId");
+            // Pobierz aktywny plan
+            Plan? activePlan = await GetActivePlan(includeProperties: "DefaultSchedule");
 
-            if (string.IsNullOrEmpty(scheduleIdStr))
-            {
-                return null;
-            }
+            if (activePlan is null)
+                throw new ArgumentException("No active plan is set.");
 
-            int scheduleId = int.Parse(scheduleIdStr);
-            return await _uow.Schedule.GetAsync(s => s.Id == scheduleId);
+            return activePlan.DefaultSchedule;
         }
 
         /// <inheritdoc />
@@ -105,6 +106,20 @@ namespace SOK.Application.Services.Implementation
         {
             await _uow.ParishInfo.ClearValueAsync("DefaultScheduleId");
             await _uow.SaveAsync();
+        }
+        
+        /// <summary>
+        /// Pobiera aktywny plan systemu.
+        /// </summary>
+        /// <param name="includeProperties">Łańcuch właściwości do dołączenia.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację,
+        /// którego wartością jest aktywny plan lub <see cref="null"/>, jeśli nie ma aktywnego planu. 
+        /// </returns>
+        private async Task<Plan?> GetActivePlan(string includeProperties = "")
+        {
+            string? activePlanId = await _uow.ParishInfo.GetValueAsync("ActivePlanId");
+            return await _uow.Plan.GetAsync(p => p.Id.ToString() == activePlanId, includeProperties: includeProperties);
         }
     }
 }

@@ -9,11 +9,11 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Plan> builder)
         {
-            // Klucz g³ówny
+            // Klucz gï¿½ï¿½wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
-            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+            // Indeksy i unikalnoï¿½ï¿½
+            // (nie ma potrzeby dodatkowych indeksï¿½w poza kluczem gï¿½ï¿½wnym)
 
             // Generowane pola
             builder.Property(fs => fs.CreationTime)
@@ -26,6 +26,14 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .WithMany()
                 .HasForeignKey(p => p.AuthorId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(p => p.DefaultSchedule)
+                .WithOne()
+                .HasForeignKey<Plan>(p => p.DefaultScheduleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasMany(p => p.ActivePriests)
+                .WithMany(pm => pm.AssignedPlans);
         }
     }
 }

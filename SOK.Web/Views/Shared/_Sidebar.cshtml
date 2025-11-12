@@ -15,7 +15,7 @@
 <label
 	class="swap swap-rotate tooltip tooltip-right self-end rounded-md px-3 py-2 text-lg transition-colors hover:bg-base-100"
 	data-tip="Przełącz boczny pasek">
-	<input type="checkbox" id="sidebarExpandCheckbox" />
+	<input type="checkbox" id="sidebar-expand-checkbox" />
 
 	<i class="swap-off bi bi-arrow-bar-right"></i>
 	<i class="swap-on bi bi-arrow-bar-left"></i>
@@ -77,6 +77,6 @@
 <script>
 	window.onload = () => {
 		sidebarChangeState();
-		document.querySelector("#sidebarExpandCheckbox").addEventListener("change", (e) => sidebarChangeState(e));
+		document.querySelector("#sidebar-expand-checkbox").addEventListener("change", (e) => sidebarChangeState(e));
 	}
 </script>

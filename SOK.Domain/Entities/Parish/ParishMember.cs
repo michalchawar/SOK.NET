@@ -32,6 +32,11 @@ namespace SOK.Domain.Entities.Parish
         public ICollection<Agenda> AssignedAgendas { get; set; } = new List<Agenda>();
 
         /// <summary>
+        /// Lista planów, do których u¿ytkownik jest przypisany (jeœli jest w randzie Priest).
+        /// </summary>
+        public ICollection<Plan> AssignedPlans { get; set; } = new List<Plan>();
+
+        /// <summary>
         /// Lista zg³oszeñ, które u¿ytkownik wprowadzi³ manualnie.
         /// </summary>
         public ICollection<FormSubmission> EnteredSubmissions { get; set; } = new List<FormSubmission>();

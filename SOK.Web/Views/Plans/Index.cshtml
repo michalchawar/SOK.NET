@@ -1,0 +1,114 @@
+@using Microsoft.IdentityModel.Tokens
+@using SOK.Domain.Entities.Parish;
+@using SOK.Infrastructure.Extensions
+@using System.Globalization
+@{
+    ViewData["Title"] = "Aktywuj plan";
+}
+
+@{
+    var plans = ViewData["Plans"] as IEnumerable<SOK.Domain.Entities.Parish.Plan>;
+    int? activePlanId = ViewData["ActivePlanId"] as int?;
+}
+
+<div class="overflow-x-auto h-full">
+    @if (plans.IsNullOrEmpty())
+    {
+        <div class="min-h-full flex flex-col items-center justify-center">
+            <h2 class="text-center text-xl font-semibold">
+                Brak planów w systemie.
+            </h2>
+            <h4 class="text-center text-lg opacity-70">
+                Utwórz nowy plan, aby móc go aktywować.
+            </h4>
+            <a asp-action="Create" class="btn btn-primary mt-4">
+                <i class="bi bi-plus"></i>
+                Utwórz
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="min-h-full w-full flex flex-col items-center justify-start">
+            <div class="flex-1 max-h-1/2 flex flex-col items-center justify-center">
+                <h2 class="text-center text-xl font-semibold">
+                    Utwórz nowy plan
+                </h2>
+                <h4 class="text-center text-lg opacity-70">
+                    Rozpocznij nową kolędę, tworząc nowy plan kolędowy na ten rok.
+                </h4>
+                <a asp-action="Create" class="btn btn-primary mt-4">
+                    <i class="bi bi-plus"></i>
+                    Utwórz
+                </a>
+            </div>
+
+            <div class="divider self-auto w-5/6">
+                <span class="opacity-60">
+                    LUB
+                </span>
+            </div>
+
+            <div class="flex flex-col items-center justify-center opacity-80 mb-3">
+                <h3 class="text-center text-lg font-semibold">
+                    Przeglądaj plany
+                </h3>
+                <h4 class="text-center text-md opacity-70">
+                    Zobacz wcześniej utworzone plany, edytuj je i aktywuj ponownie.
+                </h4>
+            </div>
+
+            <table class="table w-11/12">
+                <!-- head -->
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nazwa</th>
+                        <th>Data stworzenia</th>
+                        <th>Autor</th>
+                        <th>Liczba zgłoszeń</th>
+                        <th>Utworzone dni</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var (plan, index) in plans!.WithIndex())
+                    {
+                        <tr class="@(activePlanId == plan.Id ? "bg-primary/10" : "") hover:bg-base-300">
+                            <th>@(index + 1)</th>
+                            <td>@plan.Name</td>
+                            <td>@plan.CreationTime.ToString("y", CultureInfo.CreateSpecificCulture("pl-PL"))</td>
+                            <td>@(plan.Author?.DisplayName ?? "-")</td>
+                            <td>@plan.Submissions.Count</td>
+                            <td>@plan.Days.Count</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@plan.Id" class="btn btn-neutral btn-soft text-base-content">
+                                    <i class="bi bi-pencil-square"></i> Edytuj
+                                </a>
+                            </td>
+                            <td>
+                                @if (activePlanId != plan.Id)
+                                {
+                                    <form asp-action="Activate" asp-route-id="@plan.Id" method="post">
+                                        <button type="submit" class="btn btn-primary btn-soft">
+                                            <i class="bi bi-check2"></i> Aktywuj
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Deactivate" asp-route-id="@plan.Id" method="post">
+                                        <button type="submit" class="btn btn-error btn-soft">
+                                            <i class="bi bi-x"></i> Dezaktywuj
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

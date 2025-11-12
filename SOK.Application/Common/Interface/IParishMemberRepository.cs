@@ -1,4 +1,5 @@
-﻿using SOK.Domain.Entities.Parish;
+﻿using SOK.Domain.Entities.Central;
+using SOK.Domain.Entities.Parish;
 using System.Linq.Expressions;
 
 namespace SOK.Application.Common.Interface
@@ -14,5 +15,7 @@ namespace SOK.Application.Common.Interface
             bool assignedAgendas = false,
             bool enteredSubmissions = false,
             bool tracked = false);
+
+        Task<User> GenerateUserAsync(string displayName);
     }
 }

@@ -3,6 +3,13 @@
     public interface IUnitOfWork
     {
         Task SaveAsync();
+        Task<ITransaction> BeginTransactionAsync();
+    }
+
+    public interface ITransaction : IAsyncDisposable
+    {
+        Task CommitAsync();
+        Task RollbackAsync();
     }
 
     public interface IUnitOfWorkCentral : IUnitOfWork

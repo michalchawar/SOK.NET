@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SOK.Application.Common.Interface;
 using SOK.Infrastructure.Persistence.Context;
 
@@ -14,6 +15,36 @@ namespace SOK.Infrastructure.Repositories
         public async Task SaveAsync()
         {
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<ITransaction> BeginTransactionAsync()
+        {
+            return new Transaction(await _db.Database.BeginTransactionAsync());
+        }
+
+        private class Transaction : ITransaction
+        {
+            IDbContextTransaction _innerTransaction;
+
+            public Transaction(IDbContextTransaction transaction)
+            {
+                _innerTransaction = transaction;
+            }
+
+            public async Task CommitAsync()
+            {
+                await _innerTransaction.CommitAsync();
+            }
+
+            public async Task RollbackAsync()
+            {
+                await _innerTransaction.RollbackAsync();
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                await _innerTransaction.DisposeAsync();
+            }
         }
     }
 

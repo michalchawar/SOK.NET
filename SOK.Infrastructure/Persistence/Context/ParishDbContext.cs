@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Infrastructure.Persistence.Configurations.Parish;
 
@@ -90,6 +91,11 @@ namespace SOK.Infrastructure.Persistence.Context
             }
 
             base.OnConfiguring(optionsBuilder);
+        }
+
+        public async Task<ParishEntry?> GetCurrentParishAsync()
+        {
+            return await _currentParishService.GetCurrentParishAsync();
         }
     }
 }
