@@ -13,12 +13,12 @@ namespace SOK.Application.Services.Implementation
     public class PlanService : IPlanService
     {
         private readonly IUnitOfWorkParish _uow;
-        private readonly UserManager<User> _userManager;
+        private readonly IUnitOfWorkCentral _uowCentral;
 
-        public PlanService(IUnitOfWorkParish uow, UserManager<User> userManager)
+        public PlanService(IUnitOfWorkParish uow, IUnitOfWorkCentral uowCentral)
         {
             _uow = uow;
-            _userManager = userManager;
+            _uowCentral = uowCentral;
         }
 
         /// <inheritdoc />
@@ -128,7 +128,7 @@ namespace SOK.Application.Services.Implementation
             {
                 throw new ArgumentException("There are more than one default schedules set.");
             }
-            
+
             await using var transaction = await _uow.BeginTransactionAsync();
 
             Plan plan = new()
@@ -160,38 +160,26 @@ namespace SOK.Application.Services.Implementation
 
             var existingPriestIds = planDto.ActivePriests.Where(pm => pm.Id is not null).Select(pm => pm.Id ?? -1);
             var existingPriests = await _uow.ParishMember.GetAllAsync(pm => existingPriestIds.Contains(pm.Id));
-            
+
+            await using var transactionCentral = await _uowCentral.BeginTransactionAsync();
+
             foreach (PlanPriestDto newPriest in planDto.ActivePriests)
             {
                 ParishMember? priest = existingPriests.FirstOrDefault(pm => pm.Id == newPriest.Id);
                 if (priest is null)
                 {
                     // Utwórz nowego użytkownika z generycznymi danymi
-                    User centralUser = await _uow.ParishMember.GenerateUserAsync(newPriest.DisplayName);
-                    priest = new()
-                    {
-                        DisplayName = newPriest.DisplayName,
-                        CentralUserId = centralUser.Id,
-                    };
-                    var result = await _userManager.CreateAsync(centralUser);
-
-                    if (result.Succeeded)
-                    {
-                        _uow.ParishMember.Add(priest);
-                        await _userManager.AddToRoleAsync(centralUser, Role.Priest.ToString());
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
                 }
 
                 // Dodaj użytkownika do planu
-                plan.ActivePriests.Add(priest);
+                if (priest is not null)
+                    plan.ActivePriests.Add(priest);
             }
 
             await _uow.SaveAsync();
             await transaction.CommitAsync();
+            await transactionCentral.CommitAsync();
         }
 
         /// <inheritdoc />
@@ -253,38 +241,26 @@ namespace SOK.Application.Services.Implementation
 
             var existingPriestIds = planDto.ActivePriests.Where(pm => pm.Id is not null).Select(pm => pm.Id ?? -1);
             var existingPriests = await _uow.ParishMember.GetAllAsync(pm => existingPriestIds.Contains(pm.Id));
-            
+
+            await using var transactionCentral = await _uowCentral.BeginTransactionAsync();
+
             foreach (PlanPriestDto newPriest in planDto.ActivePriests)
             {
                 ParishMember? priest = existingPriests.FirstOrDefault(pm => pm.Id == newPriest.Id);
                 if (priest is null)
                 {
                     // Utwórz nowego użytkownika z generycznymi danymi
-                    User centralUser = await _uow.ParishMember.GenerateUserAsync(newPriest.DisplayName);
-                    priest = new()
-                    {
-                        DisplayName = newPriest.DisplayName,
-                        CentralUserId = centralUser.Id,
-                    };
-                    var result = await _userManager.CreateAsync(centralUser);
-
-                    if (result.Succeeded)
-                    {
-                        _uow.ParishMember.Add(priest);
-                        await _userManager.AddToRoleAsync(centralUser, Role.Priest.ToString());
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
                 }
 
                 // Dodaj użytkownika do planu
-                plan.ActivePriests.Add(priest);
+                if (priest is not null)
+                    plan.ActivePriests.Add(priest);
             }
 
             await _uow.SaveAsync();
             await transaction.CommitAsync();
+            await transactionCentral.CommitAsync();
         }
     }
 }

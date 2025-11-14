@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IVisitRepository : IRepository<Visit>
+    /// <summary>
+    /// Reprezentuje repozytorium wizyt.
+    /// </summary>
+    public interface IVisitRepository : IUpdatableRepository<Visit>
     {
-        void Update(Visit visit);
     }
 }

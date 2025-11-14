@@ -11,14 +11,10 @@ using System.Threading.Tasks;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class SubmitterRepository : Repository<Submitter, ParishDbContext>, ISubmitterRepository
+    /// <inheritdoc />
+    public class SubmitterRepository : UpdatableRepository<Submitter, ParishDbContext>, ISubmitterRepository
     {
-        private readonly ParishDbContext _db;
-
-        public SubmitterRepository(ParishDbContext db) : base(db)
-        {
-            _db = db;
-        }
+        public SubmitterRepository(ParishDbContext db) : base(db) {}
 
         public async Task<IEnumerable<Submitter>> GetPaginatedAsync(
             Expression<Func<Submitter, bool>>? filter, 
@@ -38,11 +34,6 @@ namespace SOK.Infrastructure.Repositories
                 query = query.Include(s => s.Submissions);
 
             return await query.ToListAsync();
-        }
-
-        public void Update(Submitter submitter)
-        {
-            dbSet.Update(submitter);
         }
     }
 }

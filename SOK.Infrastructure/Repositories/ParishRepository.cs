@@ -4,18 +4,9 @@ using SOK.Infrastructure.Persistence.Context;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class ParishRepository : Repository<ParishEntry, CentralDbContext>, IParishRepository
+    /// <inheritdoc />
+    public class ParishRepository : UpdatableRepository<ParishEntry, CentralDbContext>, IParishRepository
     {
-        private readonly CentralDbContext _db;
-
-        public ParishRepository(CentralDbContext db) : base(db)
-        {
-            _db = db;
-        }
-
-        public void Update(ParishEntry parish)
-        {
-            dbSet.Update(parish);
-        }
+        public ParishRepository(CentralDbContext db) : base(db) {}
     }
 }

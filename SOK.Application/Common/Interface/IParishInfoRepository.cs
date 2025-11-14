@@ -2,10 +2,11 @@
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IParishInfoRepository : IRepository<ParishInfo>
+    /// <summary>
+    /// Reprezentuje repozytorium informacji o parafii.
+    /// </summary>
+    public interface IParishInfoRepository : IUpdatableRepository<ParishInfo>
     {
-        void Update(ParishInfo parishInfo);
-
         Task<string?> GetValueAsync(string name);
         
         Task SetValueAsync(string name, string value);

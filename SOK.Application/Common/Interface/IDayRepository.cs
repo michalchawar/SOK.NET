@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IDayRepository : IRepository<Day>
+    /// <summary>
+    /// Reprezentuje repozytorium dni kolędowych.
+    /// </summary>
+    public interface IDayRepository : IUpdatableRepository<Day>
     {
-        void Update(Day day);
     }
 }

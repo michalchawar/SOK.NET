@@ -2,8 +2,10 @@
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IParishRepository : IRepository<ParishEntry>
+    /// <summary>
+    /// Reprezentuje repozytorium parafii.
+    /// </summary>
+    public interface IParishRepository : IUpdatableRepository<ParishEntry>
     {
-        void Update(ParishEntry parish);
     }
 }

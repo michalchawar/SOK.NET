@@ -6,20 +6,9 @@ using SOK.Infrastructure.Persistence.Context;
 namespace SOK.Infrastructure.Repositories
 {
     /// <inheritdoc />
-    public class ParishInfoRepository : Repository<ParishInfo, ParishDbContext>, IParishInfoRepository
+    public class ParishInfoRepository : UpdatableRepository<ParishInfo, ParishDbContext>, IParishInfoRepository
     {
-        private readonly ParishDbContext _db;
-
-        public ParishInfoRepository(ParishDbContext db) : base(db)
-        {
-            _db = db;
-        }
-
-        /// <inheritdoc />
-        public void Update(ParishInfo parish)
-        {
-            dbSet.Update(parish);
-        }
+        public ParishInfoRepository(ParishDbContext db) : base(db) {}
 
         /// <inheritdoc />
         public async Task<string?> GetValueAsync(string name)

@@ -3,10 +3,11 @@ using System.Linq.Expressions;
 
 namespace SOK.Application.Common.Interface
 {
-    public interface ISubmissionRepository : IRepository<Submission>
+    /// <summary>
+    /// Reprezentuje repozytorium zgłoszeń.
+    /// </summary>
+    public interface ISubmissionRepository : IUpdatableRepository<Submission>
     {
-        void Update(Submission submission);
-
         Task<IEnumerable<Submission>> GetPaginatedAsync(
             Expression<Func<Submission, bool>>? filter,
             int pageSize = 1,

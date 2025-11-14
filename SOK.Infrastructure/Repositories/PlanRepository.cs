@@ -6,13 +6,10 @@ using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class PlanRepository : Repository<Plan, ParishDbContext>, IPlanRepository
+    /// <inheritdoc />
+    public class PlanRepository : UpdatableRepository<Plan, ParishDbContext>, IPlanRepository
     {
-        private readonly ParishDbContext _db;
-        public PlanRepository(ParishDbContext db) : base(db)
-        {
-            _db = db;
-        }
+        public PlanRepository(ParishDbContext db) : base(db) {}
 
         public async Task<IEnumerable<Plan>> GetPaginatedAsync(
             Expression<Func<Plan, bool>>? filter, 
@@ -44,11 +41,6 @@ namespace SOK.Infrastructure.Repositories
                 query = query.Include(p => p.Days);
 
             return await query.ToListAsync();
-        }
-
-        public void Update(Plan plan)
-        {
-            dbSet.Update(plan);
         }
     }
 }

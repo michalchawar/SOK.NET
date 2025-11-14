@@ -1,10 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SOK.Application.Common.Interface;
+using SOK.Domain.Entities.Central;
 using SOK.Infrastructure.Persistence.Context;
 
 namespace SOK.Infrastructure.Repositories
 {
+    /// <inheritdoc cref="IUnitOfWork" />
     public class UnitOfWork<T> : IUnitOfWork where T : DbContext
     {
         protected readonly T _db;
@@ -22,6 +25,7 @@ namespace SOK.Infrastructure.Repositories
             return new Transaction(await _db.Database.BeginTransactionAsync());
         }
 
+        /// <inheritdoc cref="ITransaction" />
         private class Transaction : ITransaction
         {
             IDbContextTransaction _innerTransaction;
@@ -48,6 +52,7 @@ namespace SOK.Infrastructure.Repositories
         }
     }
 
+    /// <inheritdoc cref="IUnitOfWorkCentral" />
     public class UnitOfWorkCentral : UnitOfWork<CentralDbContext>, IUnitOfWorkCentral
     {
         public IParishRepository Parishes { get; private set; }
@@ -58,6 +63,7 @@ namespace SOK.Infrastructure.Repositories
         }
     }
 
+    /// <inheritdoc cref="IUnitOfWorkParish" />
     public class UnitOfWorkParish : UnitOfWork<ParishDbContext>, IUnitOfWorkParish
     {
         public IParishInfoRepository ParishInfo { get; private set; }
@@ -73,7 +79,7 @@ namespace SOK.Infrastructure.Repositories
         public IDayRepository Day { get; private set; }
         public IParishMemberRepository ParishMember { get; private set; }
 
-        public UnitOfWorkParish(ParishDbContext db) : base(db)
+        public UnitOfWorkParish(ParishDbContext db, UserManager<User> userManager) : base(db)
         {
             ParishInfo = new ParishInfoRepository(db);
             Submission = new SubmissionRepository(db);
@@ -86,7 +92,7 @@ namespace SOK.Infrastructure.Repositories
             Agenda = new AgendaRepository(db);
             Plan = new PlanRepository(db);
             Day = new DayRepository(db);
-            ParishMember = new ParishMemberRepository(db);
+            ParishMember = new ParishMemberRepository(db, userManager);
         }
     }
 }

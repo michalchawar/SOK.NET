@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IAgendaRepository : IRepository<Agenda>
+    /// <summary>
+    /// Reprezentuje repozytorium agend.
+    /// </summary>
+    public interface IAgendaRepository : IUpdatableRepository<Agenda>
     {
-        void Update(Agenda agenda);
     }
 }

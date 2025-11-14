@@ -3,7 +3,10 @@ using System.Linq.Expressions;
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IPlanRepository : IRepository<Plan>
+    /// <summary>
+    /// Reprezentuje repozytorium planów.
+    /// </summary>
+    public interface IPlanRepository : IUpdatableRepository<Plan>
     {
         Task<IEnumerable<Plan>> GetPaginatedAsync(
             Expression<Func<Plan, bool>>? filter,
@@ -14,7 +17,5 @@ namespace SOK.Application.Common.Interface
             bool submissions = false,
             bool days = false,
             bool tracked = false);
-
-        void Update(Plan plan);
     }
 }

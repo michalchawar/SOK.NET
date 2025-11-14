@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IStreetRepository : IRepository<Street>
+    /// <summary>
+    /// Reprezentuje repozytorium ulic.
+    /// </summary>
+    public interface IStreetRepository : IUpdatableRepository<Street>
     {
-        void Update(Street street);
     }
 }

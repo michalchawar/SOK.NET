@@ -4,9 +4,13 @@ using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
 {
+    /// <summary>
+    /// Reprezentuje repozytorium dla jednego typu encji.
+    /// </summary>
+    /// <typeparam name="T">Typ encji, którą ma obsługiwać repozytorium.</typeparam>
     public class Repository<T, U> : IRepository<T> where T : class where U : DbContext
     {
-        private readonly U _db;
+        protected readonly U _db;
         internal DbSet<T> dbSet;
 
         public Repository(U db)
@@ -15,16 +19,19 @@ namespace SOK.Infrastructure.Repositories
             dbSet = _db.Set<T>();
         }
 
+        /// <inheritdoc />
         public void Add(T entity)
         {
             dbSet.Add(entity);
         }
 
+        /// <inheritdoc />
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> filter)
         {
             return await dbSet.AnyAsync(filter);
         }
 
+        /// <inheritdoc />
         public async Task<T?> GetAsync(
             Expression<Func<T, bool>> filter,
             Expression<Func<T, object>>? orderBy = null,
@@ -38,6 +45,7 @@ namespace SOK.Infrastructure.Repositories
                 tracked: tracked).FirstOrDefaultAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
             Expression<Func<T, object>>? orderBy = null,
@@ -51,6 +59,7 @@ namespace SOK.Infrastructure.Repositories
                 tracked: tracked).ToListAsync();
         }
 
+        /// <inheritdoc />
         public void Remove(T entity)
         {
             dbSet.Remove(entity);

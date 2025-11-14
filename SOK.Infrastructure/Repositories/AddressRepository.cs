@@ -7,14 +7,10 @@ using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
 {
+    /// <inheritdoc />
     public class AddressRepository : Repository<Address, ParishDbContext>, IAddressRepository
     {
-        private readonly ParishDbContext _db;
-
-        public AddressRepository(ParishDbContext db) : base(db) 
-        {
-            _db = db;
-        }
+        public AddressRepository(ParishDbContext db) : base(db) {}
 
         public async Task<Address?> GetFullAsync(
             Expression<Func<Address, bool>> filter, 

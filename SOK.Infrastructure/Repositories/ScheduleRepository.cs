@@ -9,18 +9,9 @@ using System.Threading.Tasks;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class ScheduleRepository : Repository<Schedule, ParishDbContext>, IScheduleRepository
+    /// <inheritdoc />
+    public class ScheduleRepository : UpdatableRepository<Schedule, ParishDbContext>, IScheduleRepository
     {
-        private readonly ParishDbContext _db;
-
-        public ScheduleRepository(ParishDbContext db) : base(db)
-        {
-            _db = db;
-        }
-
-        public void Update(Schedule schedule)
-        {
-            dbSet.Update(schedule);
-        }
+        public ScheduleRepository(ParishDbContext db) : base(db) {}
     }
 }

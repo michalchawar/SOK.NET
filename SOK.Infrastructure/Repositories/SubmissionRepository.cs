@@ -6,19 +6,10 @@ using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class SubmissionRepository : Repository<Submission, ParishDbContext>, ISubmissionRepository
+    /// <inheritdoc />
+    public class SubmissionRepository : UpdatableRepository<Submission, ParishDbContext>, ISubmissionRepository
     {
-        private readonly ParishDbContext _db;
-
-        public SubmissionRepository(ParishDbContext db) : base(db)
-        {
-            _db = db;
-        }
-
-        public void Update(Submission submission)
-        {
-            dbSet.Update(submission);
-        }
+        public SubmissionRepository(ParishDbContext db) : base(db) {}
 
         public async Task<IEnumerable<Submission>> GetPaginatedAsync(
             Expression<Func<Submission, bool>>? filter,

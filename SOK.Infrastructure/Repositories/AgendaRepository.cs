@@ -4,17 +4,9 @@ using SOK.Infrastructure.Persistence.Context;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class AgendaRepository : Repository<Agenda, ParishDbContext>, IAgendaRepository
+    /// <inheritdoc />
+    public class AgendaRepository : UpdatableRepository<Agenda, ParishDbContext>, IAgendaRepository
     {
-        private readonly ParishDbContext _db;
-        public AgendaRepository(ParishDbContext db) : base(db)
-        {
-            _db = db;
-        }
-
-        public void Update(Agenda agenda)
-        {
-            dbSet.Update(agenda);
-        }
+        public AgendaRepository(ParishDbContext db) : base(db) {}
     }
 }

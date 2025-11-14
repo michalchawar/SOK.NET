@@ -1,20 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Infrastructure.Persistence.Context;
 using System.Linq.Expressions;
 
 namespace SOK.Infrastructure.Repositories
 {
-    public class ParishMemberRepository : Repository<ParishMember, ParishDbContext>, IParishMemberRepository
+    /// <inheritdoc />
+    public class ParishMemberRepository : UpdatableRepository<ParishMember, ParishDbContext>, IParishMemberRepository
     {
-        private readonly ParishDbContext _db;
+        private readonly UserManager<User> _userManager;
 
-        public ParishMemberRepository(ParishDbContext db) : base(db)
+        public ParishMemberRepository(ParishDbContext db, UserManager<User> userManager) : base(db)
         {
-            _db = db;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<ParishMember>> GetPaginatedAsync(
@@ -41,24 +45,37 @@ namespace SOK.Infrastructure.Repositories
             return await query.ToListAsync();
         }
 
-        public void Update(ParishMember parishMember)
-        {
-            dbSet.Update(parishMember);
-        }
-
-        public async Task<User> GenerateUserAsync(string displayName)
+        /// <inheritdoc />
+        public async Task<ParishMember?> CreateMemberWithUserAccountAsync(string displayName, IEnumerable<Role> roles)
         {
             Random random = new();
 
             ParishEntry? parish = await _db.GetCurrentParishAsync();
             if (parish is null)
-                throw new InvalidOperationException("Cannot create generic user: There is no active parish set.");
+                throw new InvalidOperationException("Cannot create new parish member: There is no active parish set.");
 
-            return new User()
+            User newUser = new()
             {
                 UserName = string.Join("-", displayName.ToLower().Replace(".", string.Empty).Replace(",", string.Empty).Split([' ', '-', '/'], StringSplitOptions.TrimEntries).TakeLast(2).Append(random.Next(1000).ToString())),
+                DisplayName = displayName,
                 Parish = parish,
             };
+
+            ParishMember newMember = new()
+            {
+                DisplayName = newUser.DisplayName,
+                CentralUserId = newUser.Id,
+            };
+
+            var result = await _userManager.CreateAsync(newUser);
+
+            if (!result.Succeeded)
+                return null;
+
+            dbSet.Add(newMember);
+            await _userManager.AddToRolesAsync(newUser, roles.Select(r => r.ToString()));
+
+            return newMember;
         }
     }
 }

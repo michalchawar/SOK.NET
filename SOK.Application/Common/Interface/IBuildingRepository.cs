@@ -2,8 +2,10 @@
 
 namespace SOK.Application.Common.Interface
 {
-    public interface IBuildingRepository :  IRepository<Building>
+    /// <summary>
+    /// Reprezentuje repozytorium budynków (bram i domów).
+    /// </summary>
+    public interface IBuildingRepository :  IUpdatableRepository<Building>
     {
-        void Update(Building building);
     }
 }
