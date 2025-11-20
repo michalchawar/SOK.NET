@@ -1,3 +1,5 @@
+using SOK.Application.Common.DTO;
+using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using System.Linq.Expressions;
@@ -6,78 +8,78 @@ using System.Security.Claims;
 namespace SOK.Application.Services.Interface
 {
     /// <summary>
-    /// Us³uga do obs³ugi obiektów <see cref="ParishMember"/>.
+    /// UsÅ‚uga do obsÅ‚ugi obiektÃ³w <see cref="ParishMember"/>.
     /// </summary>
     /// <remarks>
-    /// Us³uga operuje na obiektach reprezentuj¹cych cz³onków parafii,
-    /// którzy dopiero dalej s¹ po³¹czeni z rzeczywistymi u¿ytkownikami systemu 
+    /// UsÅ‚uga operuje na obiektach reprezentujÄ…cych czÅ‚onkÃ³w parafii,
+    /// ktÃ³rzy dopiero dalej sÄ… poÅ‚Ä…czeni z rzeczywistymi uÅ¼ytkownikami systemu 
     /// (poprzez pole <see cref="ParishMember.CentralUserId"/>).
     /// </remarks>
     public interface IParishMemberService
     {
         /// <summary>
-        /// Pobiera u¿ytkownika o podanym identifykatorze.
+        /// Pobiera uÅ¼ytkownika o podanym identifykatorze.
         /// </summary>
-        /// <param name="id">Identyfikator u¿ytkownika do pobrania.</param>
+        /// <param name="id">Identyfikator uÅ¼ytkownika do pobrania.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest obiekt <see cref="ParishMember"/> lub <see cref="null"/>,
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest obiekt <see cref="ParishMember"/> lub <see cref="null"/>,
         /// </returns>
         /// <remarks>
-        /// Jeœli u¿ytkownik o podanym identyfikatorze nie istnieje, zwracane jest <see cref="null"/>.
+        /// JeÅ›li uÅ¼ytkownik o podanym identyfikatorze nie istnieje, zwracane jest <see cref="null"/>.
         /// </remarks>
         Task<ParishMember?> GetParishMemberAsync(int id);
 
         /// <summary>
-        /// Pobiera u¿ytkownika na podstawie podanego <see cref="ClaimsPrincipal"/>.
+        /// Pobiera uÅ¼ytkownika na podstawie podanego <see cref="ClaimsPrincipal"/>.
         /// </summary>
-        /// <param name="userClaim">Zbiór oœwiadczeñ u¿ytkownika.</param>
+        /// <param name="userClaim">ZbiÃ³r oÅ›wiadczeÅ„ uÅ¼ytkownika.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest obiekt <see cref="ParishMember"/> lub <see cref="null"/>,
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest obiekt <see cref="ParishMember"/> lub <see cref="null"/>,
         /// </returns>
         /// <remarks>
-        /// Jeœli u¿ytkownik o identyfikatorze zawartym w oœwiadczeniu nie istnieje,
-        /// lub jeœli nie znaleziono oœwiadczenia z identyfikatorem, zwracane jest <see cref="null"/>.
+        /// JeÅ›li uÅ¼ytkownik o identyfikatorze zawartym w oÅ›wiadczeniu nie istnieje,
+        /// lub jeÅ›li nie znaleziono oÅ›wiadczenia z identyfikatorem, zwracane jest <see cref="null"/>.
         /// </remarks>
         Task<ParishMember?> GetParishMemberAsync(ClaimsPrincipal userClaim);
 
         /// <summary>
-        /// Pobiera stronê u¿ytkowników spe³niaj¹cych podany filtr.
+        /// Pobiera stronÄ™ uÅ¼ytkownikÃ³w speÅ‚niajÄ…cych podany filtr.
         /// </summary>
-        /// <param name="filter">Filtr, który spe³niaæ maj¹ u¿ytkownicy.</param>
+        /// <param name="filter">Filtr, ktÃ³ry speÅ‚niaÄ‡ majÄ… uÅ¼ytkownicy.</param>
         /// <param name="page">Numer strony.</param>
-        /// <param name="pageSize">Liczba obiektów na stronie.</param>
+        /// <param name="pageSize">Liczba obiektÃ³w na stronie.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest lista obiektów <see cref="ParishMember"/>.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="ParishMember"/>.
         /// </returns>
         /// <remarks>
-        /// Jeœli nie jest ustawiony ¿aden filtr, funkcja zwraca wszystkich u¿ytkowników podzielonych na strony.
-        /// Jeœli zaœ nie ma ¿adnego u¿ytkownika lub filtr nie pasuje do ¿adnego u¿ytkownika, zwracana jest pusta lista.
+        /// JeÅ›li nie jest ustawiony Å¼aden filtr, funkcja zwraca wszystkich uÅ¼ytkownikÃ³w podzielonych na strony.
+        /// JeÅ›li zaÅ› nie ma Å¼adnego uÅ¼ytkownika lub filtr nie pasuje do Å¼adnego uÅ¼ytkownika, zwracana jest pusta lista.
         /// </remarks>
         /// <exception cref="ArgumentException">
-        /// Jeœli podany numer strony lub rozmiar strony jest mniejszy ni¿ 1.
+        /// JeÅ›li podany numer strony lub rozmiar strony jest mniejszy niÅ¼ 1.
         /// </exception>
-        Task<IEnumerable<ParishMember>> GetParishMembersPaginatedAsync(
-            Expression<Func<ParishMember, bool>>? filter = null,
-            int page = 1,
-            int pageSize = 1);
+        // Task<IEnumerable<ParishMember>> GetParishMembersPaginatedAsync(
+        //     Expression<Func<ParishMember, bool>>? filter = null,
+        //     int page = 1,
+        //     int pageSize = 1);
 
         /// <summary>
-        /// Pobiera listê u¿ytkowników, spe³niaj¹cych podany filtr.
+        /// Pobiera listÄ™ uÅ¼ytkownikÃ³w, speÅ‚niajÄ…cych podany filtr.
         /// </summary>
-        /// <param name="filter">Filtr, który spe³niaæ maj¹ u¿ytkownicy.</param>
-        /// <param name="agendas">Okreœla, czy nale¿y za³adowaæ powi¹zane agendy (do których u¿ytkownik jest przypisany).</param>
-        /// <param name="plans">Okreœla, czy nale¿y za³adowaæ plany, do których u¿ytkownik jest przypisany.</param>
-        /// <param name="submissions">Okreœla, czy nale¿y za³adowaæ zg³oszenia, które u¿ytkownik utworzy³.</param>
+        /// <param name="filter">Filtr, ktÃ³ry speÅ‚niaÄ‡ majÄ… uÅ¼ytkownicy.</param>
+        /// <param name="agendas">OkreÅ›la, czy naleÅ¼y zaÅ‚adowaÄ‡ powiÄ…zane agendy (do ktÃ³rych uÅ¼ytkownik jest przypisany).</param>
+        /// <param name="plans">OkreÅ›la, czy naleÅ¼y zaÅ‚adowaÄ‡ plany, do ktÃ³rych uÅ¼ytkownik jest przypisany.</param>
+        /// <param name="submissions">OkreÅ›la, czy naleÅ¼y zaÅ‚adowaÄ‡ zgÅ‚oszenia, ktÃ³re uÅ¼ytkownik utworzyÅ‚.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest lista obiektów <see cref="ParishMember"/>.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="ParishMember"/>.
         /// </returns>
         /// <remarks>
-        /// Jeœli nie jest ustawiony ¿aden filtr, funkcja zwraca wszystkich u¿ytkowników.
-        /// Jeœli zaœ nie ma ¿adnego u¿ytkownika lub filtr nie pasuje do ¿adnego u¿ytkownika, zwracana jest pusta lista.
+        /// JeÅ›li nie jest ustawiony Å¼aden filtr, funkcja zwraca wszystkich uÅ¼ytkownikÃ³w.
+        /// JeÅ›li zaÅ› nie ma Å¼adnego uÅ¼ytkownika lub filtr nie pasuje do Å¼adnego uÅ¼ytkownika, zwracana jest pusta lista.
         /// </remarks>
         Task<IEnumerable<ParishMember>> GetAllParishMembersAsync(
             Expression<Func<ParishMember, bool>>? filter = null,
@@ -86,43 +88,66 @@ namespace SOK.Application.Services.Interface
             bool submissions = false);
 
         /// <summary>
-        /// Zapisuje u¿ytkownika w bazie danych.
+        /// Zapisuje uÅ¼ytkownika w bazie danych.
         /// </summary>
-        /// <param name="parishMember">U¿ytkownik, który ma zostaæ zapisany.</param>
+        /// <param name="parishMember">UÅ¼ytkownik, ktÃ³ry ma zostaÄ‡ zapisany.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ….
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        /// Jeœli u¿ytkownik o podanym loginie ju¿ istnieje.
+        /// JeÅ›li uÅ¼ytkownik o podanym loginie juÅ¼ istnieje.
         /// </exception>
         //Task CreateParishMemberAsync(ParishMember parishMember);
 
         /// <summary>
-        /// Usuwa u¿ytkownika o podanym identyfikatorze.
+        /// Usuwa uÅ¼ytkownika o podanym identyfikatorze.
         /// </summary>
-        /// <param name="id">Id u¿ytkownika, który ma zostaæ usuniêty.</param>
+        /// <param name="id">Id uÅ¼ytkownika, ktÃ³ry ma zostaÄ‡ usuniÄ™ty.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest wartoœæ logiczna okreœlaj¹ca, czy usuniêcie siê powiod³o.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest wartoÅ›Ä‡ logiczna okreÅ›lajÄ…ca, czy usuniÄ™cie siÄ™ powiodÅ‚o.
         /// </returns>
         //Task<bool> DeleteParishMemberAsync(int id);
 
         /// <summary>
-        /// Aktualizuje u¿ytkownika w bazie danych.
+        /// Aktualizuje uÅ¼ytkownika w bazie danych.
         /// </summary>
-        /// <param name="parishMember">U¿ytkownik, który ma zostaæ zaktualizowany.</param>
+        /// <param name="parishMember">UÅ¼ytkownik, ktÃ³ry ma zostaÄ‡ zaktualizowany.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ….
         /// </returns>
         Task UpdateParishMemberAsync(ParishMember parishMember);
 
         /// <summary>
-        /// Pobiera wszystkich u¿ytkowników w podanej roli.
+        /// Pobiera wszystkich uÅ¼ytkownikÃ³w w podanej roli.
         /// </summary>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest lista obiektów <see cref="ParishMember"/> w podanej roli.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="ParishMember"/> w podanej roli.
         /// </returns>
         Task<IEnumerable<ParishMember>> GetAllInRoleAsync(Role role);
+
+        /// <summary>
+        /// Pobiera stronÄ™ uÅ¼ytkownikÃ³w, speÅ‚niajÄ…cych podany filtr.
+        /// </summary>
+        /// <param name="filter">Filtr, ktÃ³ry speÅ‚niaÄ‡ majÄ… uÅ¼ytkownicy.</param>
+        /// <param name="page">Numer strony.</param>
+        /// <param name="pageSize">Liczba obiektÃ³w na stronie.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="UserDto"/>.
+        /// </returns>
+        /// <remarks>
+        /// JeÅ›li nie jest ustawiony Å¼aden filtr, funkcja zwraca wszystkich uÅ¼ytkownikÃ³w podzielonych na strony.
+        /// JeÅ›li zaÅ› nie ma Å¼adnego uÅ¼ytkownika lub filtr nie pasuje do Å¼adnego uÅ¼ytkownika, zwracana jest pusta lista.
+        /// </remarks>
+        /// <exception cref="ArgumentException">
+        /// JeÅ›li podany numer strony lub rozmiar strony jest mniejszy niÅ¼ 1.
+        /// </exception>
+        Task<List<UserDto>> GetUsersPaginatedAsync(
+            Expression<Func<User, bool>>? filter = null,
+            int page = 1,
+            int pageSize = 1,
+            bool loadRoles = false);
     }
 }

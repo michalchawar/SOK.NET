@@ -25,9 +25,14 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<IEnumerable<Street>> GetAllStreetsAsync(
             Expression<Func<Street, bool>>? filter = null,
-            bool buildings = false)
+            bool buildings = false,
+            bool type = false)
         {
-            return await _uow.Street.GetAllAsync(filter, includeProperties: buildings ? "Buildings" : null, orderBy: s => s.Name);
+            string include = "";
+            if (buildings) include += "Buildings,";
+            if (type) include += "Type";
+
+            return await _uow.Street.GetAllAsync(filter, includeProperties: include, orderBy: s => s.Name);
         }
 
         /// <inheritdoc />
@@ -60,6 +65,14 @@ namespace SOK.Application.Services.Implementation
         {
             _uow.Street.Update(street);
             await _uow.SaveAsync();
+        }
+
+        public Task<IEnumerable<StreetSpecifier>> GetAllStreetSpecifiersAsync(
+            Expression<Func<StreetSpecifier, bool>>? filter = null)
+        {
+            return _uow.StreetSpecifier.GetAllAsync(
+                filter,
+                orderBy: s => s.FullName);
         }
     }
 }

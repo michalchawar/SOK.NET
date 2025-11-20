@@ -4,69 +4,86 @@ using System.Linq.Expressions;
 namespace SOK.Application.Services.Interface
 {
     /// <summary>
-    /// Us³uga do obs³ugi obiektów <see cref="Street"/>.
+    /// UsÅ‚uga do obsÅ‚ugi obiektÃ³w <see cref="Street"/>.
     /// </summary>
     public interface IStreetService
     {
         /// <summary>
-        /// Pobiera ulicê o podanym identifykatorze.
+        /// Pobiera ulicÄ™ o podanym identifykatorze.
         /// </summary>
         /// <param name="id">Identyfikator ulicy do pobrania.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest obiekt <see cref="Street"/> lub <see cref="null"/>,
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest obiekt <see cref="Street"/> lub <see cref="null"/>,
         /// </returns>
         /// <remarks>
-        /// Jeœli ulica o podanym identyfikatorze nie istnieje, zwracane jest <see cref="null"/>.
+        /// JeÅ›li ulica o podanym identyfikatorze nie istnieje, zwracane jest <see cref="null"/>.
         /// </remarks>
         Task<Street?> GetStreetAsync(int id);
 
         /// <summary>
-        /// Pobiera listê ulic, spe³niaj¹cych podany filtr, w porz¹dku alfabetycznym.
+        /// Pobiera listÄ™ ulic, speÅ‚niajÄ…cych podany filtr, w porzÄ…dku alfabetycznym.
         /// </summary>
-        /// <param name="filter">Filtr, który spe³niaæ maj¹ ulice.</param>
-        /// <param name="buildings">Okreœla, czy nale¿y za³adowaæ powi¹zane budynki.</param>
+        /// <param name="filter">Filtr, ktÃ³ry speÅ‚niaÄ‡ majÄ… ulice.</param>
+        /// <param name="buildings">OkreÅ›la, czy naleÅ¼y zaÅ‚adowaÄ‡ powiÄ…zane budynki.</param>
+        /// <param name="type">OkreÅ›la, czy naleÅ¼y zaÅ‚adowaÄ‡ powiÄ…zany rodzaj ulicy.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest lista obiektów <see cref="Street"/>.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="Street"/>.
         /// </returns>
         /// <remarks>
-        /// Jeœli nie jest ustawiony ¿aden filtr, funkcja zwraca wszystkie ulice.
-        /// Jeœli zaœ nie ma ¿adnej ulicy lub filtr nie pasuje do ¿adnej ulicy, zwracana jest pusta lista.
+        /// JeÅ›li nie jest ustawiony Å¼aden filtr, funkcja zwraca wszystkie ulice.
+        /// JeÅ›li zaÅ› nie ma Å¼adnej ulicy lub filtr nie pasuje do Å¼adnej ulicy, zwracana jest pusta lista.
         /// </remarks>
         Task<IEnumerable<Street>> GetAllStreetsAsync(
             Expression<Func<Street, bool>>? filter = null,
-            bool buildings = false);
+            bool buildings = false,
+            bool type = false);
 
         /// <summary>
-        /// Zapisuje ulicê w bazie danych.
+        /// Zapisuje ulicÄ™ w bazie danych.
         /// </summary>
-        /// <param name="street">Ulica, która ma zostaæ zapisana.</param>
+        /// <param name="street">Ulica, ktÃ³ra ma zostaÄ‡ zapisana.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ….
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        /// Jeœli ulica o takich danych ju¿ istnieje.
+        /// JeÅ›li ulica o takich danych juÅ¼ istnieje.
         /// </exception>
         Task CreateStreetAsync(Street street);
 
         /// <summary>
-        /// Usuwa ulicê o podanym identyfikatorze.
+        /// Usuwa ulicÄ™ o podanym identyfikatorze.
         /// </summary>
-        /// <param name="id">Id ulicy, która ma zostaæ usuniêta.</param>
+        /// <param name="id">Id ulicy, ktÃ³ra ma zostaÄ‡ usuniÄ™ta.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest wartoœæ logiczna okreœlaj¹ca, czy usuniêcie siê powiod³o.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest wartoÅ›Ä‡ logiczna okreÅ›lajÄ…ca, czy usuniÄ™cie siÄ™ powiodÅ‚o.
         /// </returns>
         Task<bool> DeleteStreetAsync(int id);
 
         /// <summary>
-        /// Aktualizuje ulicê w bazie danych.
+        /// Aktualizuje ulicÄ™ w bazie danych.
         /// </summary>
-        /// <param name="street">Ulica, która ma zostaæ zaktualizowana.</param>
+        /// <param name="street">Ulica, ktÃ³ra ma zostaÄ‡ zaktualizowana.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ….
         /// </returns>
         Task UpdateStreetAsync(Street street);
+
+        /// <summary>
+        /// Pobiera listÄ™ typÃ³w ulic, speÅ‚niajÄ…cych podany filtr, w porzÄ…dku alfabetycznym.
+        /// </summary>
+        /// <param name="filter">Filtr, ktÃ³ry speÅ‚niaÄ‡ majÄ… typy.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="StreetSpecifier"/>.
+        /// </returns>
+        /// <remarks>
+        /// JeÅ›li nie jest ustawiony Å¼aden filtr, funkcja zwraca wszystkie typy.
+        /// JeÅ›li zaÅ› nie ma Å¼adnego typu lub filtr nie pasuje do Å¼adnego typu, zwracana jest pusta lista.
+        /// </remarks>
+        Task<IEnumerable<StreetSpecifier>> GetAllStreetSpecifiersAsync(
+            Expression<Func<StreetSpecifier, bool>>? filter = null);
     }
 }

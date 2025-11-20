@@ -4,12 +4,12 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje budynek, który mo¿e byæ przypisany do parafii i zawieraæ wiele adresów oraz mieszkañ.
+    /// Reprezentuje budynek, ktÃ³ry moÅ¼e byÄ‡ przypisany do parafii i zawieraÄ‡ wiele adresÃ³w oraz mieszkaÅ„.
     /// </summary>
     public class Building
     {
         /// <summary>
-        /// Unikalny identyfikator budynku (klucz g³ówny).
+        /// Unikalny identyfikator budynku (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
@@ -22,60 +22,60 @@ namespace SOK.Domain.Entities.Parish
         public int Number { get; set; } = default!;
 
         /// <summary>
-        /// Litera budynku (np. A, B, C), jeœli wystêpuje.
+        /// Litera budynku (np. A, B, C), jeÅ›li wystÄ™puje.
         /// </summary>
         [MaxLength(3)]
         public string? Letter { get; set; }
 
         /// <summary>
-        /// Liczba piêter w budynku. Wartoœæ -1 oznacza brak danych.
+        /// Liczba piÄ™ter w budynku. WartoÅ›Ä‡ -1 oznacza brak danych.
         /// </summary>
         [DefaultValue(-1)]
         public int FloorCount { get; set; }
 
         /// <summary>
-        /// Liczba mieszkañ w budynku. Wartoœæ -1 oznacza brak danych.
+        /// Liczba mieszkaÅ„ w budynku. WartoÅ›Ä‡ -1 oznacza brak danych.
         /// </summary>
         [DefaultValue(-1)]
         public int ApartmentCount { get; set; }
 
         /// <summary>
-        /// Najwy¿szy numer mieszkania w budynku. Wartoœæ -1 oznacza brak danych.
+        /// NajwyÅ¼szy numer mieszkania w budynku. WartoÅ›Ä‡ -1 oznacza brak danych.
         /// </summary>
         [DefaultValue(-1)]
         public int HighestApartmentNumber { get; set; }
 
         /// <summary>
-        /// Okreœla, czy budynek posiada windê. Jest to u¿ywane do planowania wizyt w budynku.
-        /// Wizyty w budynkach bez windy s¹ planowane od parteru w górê, podczas gdy 
-        /// w budynkach z wind¹ planowane s¹ od najwy¿szego piêtra w dó³.
+        /// OkreÅ›la, czy budynek posiada windÄ™. Jest to uÅ¼ywane do planowania wizyt w budynku.
+        /// Wizyty w budynkach bez windy sÄ… planowane od parteru w gÃ³rÄ™, podczas gdy 
+        /// w budynkach z windÄ… planowane sÄ… od najwyÅ¼szego piÄ™tra w dÃ³Å‚.
         /// </summary>
         [DefaultValue(false)]
-        public bool HasElevator { get; set; }
+        public bool HasElevator { get; set; } = false;
 
         /// <summary>
-        /// Okreœla, czy budynek jest dostêpny do wyboru w formularzu internetowym dla niezalogowanego u¿ytkownika.
+        /// OkreÅ›la, czy budynek jest dostÄ™pny do wyboru w formularzu internetowym dla niezalogowanego uÅ¼ytkownika.
         /// </summary>
         [DefaultValue(true)]
-        public bool AllowSelection { get; set; }
+        public bool AllowSelection { get; set; } = true;
 
         /// <summary>
-        /// Identyfikator ulicy, przy której znajduje siê budynek.
+        /// Identyfikator ulicy, przy ktÃ³rej znajduje siÄ™ budynek.
         /// </summary>
         public int StreetId { get; set; }
 
         /// <summary>
-        /// Ulica, przy której znajduje siê budynek (relacja nawigacyjna).
+        /// Ulica, przy ktÃ³rej znajduje siÄ™ budynek (relacja nawigacyjna).
         /// </summary>
         public Street Street { get; set; } = default!;
 
         /// <summary>
-        /// Lista przypisañ dni powi¹zanych z budynkiem. To klasa pomocnicza relacji wiele-do-wielu miêdzy dniem a budynkami.
+        /// Lista przypisaÅ„ dni powiÄ…zanych z budynkiem. To klasa pomocnicza relacji wiele-do-wielu miÄ™dzy dniem a budynkami.
         /// </summary>
         public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
 
         /// <summary>
-        /// Lista dni, do których budynek jest przypisany. Ka¿dy budynek mo¿e byæ przypisany do wielu dni w ró¿nych harmonogramach.
+        /// Lista dni, do ktÃ³rych budynek jest przypisany. KaÅ¼dy budynek moÅ¼e byÄ‡ przypisany do wielu dni w rÃ³Å¼nych harmonogramach.
         /// </summary>
         public ICollection<Day> Days { get; set; } = new List<Day>();
 

@@ -1,4 +1,5 @@
-﻿using SOK.Domain.Entities.Central;
+﻿using SOK.Application.Common.DTO;
+using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using System.Linq.Expressions;
@@ -10,13 +11,14 @@ namespace SOK.Application.Common.Interface
     /// </summary>
     public interface IParishMemberRepository : IUpdatableRepository<ParishMember>
     {
-        Task<IEnumerable<ParishMember>> GetPaginatedAsync(
-            Expression<Func<ParishMember, bool>>? filter,
+        Task<IEnumerable<UserDto>> GetPaginatedAsync(
+            Expression<Func<User, bool>>? filter,
             int pageSize = 1,
             int page = 1,
+            bool roles = false,
             bool assignedAgendas = false,
-            bool enteredSubmissions = false,
-            bool tracked = false);
+            bool assignedPlans = false,
+            bool enteredSubmissions = false);
 
         /// <summary>
         /// Tworzy nowego członka parafii wraz z kontem w centralnej bazie danych.

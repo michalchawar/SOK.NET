@@ -198,12 +198,13 @@ namespace SOK.Application.Services.Implementation
             await using var transaction = await _uow.BeginTransactionAsync();
 
             // Pobierz obiekt planu
-            Plan? plan = await _uow.Plan.GetAsync(p => p.Id == planDto.Id, includeProperties: "DefaultSchedule", tracked: true);
+            Plan? plan = await _uow.Plan.GetAsync(p => p.Id == planDto.Id, tracked: true);
             if (planDto.Id is null || plan is null)
                 throw new ArgumentException("Cannot update plan: plan with set id not found.");
 
             // Zaktualizuj nazwę
             plan.Name = planDto.Name;
+            plan.DefaultScheduleId = null;
 
             // Określ zbiór z ID-kami istniejących planów i pobierz je na jego podstawie
             var existingScheduleIds = planDto.Schedules.Where(s => s.Id is not null).Select(s => s.Id ?? -1);
@@ -233,6 +234,14 @@ namespace SOK.Application.Services.Implementation
 
                 if (newSchedule.IsDefault)
                     plan.DefaultSchedule = schedule;
+            }
+
+            // Usuń harmonogramy, które nie występują w DTO
+            var includedScheduleIds = planDto.Schedules.Where(s => s.Id is not null).Select(s => s.Id ?? -1);
+            var schedulesToRemove = await _uow.Schedule.GetAllAsync(s => s.PlanId == plan.Id && !includedScheduleIds.Contains(s.Id));
+            foreach (Schedule scheduleToRemove in schedulesToRemove)
+            {
+                _uow.Schedule.Remove(scheduleToRemove);
             }
 
             await _uow.SaveAsync();

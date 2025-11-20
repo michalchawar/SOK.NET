@@ -1,0 +1,78 @@
+@model StreetVM
+@{
+    ViewData["Title"] = "Edytuj ulicę";
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="EditStreet" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <!-- === Sekcja 1: Rodzaj ulicy === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Wybierz rodzaj</h2>
+                <p class="text-sm opacity-40">
+                    Określ, co to będzie za ulica, wybierając jej przedrostek.
+                </p>
+            </div>
+            <div>
+                <label asp-for="StreetSpecifierId" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(s => s.StreetSpecifierId)</span>
+                    <select asp-for="StreetSpecifierId" asp-items="@Model.StreetSpecifiers" class="select select-sm w-full focus:select-primary">
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 2: Nazwa ulicy === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Nazwij ulicę</h2>
+                <p class="text-sm opacity-40">
+                    Określ, jaką nazwę nosi ulica. Będzie ona się wyświetlać we wszystkich miejscach.
+                </p>
+            </div>
+            <div>
+                <label asp-for="Name" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(s => s.Name)</span>
+                    <input asp-for="Name" class="input input-lg w-full" placeholder="Np. Świerkowa" />
+                    <span asp-validation-for="Name" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Miasto === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Wybierz miasto</h2>
+                <p class="text-sm opacity-40">
+                    Wybierz miasto lub miejscowość, w której znajduje się ulica. Będzie ona wyświetlana tylko, gdy ułatwi to jej identyfikację spośród innych.
+                </p>
+            </div>
+            <div>
+                <label asp-for="CityId" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(s => s.CityId)</span>
+                    <select asp-for="CityId" asp-items="@Model.Cities" class="select select-sm w-full focus:select-primary">
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <div asp-validation-summary="All" class="text-sm text-error"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="Streets" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+            <button type="submit" class="btn btn-primary">Zaktualizuj ulicę</button>
+            <a asp-action="DeleteStreet" asp-route-id="@ViewData["streetId"]" type="button" class="btn btn-error text-base-content font-normal justify-self-start ml-auto">
+                <i class="bi bi-trash"></i> Usuń ulicę
+            </a>
+        </div>
+    </form>
+</div>

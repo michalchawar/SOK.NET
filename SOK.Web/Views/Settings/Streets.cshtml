@@ -1,0 +1,104 @@
+@using Microsoft.IdentityModel.Tokens
+@using SOK.Domain.Entities.Parish;
+@using SOK.Domain.Enums
+@using SOK.Infrastructure.Extensions
+@using System.Globalization
+@{
+    ViewData["Title"] = "Budynki i ulice";
+}
+
+@{
+    var streets = ViewData["Streets"] as IEnumerable<SOK.Domain.Entities.Parish.Street>;
+}
+
+<div class="overflow-x-auto h-full">
+    @if (streets.IsNullOrEmpty())
+    {
+        <div class="min-h-full flex flex-col items-center justify-center">
+            <h2 class="text-center text-xl font-semibold">
+                Brak ulic w systemie.
+            </h2>
+            <h4 class="text-center text-lg opacity-70">
+                Dodaj nową ulicę, aby móc dodawać do niej budynki.
+            </h4>
+            <a asp-action="CreateStreet" class="btn btn-primary mt-4">
+                <i class="bi bi-plus"></i>
+                Utwórz
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="min-h-full w-full flex flex-col items-center justify-start">
+            <div class=" flex flex-col items-center justify-center mb-3">
+                <h3 class="text-center text-lg font-semibold">
+                    Przeglądaj ulice
+                </h3>
+                <h4 class="text-center text-md opacity-70">
+                    Tutaj możesz zobaczyć wszystkie dodane ulice i bramy, a także zarządzać nimi.
+                </h4>
+                
+                <a asp-action="CreateStreet" class="btn btn-primary mt-4">
+                    <i class="bi bi-plus"></i>
+                    Nowa ulica
+                </a>
+            </div>
+
+            <div class="divider self-auto w-5/6"></div>
+
+            <div class="flex flex-col gap-4 w-2/3">
+                @foreach (var (street, index) in streets!.WithIndex()) 
+                {
+                    <div class="collapse collapse-arrow bg-base-200 hover:bg-base-300 open:bg-base-300 transition-colors">
+                        <input type="checkbox" />
+                        <div class="collapse-title flex flex-1 items-center justify-between py-5">
+                            <p class="text-md opacity-60">
+                                Bramy: <span class="font-semibold">@(street.Buildings?.Count() ?? 0)</span>
+                            </p>
+                            <h3 class="font-noto-sans text-center flex-1 absolute left-1/2 top-1/2 -translate-x-7/12 -translate-y-1/2">
+                                <span class="text-lg font-semibold opacity-90">@street.Type.Abbreviation </span>
+                                <span class="text-2xl font-bold">@street.Name</span>
+                            </h3>
+                        </div>
+                        <div class="collapse-content bg-base-200/60 peer-hover:bg-base-200/60">
+                            <div class="flex items-center justify-center flex-wrap gap-3 py-4">
+                                <div class="w-full flex justify-center items-center mb-2 gap-2">
+                                    <a asp-action="EditStreet" asp-route-id="@street.Id" class="btn btn-sm btn-dash">
+                                        <i class="bi bi-pencil-square"></i>
+                                        Edytuj ulicę
+                                    </a>
+                                    <a asp-action="CreateBuilding" asp-route-streetId="@street.Id" class="btn btn-sm btn-primary btn-dash">
+                                        <i class="bi bi-plus"></i>
+                                        Utwórz budynek
+                                    </a>
+                                </div>
+                            @if (street.Buildings.IsNullOrEmpty())
+                            {
+                                <div class="w-full flex flex-col gap-2 justify-center items-center">
+                                    <h4 class="text-center text-lg font-semibold opacity-70">
+                                        Brak budynków
+                                    </h4>
+                                    <h5 class="text-center text-md opacity-50">
+                                        Kliknij przycisk powyżej, aby wejść do edycji ulicy lub dodać budynki.
+                                    </h5>
+                                </div>
+                            } else {
+                                @foreach (var building in street.Buildings!.OrderBy(b => b.Number).ThenBy(b => b.Letter))
+                                {
+                                    <a asp-action="EditBuilding" asp-route-id="@building.Id">
+                                        <div class="border-primary/55 border-2 rounded-sm hover:bg-primary/40 cursor-pointer size-12 flex justify-center items-center">
+                                            <h5 class="text-center text-lg font-semibold">
+                                                @building.Number@building.Letter
+                                            </h5>
+                                        </div>
+                                    </a>
+                                }
+                            }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

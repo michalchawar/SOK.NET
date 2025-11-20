@@ -91,6 +91,7 @@ namespace SOK.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
+                TempData["error"] = "Popraw błędy w formularzu.";
                 return View(model);
             }
 
@@ -158,6 +159,7 @@ namespace SOK.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
+                TempData["error"] = "Popraw błędy w formularzu.";
                 return View(model);
             }
 

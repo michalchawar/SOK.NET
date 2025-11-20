@@ -90,6 +90,16 @@
         /// Repozytorium ulic.
         /// </summary>
         IStreetRepository Street { get; }
+        
+        /// <summary>
+        /// Repozytorium typów ulic.
+        /// </summary>
+        IStreetSpecifierRepository StreetSpecifier { get; }
+
+        /// <summary>
+        /// Repozytorium miast.
+        /// </summary>
+        ICityRepository City { get; }
 
         /// <summary>
         /// Repozytorium harmonogramów.

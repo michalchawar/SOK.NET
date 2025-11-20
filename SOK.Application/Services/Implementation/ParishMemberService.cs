@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
@@ -36,18 +37,6 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<ParishMember>> GetParishMembersPaginatedAsync(
-            Expression<Func<ParishMember, bool>>? filter = null,
-            int page = 1,
-            int pageSize = 1)
-        {
-            if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
-            if (page < 1) throw new ArgumentException("Page must be positive.");
-
-            return await _uow.ParishMember.GetPaginatedAsync(filter, pageSize: pageSize, page: page);
-        }
-
-        /// <inheritdoc />
         public async Task UpdateParishMemberAsync(ParishMember parishMember)
         {
             _uow.ParishMember.Update(parishMember);
@@ -82,6 +71,24 @@ namespace SOK.Application.Services.Implementation
                 filter: filter,
                 includeProperties: includeProperties
             );
+        }
+
+        public async Task<List<UserDto>> GetUsersPaginatedAsync(
+            Expression<Func<User, bool>>? filter = null, 
+            int page = 1, 
+            int pageSize = 1,
+            bool loadRoles = false)
+        {
+            if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
+            if (page < 1) throw new ArgumentException("Page must be positive.");
+
+            List<UserDto> result = [.. await _uow.ParishMember.GetPaginatedAsync(
+                    filter,
+                    pageSize: pageSize,
+                    page: page,
+                    roles: loadRoles)];
+
+            return result;
         }
     }
 }

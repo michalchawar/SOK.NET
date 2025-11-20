@@ -55,6 +55,7 @@ namespace SOK.Infrastructure.Extensions
             services.AddScoped<ISubmitterService, SubmitterService>();
             services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IStreetService, StreetService>();
+            services.AddScoped<ICityService, CityService>();
 
             return services;
         }

@@ -78,35 +78,40 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 }
             }
 
-            // 3. Upewnij się, że istnieje parafia
-            var parish = await _context.Parishes.FirstOrDefaultAsync();
-            if (parish == null)
-            {
-                parish = await _parishProvisioning.CreateParishAsync(Guid.NewGuid().ToString(), "Przykładowa parafia");
-                // Zaludnij bazę danych parafii
-                // Można to zrobić zawsze, bo jeśli parafia wcześniej istniała to CreateParishAsync wywali błąd
-                await SeedParishDbAsync(parish.UniqueId.ToString());
-            }
-
-            // 4. Upewnij się, że istnieje administrator
+            // 3. Przygotuj konto administratora
             var adminUserName = "admin";
             var adminUser = await _userManager.FindByNameAsync(adminUserName);
+            bool shouldAdminBeCreated = adminUser is null;
 
-            if (adminUser == null)
+            if (shouldAdminBeCreated)
             {
                 adminUser = new Domain.Entities.Central.User
                 {
                     UserName = adminUserName,
                     Email = adminUserName + "@system.local",
                     DisplayName = "System Administrator",
-                    EmailConfirmed = true,
-                    Parish = parish
+                    EmailConfirmed = true
                 };
+            }
 
-                var result = await _userManager.CreateAsync(adminUser, "admin");
+            // 4. Upewnij się, że istnieje parafia
+            var parish = await _context.Parishes.FirstOrDefaultAsync();
+            if (parish == null)
+            {
+                parish = await _parishProvisioning.CreateParishAsync(Guid.NewGuid().ToString(), "Przykładowa parafia");
+                // Zaludnij bazę danych parafii
+                // Można to zrobić zawsze, bo jeśli parafia wcześniej istniała to CreateParishAsync wywali błąd
+                await SeedParishDbAsync(parish.UniqueId.ToString(), adminUser!.Id);
+            }
+
+            // 5. Jeśli jest taka potrzeba, ostatecznie utwórz konto administratora
+            if (shouldAdminBeCreated) {
+                adminUser!.Parish = parish;
+
+                var result = await _userManager.CreateAsync(adminUser!, "admin");
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(adminUser, Role.Administrator);
+                    await _userManager.AddToRoleAsync(adminUser!, Role.Administrator);
                 }
                 else
                 {
@@ -116,7 +121,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
             }
         }
 
-        private async Task SeedParishDbAsync(string parishUid)
+        private async Task SeedParishDbAsync(string parishUid, string adminId)
         {
             Console.WriteLine("In SeedParishDbAsyc");
 
@@ -130,32 +135,41 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 ParishDbContext context = scope.ServiceProvider.GetRequiredService<ParishDbContext>();
                 ISubmissionService submissionService = scope.ServiceProvider.GetRequiredService<ISubmissionService>();
 
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                ParishMember admin = new ParishMember { CentralUserId = adminId, DisplayName = "Administrator" };
+                context.Add(admin);
+                await context.SaveChangesAsync();
+
                 City 
                     city = new City { Name = "Miasto", DisplayName = "Miasto" };
                 context.Add(city);
 
                 StreetSpecifier 
-                    sp = new StreetSpecifier { FullName = "ulica", Abbreviation = "ul." };
-                context.Add(sp);
+                    sp1 = new StreetSpecifier { FullName = "aleja", Abbreviation = "al." },
+                    sp2 = new StreetSpecifier { FullName = "bulwar", Abbreviation = "bulwar" },
+                    sp3 = new StreetSpecifier { FullName = "plac", Abbreviation = "pl." },
+                    sp4 = new StreetSpecifier { FullName = "ulica", Abbreviation = "ul." };
+                context.AddRange([sp1, sp2, sp3, sp4]);
 
                 Street 
-                    street1 = new Street { City = city, Type = sp, Name = "Pierwsza" },
-                    street2 = new Street { City = city, Type = sp, Name = "Druga" };
+                    street1 = new Street { City = city, Type = sp1, Name = "Pierwsza" },
+                    street2 = new Street { City = city, Type = sp1, Name = "Druga" };
                 context.AddRange([street1, street2]);
 
                 Building 
-                    building1 = new Building { Street = street1, Number = 2 },
-                    building2 = new Building { Street = street1, Number = 4 },
-                    building3 = new Building { Street = street1, Number = 6 },
-                    building4 = new Building { Street = street1, Number = 8 },
-                    building5 = new Building { Street = street2, Number = 1 },
-                    building6 = new Building { Street = street2, Number = 2 },
-                    building7 = new Building { Street = street1, Number = 3, Letter = "a" },
-                    building8 = new Building { Street = street1, Number = 3, Letter = "b" };
+                    building1 = new Building { Street = street1, Number = 2, AllowSelection = true },
+                    building2 = new Building { Street = street1, Number = 4, AllowSelection = true },
+                    building3 = new Building { Street = street1, Number = 6, AllowSelection = true },
+                    building4 = new Building { Street = street1, Number = 8, AllowSelection = true },
+                    building5 = new Building { Street = street2, Number = 1, AllowSelection = true },
+                    building6 = new Building { Street = street2, Number = 2, AllowSelection = true },
+                    building7 = new Building { Street = street1, Number = 3, Letter = "a", AllowSelection = true },
+                    building8 = new Building { Street = street1, Number = 3, Letter = "b", AllowSelection = true };
                 context.AddRange([building1, building2, building3, building4, building5, building6, 
                     building7, building8]);
 
-                Plan plan = new Plan();
+                Plan plan = new Plan() { Name = "Kolęda 2024/25", Author = admin };
                 context.AddRange([plan]);
 
                 Schedule 
@@ -207,7 +221,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                         Submitter = new Submitter { Name = "Julita i Zdzisław", Surname = "Szczepańscy", Email = "szczep1542@test.testtest" },
                         Building = building5,
                         ApartmentNumber = 6,
-                        Schedule = schedule1
+                        Schedule = schedule1,
+                        Author = admin
                     },
                     new SubmissionCreationRequestDto {
                         Submitter = new Submitter { Name = "Ewa", Surname = "Kowal", Email = "awdszrw13@test.testtest", Phone = "465213782" },
@@ -226,13 +241,15 @@ namespace SOK.Infrastructure.Persistence.Seeding
                         Submitter = new Submitter { Name = "Karol", Surname = "Kasprzak", Email = "karolskrez@test.testtest" },
                         Building = building6,
                         ApartmentNumber = 9,
-                        Schedule = schedule1
+                        Schedule = schedule1,
+                        Author = admin
                     },
                     new SubmissionCreationRequestDto {
                         Submitter = new Submitter { Name = "Fryderyk", Surname = "Przybylski" },
                         Building = building6,
                         ApartmentNumber = 11,
-                        Schedule = schedule1
+                        Schedule = schedule1,
+                        Author = admin
                     },
                     new SubmissionCreationRequestDto {
                         Submitter = new Submitter { Name = "Apolonia", Surname = "Kosińska", Email = "kosapol@test.testtest", Phone = "694783274" },
@@ -256,6 +273,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
 
                 context.Add(new ParishInfo { Name = "DefaultScheduleId", Value = schedule1.Id.ToString() });
                 await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
             }
             catch (Exception ex)
             {

@@ -32,6 +32,10 @@ body {
         --btn-border: var(--btn-bg);
         @apply shadow-none;
     }
+
+    .collapse-arrow > .collapse-title {
+        @apply after:top-1/2;
+    }
 }
 
 html {

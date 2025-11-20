@@ -75,7 +75,7 @@
 	@foreach (var option in menuItems)
 	{
 		<a asp-controller="@option.Controller" asp-action="@option.Action" role="button"
-			class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors hover:bg-primary hover:text-white 
+			class="flex h-12 w-full items-center gap-1 overflow-x-clip rounded-md transition-colors hover:bg-primary hover:text-white pe-3 
 					@(option.Active ? "bg-base-100 text-white" : "") 
 					@(option.Disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : "") 
 					@(option.OffsetSection ? "mt-auto" : "")">

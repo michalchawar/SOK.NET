@@ -72,6 +72,8 @@ namespace SOK.Infrastructure.Repositories
         public IAddressRepository Address { get; private set; }
         public IBuildingRepository Building { get; private set; }
         public IStreetRepository Street { get; private set; }
+        public IStreetSpecifierRepository StreetSpecifier { get; private set; }
+        public ICityRepository City { get; private set; }
         public IScheduleRepository Schedule { get; private set; }
         public IVisitRepository Visit { get; private set; }
         public IAgendaRepository Agenda { get; private set; }
@@ -87,6 +89,8 @@ namespace SOK.Infrastructure.Repositories
             Address = new AddressRepository(db);
             Building = new BuildingRepository(db);
             Street = new StreetRepository(db);
+            StreetSpecifier = new StreetSpecifierRepository(db);
+            City = new CityRepository(db);
             Schedule = new ScheduleRepository(db);
             Visit = new VisitRepository(db);
             Agenda = new AgendaRepository(db);

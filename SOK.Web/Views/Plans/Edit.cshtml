@@ -16,7 +16,7 @@
                 </p>
             </div>
             <div>
-                <label class="form-control w-full">
+                <label class="w-full">
                     <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.Name)</span>
                     <input asp-for="Name" class="input input-lg w-full" placeholder="Np. Kolęda @currentSeason" />
                     <span asp-validation-for="Name" class="text-error text-sm"></span>
@@ -140,12 +140,12 @@
                 <h3 class="font-bold text-lg mb-4">
                     {{ newSchedule.index != null ? 'Edytuj harmonogram' : 'Dodaj nowy harmonogram' }}
                 </h3>
-                <div class="form-control mb-3">
+                <div class="mb-3">
                     <label class="label-text mb-1">Nazwa</label>
                     <input v-model="newSchedule.name" type="text" class="input w-full" required maxlength="128"
                         placeholder="Np. @(Model.Schedules.FirstOrDefault()?.Name ?? "Kolęda dodatkowa")" />
                 </div>
-                <div class="form-control mb-3">
+                <div class="mb-3">
                     <label class="label-text mb-1">Krótka nazwa</label>
                     <input v-model="newSchedule.shortName" type="text" class="input w-full" required maxlength="24"
                         placeholder="Np. @(Model.Schedules.FirstOrDefault()?.ShortName ?? "D")" />
@@ -164,7 +164,7 @@
         <div class="modal-box">
             <form id="priest-modal-form">
                 <h3 class="font-bold text-lg mb-4">Dodaj nowego księdza</h3>
-                <div class="form-control mb-3">
+                <div class="mb-3">
                     <label class="label-text mb-1">Wyświetlana nazwa</label>
                     <input v-model="newPriest.displayName" type="text" class="input w-full" required minlength="3" maxlength="64"
                         placeholder="ks. Jan Kowalski" />
