@@ -3,27 +3,27 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje typ ulicy (ulica, aleja, plac, itp.) wraz ze skr髏em.
-    /// Pozwala na rozr罂nienie rodzaju ulicy w adresie.
+    /// Reprezentuje typ ulicy (ulica, aleja, plac, itp.) wraz ze skr贸tem.
+    /// Pozwala na rozr贸偶nienie rodzaju ulicy w adresie.
     /// </summary>
     public class StreetSpecifier
     {
         /// <summary>
-        /// Unikalny identyfikator typu ulicy (klucz g丑wny).
+        /// Unikalny identyfikator typu ulicy (klucz g艂贸wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Pe硁a nazwa typu ulicy, np. "Ulica", "Aleja", "Plac".
+        /// Pe艂na nazwa typu ulicy, np. "Ulica", "Aleja", "Plac".
         /// </summary>
         [MaxLength(64)]
-        public string FullName { get; set; } = default!;
+        public string FullName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Skr髏 typu ulicy, np. "ul.", "al.", "pl." (opcjonalny).
+        /// Skr贸t typu ulicy, np. "ul.", "al.", "pl." (opcjonalny).
         /// </summary>
         [MaxLength(16)]
-        public string? Abbreviation { get; set; }
+        public string? Abbreviation { get; set; } = null;
     }
 }

@@ -18,12 +18,12 @@ namespace SOK.Domain.Entities.Parish
         /// Nazwa jednostki informacyjnej (np. "UniqueId", "FullName", "BuildingNumber").
         /// </summary>
         [MaxLength(96)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Wartość jednostki informacyjnej.
         /// </summary>
         [MaxLength(1024)]
-        public string Value { get; set; } = default!;
+        public string Value { get; set; } = string.Empty;
     }
 }

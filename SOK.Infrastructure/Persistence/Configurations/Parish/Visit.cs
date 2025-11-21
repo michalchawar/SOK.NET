@@ -8,15 +8,15 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Visit> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(v => new { v.ScheduleId, v.OrdinalNumber })
                 .IsUnique();
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            // (brak automatycznie generowanych pÃ³l)
 
             // Relacje
             builder.HasOne(v => v.Agenda)

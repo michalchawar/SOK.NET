@@ -8,18 +8,19 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Address> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(a => new { a.BuildingId, a.ApartmentNumber, a.ApartmentLetter })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter(null);
             builder.HasIndex(a => a.FilterableString);
 
             // Generowane pola
             builder.Property(a => a.FilterableString)
                 .HasComputedColumnSql(
-                    // ³¹czymy dane w ró¿nych kolejnoœciach i ma³ymi literami
+                    // Å‚Ä…czymy dane w rÃ³Å¼nych kolejnoÅ›ciach i maÅ‚ymi literami
                     "LOWER(CONCAT_WS(' ', " +
                         "COALESCE(StreetType, ''), " +
                         "COALESCE(StreetName, ''), " +

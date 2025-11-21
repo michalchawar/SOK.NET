@@ -8,17 +8,17 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<City> builder)
         {
-            // Klucz g丑wny
+            // Klucz g艂贸wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalno滄
-            // (nie ma potrzeby dodatkowych indeks體 poza kluczem g丑wnym)
+            // Indeksy i unikalno艣膰
+            // (nie ma potrzeby dodatkowych indeks贸w poza kluczem g艂贸wnym)
 
             // Generowane pola
-            // (brak automatycznie generowanych p髄)
+            // (brak automatycznie generowanych p贸l)
 
             // Relacje
-            // (City nie jest podrz阣ne wzgl阣em 縜dnej encji, nie konfigurujemy relacji)
+            // (City nie jest podrz臋dne wzgl臋dem 偶adnej encji, nie konfigurujemy relacji)
 
             // Wyzwalacze
             builder.ToTable(t => t.HasTrigger("TR_City_Update_AddressCache"));

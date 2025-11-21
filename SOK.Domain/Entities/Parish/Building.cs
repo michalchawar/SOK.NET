@@ -19,31 +19,31 @@ namespace SOK.Domain.Entities.Parish
         /// Krotka (Street, Number, Letter) jest unikalna.
         /// </summary>
         [Range(1, 300)]
-        public int Number { get; set; } = default!;
+        public int Number { get; set; }
 
         /// <summary>
         /// Litera budynku (np. A, B, C), jeśli występuje.
         /// </summary>
         [MaxLength(3)]
-        public string? Letter { get; set; }
+        public string? Letter { get; set; } = null;
 
         /// <summary>
         /// Liczba pięter w budynku. Wartość -1 oznacza brak danych.
         /// </summary>
         [DefaultValue(-1)]
-        public int FloorCount { get; set; }
+        public int FloorCount { get; set; } = -1;
 
         /// <summary>
         /// Liczba mieszkań w budynku. Wartość -1 oznacza brak danych.
         /// </summary>
         [DefaultValue(-1)]
-        public int ApartmentCount { get; set; }
+        public int ApartmentCount { get; set; } = -1;
 
         /// <summary>
         /// Najwyższy numer mieszkania w budynku. Wartość -1 oznacza brak danych.
         /// </summary>
         [DefaultValue(-1)]
-        public int HighestApartmentNumber { get; set; }
+        public int HighestApartmentNumber { get; set; } = -1;
 
         /// <summary>
         /// Określa, czy budynek posiada windę. Jest to używane do planowania wizyt w budynku.

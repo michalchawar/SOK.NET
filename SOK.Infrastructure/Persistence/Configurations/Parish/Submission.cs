@@ -9,10 +9,10 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Submission> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(s => s.UniqueId)
                 .IsUnique();
 

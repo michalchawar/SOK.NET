@@ -9,11 +9,11 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Plan> builder)
         {
-            // Klucz g��wny
+            // Klucz główny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalno��
-            // (nie ma potrzeby dodatkowych indeks�w poza kluczem g��wnym)
+            // Indeksy i unikalność
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem głównym)
 
             // Generowane pola
             builder.Property(fs => fs.CreationTime)

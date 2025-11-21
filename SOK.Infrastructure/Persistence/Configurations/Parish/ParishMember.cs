@@ -8,18 +8,18 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<ParishMember> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(u => u.CentralUserId)
                 .IsUnique();
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            // (brak automatycznie generowanych pÃ³l)
 
             // Relacje
-            // (ParishMember nie jest podrzêdny wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+            // (ParishMember nie jest podrzÄ™dny wzglÄ™dem Å¼adnej encji, nie konfigurujemy relacji)
         }
     }
 }

@@ -5,121 +5,121 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje pojedyncze zg≥oszenie formularza przez uøytkownika (anonimowego lub zalogowanego).
-    /// Przechowuje dane osobowe, adresowe oraz metadane zg≥oszenia w momencie jego wys≥ania.
-    /// Stanowi archiwalny, oryginalny zapis danych, ktÛre mog≥y ulec zmianie.
+    /// Reprezentuje pojedyncze zg≈Çoszenie formularza przez u≈ºytkownika (anonimowego lub zalogowanego).
+    /// Przechowuje dane osobowe, adresowe oraz metadane zg≈Çoszenia w momencie jego wys≈Çania.
+    /// Stanowi archiwalny, oryginalny zapis danych, kt√≥re mog≈Çy ulec zmianie.
     /// </summary>
     public class FormSubmission
     {
         /// <summary>
-        /// Unikalny identyfikator zg≥oszenia formularza (klucz g≥Ûwny).
+        /// Unikalny identyfikator zg≈Çoszenia formularza (klucz g≈Ç√≥wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// ImiÍ osoby zg≥aszajπcej.
+        /// Imiƒô osoby zg≈ÇaszajƒÖcej.
         /// </summary>
         [MaxLength(64)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nazwisko osoby zg≥aszajπcej.
+        /// Nazwisko osoby zg≈ÇaszajƒÖcej.
         /// </summary>
         [MaxLength(64)]
-        public string Surname { get; set; } = default!;
+        public string Surname { get; set; } = string.Empty;
 
         /// <summary>
-        /// Adres e-mail osoby zg≥aszajπcej (opcjonalny).
+        /// Adres e-mail osoby zg≈ÇaszajƒÖcej (opcjonalny).
         /// </summary>
         [MaxLength(256)]
-        public string? Email { get; set; }
+        public string? Email { get; set; } = null;
 
         /// <summary>
-        /// Numer telefonu osoby zg≥aszajπcej (opcjonalny).
+        /// Numer telefonu osoby zg≈ÇaszajƒÖcej (opcjonalny).
         /// </summary>
         [MaxLength(15)]
-        public string? Phone { get; set; }
+        public string? Phone { get; set; } = null;
 
         /// <summary>
-        /// Dodatkowe uwagi zg≥aszajπcego (opcjonalne).
+        /// Dodatkowe uwagi zg≈ÇaszajƒÖcego (opcjonalne).
         /// </summary>
         [MaxLength(512)]
-        public string? SubmitterNotes { get; set; }
+        public string? SubmitterNotes { get; set; } = null;
 
         /// <summary>
-        /// Nazwa harmonogramu, do ktÛrego zg≥oszenie zosta≥o przypisane.
+        /// Nazwa harmonogramu, do kt√≥rego zg≈Çoszenie zosta≈Ço przypisane.
         /// </summary>
         [MaxLength(64)]
-        public string ScheduleName { get; set; } = default!;
+        public string ScheduleName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Numer (i opcjonalnie litera) mieszkania podany w zg≥oszeniu.
+        /// Numer (i opcjonalnie litera) mieszkania podany w zg≈Çoszeniu.
         /// </summary>
         [MaxLength(16)]
-        public string Apartment { get; set; } = default!;
+        public string Apartment { get; set; } = string.Empty;
 
         /// <summary>
-        /// Numer (i opcjonalnie litera) budynku podana w zg≥oszeniu.
+        /// Numer (i opcjonalnie litera) budynku podana w zg≈Çoszeniu.
         /// </summary>
         [MaxLength(16)]
-        public string Building { get; set; } = default!;
+        public string Building { get; set; } = string.Empty;
 
         /// <summary>
-        /// Typ ulicy (np. Ulica, Aleja, Plac) w momencie sk≥adania zg≥oszenia.
+        /// Typ ulicy (np. Ulica, Aleja, Plac) w momencie sk≈Çadania zg≈Çoszenia.
         /// </summary>
         [MaxLength(32)]
-        public string StreetSpecifier { get; set; } = default!;
+        public string StreetSpecifier { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nazwa ulicy podana w zg≥oszeniu.
+        /// Nazwa ulicy podana w zg≈Çoszeniu.
         /// </summary>
         [MaxLength(128)]
-        public string Street { get; set; } = default!;
+        public string Street { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nazwa miasta w momencie sk≥adania zg≥oszenia.
+        /// Nazwa miasta w momencie sk≈Çadania zg≈Çoszenia.
         /// </summary>
         [MaxLength(128)]
-        public string City { get; set; } = default!;
+        public string City { get; set; } = string.Empty;
 
         /// <summary>
-        /// Metoda zg≥oszenia (np. formularz papierowy, online, telefonicznie).
+        /// Metoda zg≈Çoszenia (np. formularz papierowy, online, telefonicznie).
         /// </summary>
         [DefaultValue(SubmitMethod.NotRegistered)]
-        public SubmitMethod Method { get; set; }
+        public SubmitMethod Method { get; set; } = SubmitMethod.NotRegistered;
 
         /// <summary>
-        /// Adres IP, z ktÛrego otrzymano zg≥oszenie.
-        /// Jeúli zg≥oszenie zosta≥o wprowadzone manualnie przez zalogowanego uøytkownika,
-        /// to jest to adres IP tego uøytkownika.
+        /// Adres IP, z kt√≥rego otrzymano zg≈Çoszenie.
+        /// Je≈õli zg≈Çoszenie zosta≈Ço wprowadzone manualnie przez zalogowanego u≈ºytkownika,
+        /// to jest to adres IP tego u≈ºytkownika.
         /// </summary>
         [MaxLength(64)]
-        public string IP { get; set; } = default!;
+        public string IP { get; set; } = string.Empty;
 
         /// <summary>
-        /// Data i godzina otrzymania zg≥oszenia.
+        /// Data i godzina otrzymania zg≈Çoszenia.
         /// </summary>
         public DateTime SubmitTime { get; private set; }
 
         /// <summary>
-        /// Identyfikator uøytkownika, ktÛry utworzy≥ zg≥oszenie 
-        /// (jeúli zosta≥o wprowadzone manualnie).
+        /// Identyfikator u≈ºytkownika, kt√≥ry utworzy≈Ç zg≈Çoszenie 
+        /// (je≈õli zosta≈Ço wprowadzone manualnie).
         /// </summary>
-        public int? AuthorId { get; set; } = default!;
+        public int? AuthorId { get; set; }
 
         /// <summary>
-        /// Uøytkownik, ktÛry utworzy≥ zg≥oszenie (relacja opcjonalna).
+        /// U≈ºytkownik, kt√≥ry utworzy≈Ç zg≈Çoszenie (relacja opcjonalna).
         /// </summary>
         public ParishMember? Author { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator powiπzanego zg≥oszenia g≥Ûwnego (Submission).
+        /// Identyfikator powiƒÖzanego zg≈Çoszenia g≈Ç√≥wnego (Submission).
         /// </summary>
-        public int SubmissionId { get; set; } = default!;
+        public int SubmissionId { get; set; }
 
         /// <summary>
-        /// Powiπzane zg≥oszenie g≥Ûwne (relacja nawigacyjna).
+        /// PowiƒÖzane zg≈Çoszenie g≈Ç√≥wne (relacja nawigacyjna).
         /// </summary>
         public Submission? Submission { get; set; } = default!;
     }

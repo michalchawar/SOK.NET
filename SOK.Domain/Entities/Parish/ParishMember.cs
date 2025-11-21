@@ -3,41 +3,41 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje uøytkownika systemu (np. administratora, ksiÍdza, ministranta).
-    /// Przechowuje dane logowania, status, role oraz powiπzania z parafiπ i agendami.
+    /// Reprezentuje u≈ºytkownika systemu (np. administratora, ksiƒôdza, ministranta).
+    /// Przechowuje dane logowania, status, role oraz powiƒÖzania z parafiƒÖ i agendami.
     /// </summary>
     public class ParishMember
     {
         /// <summary>
-        /// Unikalny identyfikator uøytkownika (klucz g≥Ûwny).
+        /// Unikalny identyfikator u≈ºytkownika (klucz g≈Ç√≥wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Nazwa wyúwietlana uøytkownika.
+        /// Nazwa wy≈õwietlana u≈ºytkownika.
         /// </summary>
         [MaxLength(64)]
-        public string DisplayName { get; set; } = default!;
+        public string DisplayName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Identyfikator odpowiadajπcego uøytkownika w bazie centralnej.
+        /// Identyfikator odpowiadajƒÖcego u≈ºytkownika w bazie centralnej.
         /// </summary>
         [MaxLength(36)]
-        public string CentralUserId { get; set; } = default!;
+        public string CentralUserId { get; set; } = string.Empty;
 
         /// <summary>
-        /// Lista agend, do ktÛrych uøytkownik jest przypisany (np. jako ksiπdz lub ministrant).
+        /// Lista agend, do kt√≥rych u≈ºytkownik jest przypisany (np. jako ksiƒÖdz lub ministrant).
         /// </summary>
         public ICollection<Agenda> AssignedAgendas { get; set; } = new List<Agenda>();
 
         /// <summary>
-        /// Lista planÛw, do ktÛrych uøytkownik jest przypisany (jeúli jest w randzie Priest).
+        /// Lista plan√≥w, do kt√≥rych u≈ºytkownik jest przypisany (je≈õli jest w randzie Priest).
         /// </summary>
         public ICollection<Plan> AssignedPlans { get; set; } = new List<Plan>();
 
         /// <summary>
-        /// Lista zg≥oszeÒ, ktÛre uøytkownik wprowadzi≥ manualnie.
+        /// Lista zg≈Çosze≈Ñ, kt√≥re u≈ºytkownik wprowadzi≈Ç manualnie.
         /// </summary>
         public ICollection<FormSubmission> EnteredSubmissions { get; set; } = new List<FormSubmission>();
     }

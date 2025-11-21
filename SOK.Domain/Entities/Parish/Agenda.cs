@@ -4,36 +4,36 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje agendê, czyli planowane wizyty w danym dniu dla jednego ksiêdza.
-    /// Agenda grupuje wizyty przypisane do konkretnego dnia i u¿ytkownika (np. ksiêdza lub osoby wspieraj¹cej).
-    /// Pozwala na zarz¹dzanie harmonogramem, przypisaniami budynków oraz u¿ytkowników.
+    /// Reprezentuje agendÄ™, czyli planowane wizyty w danym dniu dla jednego ksiÄ™dza.
+    /// Agenda grupuje wizyty przypisane do konkretnego dnia i uÅ¼ytkownika (np. ksiÄ™dza lub osoby wspierajÄ…cej).
+    /// Pozwala na zarzÄ…dzanie harmonogramem, przypisaniami budynkÃ³w oraz uÅ¼ytkownikÃ³w.
     /// </summary>
     public class Agenda
     {
         /// <summary>
-        /// Unikalny identyfikator agendy (klucz g³ówny).
+        /// Unikalny identyfikator agendy (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Publiczny unikalny identyfikator agendy (GUID), wykorzystywany g³ównie do udostêpniania lub autoryzacji (w po³¹czeniu z AccessToken).
+        /// Publiczny unikalny identyfikator agendy (GUID), wykorzystywany gÅ‚Ã³wnie do udostÄ™pniania lub autoryzacji (w poÅ‚Ä…czeniu z AccessToken).
         /// </summary>
         public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// Token dostêpu do agendy, u¿ywany do autoryzacji w po³¹czeniu z UniqueId.
+        /// Token dostÄ™pu do agendy, uÅ¼ywany do autoryzacji w poÅ‚Ä…czeniu z UniqueId.
         /// </summary>
         [MaxLength(64)]
-        public string AccessToken { get; set; } = default!;
+        public string AccessToken { get; set; } = string.Empty;
 
         /// <summary>
-        /// Czas rozpoczêcia agendy (jeœli inny ni¿ domyœlny dla danego dnia).
+        /// Czas rozpoczÄ™cia agendy (jeÅ›li inny niÅ¼ domyÅ›lny dla danego dnia).
         /// </summary>
         public TimeOnly? StartHourOverride { get; set; }
 
         /// <summary>
-        /// Czas zakoñczenia agendy (jeœli inny ni¿ domyœlny dla danego dnia).
+        /// Czas zakoÅ„czenia agendy (jeÅ›li inny niÅ¼ domyÅ›lny dla danego dnia).
         /// </summary>
         public TimeOnly? EndHourOverride { get; set; }
 
@@ -43,37 +43,37 @@ namespace SOK.Domain.Entities.Parish
         public float? GatheredFunds { get; set; }
 
         /// <summary>
-        /// Okreœla, czy przypisania wizyt w tej agendzie maj¹ byæ widoczne dla zg³aszaj¹cych (niezalogowanych u¿ytkowników).
-        /// Wartoœæ automatycznie ustawiana jest na true na okreœlony (w ustawieniach) czas przed rozpoczêciem agendy.
+        /// OkreÅ›la, czy przypisania wizyt w tej agendzie majÄ… byÄ‡ widoczne dla zgÅ‚aszajÄ…cych (niezalogowanych uÅ¼ytkownikÃ³w).
+        /// WartoÅ›Ä‡ automatycznie ustawiana jest na true na okreÅ›lony (w ustawieniach) czas przed rozpoczÄ™ciem agendy.
         /// </summary>
         [DefaultValue(false)]
-        public bool ShowsAssignment { get; set; }
+        public bool ShowsAssignment { get; set; } = false;
 
         /// <summary>
-        /// Okreœla, czy przewidywane godziny wizyt w tej agendzie maj¹ byæ widoczne dla zg³aszaj¹cych (niezalogowanych u¿ytkowników).
-        /// Wartoœæ automatycznie ustawiana jest na true na okreœlony (w ustawieniach) czas przed rozpoczêciem agendy.
+        /// OkreÅ›la, czy przewidywane godziny wizyt w tej agendzie majÄ… byÄ‡ widoczne dla zgÅ‚aszajÄ…cych (niezalogowanych uÅ¼ytkownikÃ³w).
+        /// WartoÅ›Ä‡ automatycznie ustawiana jest na true na okreÅ›lony (w ustawieniach) czas przed rozpoczÄ™ciem agendy.
         /// </summary>
         [DefaultValue(false)]
-        public bool ShowHours { get; set; }
+        public bool ShowHours { get; set; } = false;
 
         /// <summary>
-        /// Identyfikator dnia, do którego przypisana jest agenda.
+        /// Identyfikator dnia, do ktÃ³rego przypisana jest agenda.
         /// </summary>
         public int DayId { get; set; }
 
         /// <summary>
-        /// Dzieñ, do którego przypisana jest agenda (relacja nawigacyjna).
+        /// DzieÅ„, do ktÃ³rego przypisana jest agenda (relacja nawigacyjna).
         /// </summary>
         public Day Day { get; set; } = default!;
 
         /// <summary>
-        /// Lista wizyt w agendzie. Przy pobieraniu nale¿y j¹ posortowaæ po polu OrdinalNumber w modelu Visit.
+        /// Lista wizyt w agendzie. Przy pobieraniu naleÅ¼y jÄ… posortowaÄ‡ po polu OrdinalNumber w modelu Visit.
         /// </summary>
         public ICollection<Visit> Visits { get; set; } = new List<Visit>();
 
         /// <summary>
-        /// Lista u¿ytkowników przypisanych do agendy. Agenda mo¿e nie mieæ przypisanych u¿ytkowników. 
-        /// U¿ytkownicy mog¹ mieæ ró¿ne role.
+        /// Lista uÅ¼ytkownikÃ³w przypisanych do agendy. Agenda moÅ¼e nie mieÄ‡ przypisanych uÅ¼ytkownikÃ³w. 
+        /// UÅ¼ytkownicy mogÄ… mieÄ‡ rÃ³Å¼ne role.
         /// </summary>
         public ICollection<ParishMember> AssignedMembers { get; set; } = new List<ParishMember>();
     }

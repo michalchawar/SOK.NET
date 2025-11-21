@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOK.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Parish
+namespace SOK.Infrastructure.Persistence.Migrations.Parish
 {
     [DbContext(typeof(ParishDbContext))]
-    partial class ParishDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121162508_RefactorModelDefaultValuesAndUnusedFields")]
+    partial class RefactorModelDefaultValuesAndUnusedFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,7 +37,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("AssignedMembersId");
 
-                    b.ToTable("AgendaParishMember", (string)null);
+                    b.ToTable("AgendaParishMember");
                 });
 
             modelBuilder.Entity("ParishMemberPlan", b =>
@@ -49,7 +52,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("AssignedPlansId");
 
-                    b.ToTable("ParishMemberPlan", (string)null);
+                    b.ToTable("ParishMemberPlan");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Address", b =>
@@ -103,7 +106,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("BuildingId", "ApartmentNumber", "ApartmentLetter")
                         .IsUnique();
 
-                    b.ToTable("Addresses", null, t =>
+                    b.ToTable("Addresses", t =>
                         {
                             t.HasTrigger("TR_Address_InsertOrUpdate_Cache");
                         });
@@ -159,7 +162,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("Agendas", (string)null);
+                    b.ToTable("Agendas");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Building", b =>
@@ -200,7 +203,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("StreetId", "Number", "Letter")
                         .IsUnique();
 
-                    b.ToTable("Buildings", null, t =>
+                    b.ToTable("Buildings", t =>
                         {
                             t.HasTrigger("TR_Building_Update_AddressCache");
                         });
@@ -225,7 +228,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("ScheduleId");
 
-                    b.ToTable("BuildingAssignments", (string)null);
+                    b.ToTable("BuildingAssignments");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.City", b =>
@@ -247,7 +250,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cities", null, t =>
+                    b.ToTable("Cities", t =>
                         {
                             t.HasTrigger("TR_City_Update_AddressCache");
                         });
@@ -279,7 +282,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("PlanId");
 
-                    b.ToTable("Days", (string)null);
+                    b.ToTable("Days");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.FormSubmission", b =>
@@ -368,7 +371,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("SubmissionId")
                         .IsUnique();
 
-                    b.ToTable("FormSubmissions", (string)null);
+                    b.ToTable("FormSubmissions");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.ParishInfo", b =>
@@ -394,7 +397,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ParishInfo", (string)null);
+                    b.ToTable("ParishInfo");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.ParishMember", b =>
@@ -420,7 +423,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("CentralUserId")
                         .IsUnique();
 
-                    b.ToTable("Members", (string)null);
+                    b.ToTable("Members");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Plan", b =>
@@ -455,7 +458,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .IsUnique()
                         .HasFilter("[DefaultScheduleId] IS NOT NULL");
 
-                    b.ToTable("Plans", (string)null);
+                    b.ToTable("Plans");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Schedule", b =>
@@ -487,7 +490,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("PlanId", "ShortName")
                         .IsUnique();
 
-                    b.ToTable("Schedules", (string)null);
+                    b.ToTable("Schedules");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Street", b =>
@@ -522,7 +525,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("StreetSpecifierId");
 
-                    b.ToTable("Streets", null, t =>
+                    b.ToTable("Streets", t =>
                         {
                             t.HasTrigger("TR_Street_Update_AddressCache");
                         });
@@ -552,7 +555,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("FullName")
                         .IsUnique();
 
-                    b.ToTable("StreetSpecifiers", (string)null);
+                    b.ToTable("StreetSpecifiers");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Submission", b =>
@@ -619,7 +622,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("Submissions", (string)null);
+                    b.ToTable("Submissions");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.SubmissionSnapshot", b =>
@@ -695,7 +698,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("SubmissionId");
 
-                    b.ToTable("SubmissionSnapshots", (string)null);
+                    b.ToTable("SubmissionSnapshots");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Submitter", b =>
@@ -741,7 +744,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("Submitters", (string)null);
+                    b.ToTable("Submitters");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.SubmitterSnapshot", b =>
@@ -790,7 +793,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("SubmitterId");
 
-                    b.ToTable("SubmitterSnapshots", (string)null);
+                    b.ToTable("SubmitterSnapshots");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Visit", b =>
@@ -827,7 +830,7 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .IsUnique()
                         .HasFilter("[ScheduleId] IS NOT NULL AND [OrdinalNumber] IS NOT NULL");
 
-                    b.ToTable("Visits", (string)null);
+                    b.ToTable("Visits");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.VisitSnapshot", b =>
@@ -876,7 +879,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasIndex("VisitId");
 
-                    b.ToTable("VisitSnapshots", (string)null);
+                    b.ToTable("VisitSnapshots");
                 });
 
             modelBuilder.Entity("AgendaParishMember", b =>

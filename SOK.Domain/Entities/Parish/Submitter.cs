@@ -4,62 +4,62 @@ using System.Linq.Expressions;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje osobê zg³aszaj¹c¹.
-    /// Przechowuje podstawowe dane kontaktowe oraz powi¹zania ze zg³oszeniami i histori¹ zmian.
+    /// Reprezentuje osobÄ™ zgÅ‚aszajÄ…cÄ….
+    /// Przechowuje podstawowe dane kontaktowe oraz powiÄ…zania ze zgÅ‚oszeniami i historiÄ… zmian.
     /// </summary>
     public class Submitter
     {
         /// <summary>
-        /// Unikalny identyfikator osoby zg³aszaj¹cej (klucz g³ówny).
+        /// Unikalny identyfikator osoby zgÅ‚aszajÄ…cej (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Publiczny unikalny identyfikator osoby zg³aszaj¹cej (GUID).
+        /// Publiczny unikalny identyfikator osoby zgÅ‚aszajÄ…cej (GUID).
         /// </summary>
         public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// Imiê osoby zg³aszaj¹cej.
+        /// ImiÄ™ osoby zgÅ‚aszajÄ…cej.
         /// </summary>
         [MaxLength(64)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nazwisko osoby zg³aszaj¹cej.
+        /// Nazwisko osoby zgÅ‚aszajÄ…cej.
         /// </summary>
         [MaxLength(64)]
-        public string Surname { get; set; } = default!;
+        public string Surname { get; set; } = string.Empty;
 
         /// <summary>
-        /// Adres e-mail osoby zg³aszaj¹cej (opcjonalny).
+        /// Adres e-mail osoby zgÅ‚aszajÄ…cej (opcjonalny).
         /// </summary>
         [MaxLength(256)]
-        public string? Email { get; set; }
+        public string? Email { get; set; } = null;
 
         /// <summary>
-        /// Numer telefonu osoby zg³aszaj¹cej (opcjonalny).
+        /// Numer telefonu osoby zgÅ‚aszajÄ…cej (opcjonalny).
         /// </summary>
         [MaxLength(15)]
-        public string? Phone { get; set; }
+        public string? Phone { get; set; } = null;
 
         /// <summary>
-        /// Lista zg³oszeñ powi¹zanych z osob¹ zg³aszaj¹c¹.
+        /// Lista zgÅ‚oszeÅ„ powiÄ…zanych z osobÄ… zgÅ‚aszajÄ…cÄ….
         /// </summary>
         public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
         /// <summary>
-        /// Historia zmian danych osoby zg³aszaj¹cej (snapshoty).
+        /// Historia zmian danych osoby zgÅ‚aszajÄ…cej (snapshoty).
         /// </summary>
         public ICollection<SubmitterSnapshot> History { get; set; } = new List<SubmitterSnapshot>();
 
 
         /// <summary>
-        /// Reprezentacja tekstowa zg³aszaj¹cego do celów filtrowania.
+        /// Reprezentacja tekstowa zgÅ‚aszajÄ…cego do celÃ³w filtrowania.
         /// </summary>
         /// <remarks>
-        /// £¹czny tekst do wyszukiwania (imiê, nazwisko, e-mail, telefon w ró¿nych kolejnoœciach),
+        /// ÅÄ…czny tekst do wyszukiwania (imiÄ™, nazwisko, e-mail, telefon w rÃ³Å¼nych kolejnoÅ›ciach),
         /// generowany automatycznie w bazie danych.
         /// </remarks>
         [MaxLength(1024)]

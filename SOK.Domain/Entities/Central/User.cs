@@ -4,26 +4,26 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Central
 {
     /// <summary>
-    /// Reprezentuje uøytkownika systemu i jego przynaleønoúÊ.
-    /// Przechowuje dane do identyfikacji (login, e-mail) i unikatowy identyfikator parafii, do ktÛrej naleøy.
+    /// Reprezentuje u≈ºytkownika systemu i jego przynale≈ºno≈õƒá.
+    /// Przechowuje dane do identyfikacji (login, e-mail) i unikatowy identyfikator parafii, do kt√≥rej nale≈ºy.
     /// </summary>
     public class User : IdentityUser
     {
 
         /// <summary>
         /// <summary>
-        /// Nazwa wyúwietlana uøytkownika (np. imiÍ i nazwisko).
+        /// Nazwa wy≈õwietlana u≈ºytkownika (np. imiƒô i nazwisko).
         /// </summary>
         [MaxLength(128)]
-        public string DisplayName { get; set; } = default!;
+        public string DisplayName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Identyfikator parafii, do ktÛrej przypisany jest uøytkownik.
+        /// Identyfikator parafii, do kt√≥rej przypisany jest u≈ºytkownik.
         /// </summary>
         public int ParishId { get; set; }
 
         /// <summary>
-        /// Parafia, do ktÛrej przypisany jest uøytkownik (relacja nawigacyjna).
+        /// Parafia, do kt√≥rej przypisany jest u≈ºytkownik (relacja nawigacyjna).
         /// </summary>
         public ParishEntry Parish { get; set; } = default!;
     }

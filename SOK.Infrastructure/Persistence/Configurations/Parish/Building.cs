@@ -8,15 +8,16 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Building> builder)
         {
-            // Klucz g��wny
+            // Klucz główny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalno��
+            // Indeksy i unikalność
             builder.HasIndex(b => new { b.StreetId, b.Number, b.Letter })
-                   .IsUnique();
+                   .IsUnique()
+                   .HasFilter(null);
 
             // Generowane pola
-            // (brak automatycznie generowanych p�l)
+            // (brak automatycznie generowanych pól)
 
             // Relacje
             builder.HasOne(b => b.Street)

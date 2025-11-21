@@ -3,46 +3,46 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje archiwalny stan danych osoby zg³aszaj¹cej (Submitter) w danym momencie.
-    /// Pozwala œledziæ historiê zmian danych kontaktowych zg³aszaj¹cego.
+    /// Reprezentuje archiwalny stan danych osoby zgÅ‚aszajÄ…cej (Submitter) w danym momencie.
+    /// Pozwala Å›ledziÄ‡ historiÄ™ zmian danych kontaktowych zgÅ‚aszajÄ…cego.
     /// </summary>
     public class SubmitterSnapshot
     {
         /// <summary>
-        /// Unikalny identyfikator snapshotu (klucz g³ówny).
+        /// Unikalny identyfikator snapshotu (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Publiczny unikalny identyfikator zg³aszaj¹cego w momencie utworzenia snapshotu.
-        /// W wiêkszoœci przypadków wszystkie snapshoty dla danego zg³aszaj¹cego bêd¹ mia³y ten sam UniqueId.
+        /// Publiczny unikalny identyfikator zgÅ‚aszajÄ…cego w momencie utworzenia snapshotu.
+        /// W wiÄ™kszoÅ›ci przypadkÃ³w wszystkie snapshoty dla danego zgÅ‚aszajÄ…cego bÄ™dÄ… miaÅ‚y ten sam UniqueId.
         /// </summary>
         public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// Imiê osoby zg³aszaj¹cej w momencie utworzenia snapshotu.
+        /// ImiÄ™ osoby zgÅ‚aszajÄ…cej w momencie utworzenia snapshotu.
         /// </summary>
         [MaxLength(64)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nazwisko osoby zg³aszaj¹cej w momencie utworzenia snapshotu.
+        /// Nazwisko osoby zgÅ‚aszajÄ…cej w momencie utworzenia snapshotu.
         /// </summary>
         [MaxLength(64)]
-        public string Surname { get; set; } = default!;
+        public string Surname { get; set; } = string.Empty;
 
         /// <summary>
-        /// Adres e-mail osoby zg³aszaj¹cej w momencie utworzenia snapshotu (opcjonalny).
+        /// Adres e-mail osoby zgÅ‚aszajÄ…cej w momencie utworzenia snapshotu (opcjonalny).
         /// </summary>
         [MaxLength(256)]
-        public string? Email { get; set; }
+        public string? Email { get; set; } = null;
 
         /// <summary>
-        /// Numer telefonu osoby zg³aszaj¹cej w momencie utworzenia snapshotu (opcjonalny).
+        /// Numer telefonu osoby zgÅ‚aszajÄ…cej w momencie utworzenia snapshotu (opcjonalny).
         /// </summary>
         [MaxLength(15)]
-        public string? Phone { get; set; }
+        public string? Phone { get; set; } = null;
 
         /// <summary>
         /// Data i godzina utworzenia snapshotu.
@@ -50,12 +50,12 @@ namespace SOK.Domain.Entities.Parish
         public DateTime ChangeTime { get; private set; }
 
         /// <summary>
-        /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
+        /// Identyfikator uÅ¼ytkownika, ktÃ³ry wprowadziÅ‚ zmianÄ™, nadpisujÄ…c dane z tego snapshotu.
         /// </summary>
-        public int? ChangeAuthorId { get; set; } = default!;
+        public int? ChangeAuthorId { get; set; }
 
         /// <summary>
-        /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja opcjonalna).
+        /// UÅ¼ytkownik, ktÃ³ry wprowadziÅ‚ zmianÄ™, nadpisujÄ…c dane z tego snapshotu (relacja opcjonalna).
         /// </summary>
         public ParishMember? ChangeAuthor { get; set; } = default!;
     }

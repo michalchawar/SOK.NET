@@ -8,14 +8,14 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<BuildingAssignment> builder)
         {
-            // Klucz g��wny
+            // Klucz główny
             builder.HasKey(ba => new { ba.DayId, ba.BuildingId, ba.ScheduleId });
 
-            // Indeksy i unikalno��
-            // (nie ma potrzeby dodatkowych indeks�w poza kluczem g��wnym)
+            // Indeksy i unikalność
+            // (nie ma potrzeby dodatkowych indeksów poza kluczem głównym)
 
             // Generowane pola
-            // (brak automatycznie generowanych p�l)
+            // (brak automatycznie generowanych pól)
 
             // Relacje
             builder.HasOne(ba => ba.Day)

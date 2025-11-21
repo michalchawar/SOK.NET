@@ -5,88 +5,82 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje archiwalny stan zg³oszenia (Submission) w danym momencie.
-    /// Pozwala œledziæ historiê zmian danych zg³oszenia, w tym adresowych i statusowych.
+    /// Reprezentuje archiwalny stan zgÅ‚oszenia (Submission) w danym momencie.
+    /// Pozwala Å›ledziÄ‡ historiÄ™ zmian danych zgÅ‚oszenia, w tym adresowych i statusowych.
     /// </summary>
     public class SubmissionSnapshot
     {
         /// <summary>
-        /// Unikalny identyfikator snapshotu (klucz g³ówny).
+        /// Unikalny identyfikator snapshotu (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Publiczny unikalny identyfikator zg³oszenia w momencie utworzenia snapshotu.
-        /// W wiêkszoœci przypadków wszystkie snapshoty dla danego zg³oszenia bêd¹ mia³y ten sam UniqueId.
+        /// Publiczny unikalny identyfikator zgÅ‚oszenia w momencie utworzenia snapshotu.
+        /// W wiÄ™kszoÅ›ci przypadkÃ³w wszystkie snapshoty dla danego zgÅ‚oszenia bÄ™dÄ… miaÅ‚y ten sam UniqueId.
         /// </summary>
         public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// Token dostêpu do zg³oszenia w momencie utworzenia snapshotu.
+        /// Token dostÄ™pu do zgÅ‚oszenia w momencie utworzenia snapshotu.
         /// </summary>
         [MaxLength(64)]
-        public string AccessToken { get; set; } = default!;
+        public string AccessToken { get; set; } = string.Empty;
 
         /// <summary>
-        /// Uwagi zg³aszaj¹cego z momentu utworzenia snapshotu (opcjonalne).
+        /// Uwagi zgÅ‚aszajÄ…cego z momentu utworzenia snapshotu (opcjonalne).
         /// </summary>
         [MaxLength(512)]
-        public string? SubmitterNotes { get; set; }
+        public string? SubmitterNotes { get; set; } = null;
 
         /// <summary>
-        /// Wiadomoœæ administracyjna z momentu utworzenia snapshotu (opcjonalna).
+        /// WiadomoÅ›Ä‡ administracyjna z momentu utworzenia snapshotu (opcjonalna).
         /// </summary>
         [MaxLength(512)]
-        public string? AdminMessage { get; set; }
+        public string? AdminMessage { get; set; } = null;
 
         /// <summary>
         /// Systemowe notatki administratora z momentu utworzenia snapshotu (opcjonalne).
         /// </summary>
         [MaxLength(512)]
-        public string? AdminNotes { get; set; }
+        public string? AdminNotes { get; set; } = null;
 
         /// <summary>
         /// Status realizacji notatek w momencie utworzenia snapshotu.
         /// </summary>
         [DefaultValue(NotesFulfillmentStatus.NA)]
-        public NotesFulfillmentStatus NotesStatus { get; set; }
+        public NotesFulfillmentStatus NotesStatus { get; set; } = NotesFulfillmentStatus.NA;
 
         /// <summary>
         /// Numer (i opcjonalnie litera) mieszkania z momentu utworzenia snapshotu.
         /// </summary>
         [MaxLength(16)]
-        public string Apartment { get; set; } = default!;
+        public string Apartment { get; set; } = string.Empty;
 
         /// <summary>
         /// Numer (i opcjonalnie litera) budynku z momentu utworzenia snapshotu.
         /// </summary>
         [MaxLength(16)]
-        public string Building { get; set; } = default!;
+        public string Building { get; set; } = string.Empty;
 
         /// <summary>
         /// Typ ulicy z momentu utworzenia snapshotu.
         /// </summary>
         [MaxLength(32)]
-        public string StreetSpecifier { get; set; } = default!;
+        public string StreetSpecifier { get; set; } = string.Empty;
 
         /// <summary>
         /// Nazwa ulicy z momentu utworzenia snapshotu.
         /// </summary>
         [MaxLength(128)]
-        public string Street { get; set; } = default!;
+        public string Street { get; set; } = string.Empty;
 
         /// <summary>
         /// Nazwa miasta z momentu utworzenia snapshotu.
         /// </summary>
         [MaxLength(128)]
-        public string City { get; set; } = default!;
-
-        /// <summary>
-        /// Nazwa diecezji z momentu utworzenia snapshotu.
-        /// </summary>
-        [MaxLength(128)]
-        public string Diocese { get; set; } = default!;
+        public string City { get; set; } = string.Empty;
 
         /// <summary>
         /// Data i godzina utworzenia snapshotu.
@@ -94,22 +88,22 @@ namespace SOK.Domain.Entities.Parish
         public DateTime ChangeTime { get; private set; }
 
         /// <summary>
-        /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
+        /// Identyfikator uÅ¼ytkownika, ktÃ³ry wprowadziÅ‚ zmianÄ™, nadpisujÄ…c dane z tego snapshotu.
         /// </summary>
-        public int? ChangeAuthorId { get; set; } = default!;
+        public int? ChangeAuthorId { get; set; }
 
         /// <summary>
-        /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja nawigacyjna).
+        /// UÅ¼ytkownik, ktÃ³ry wprowadziÅ‚ zmianÄ™, nadpisujÄ…c dane z tego snapshotu (relacja nawigacyjna).
         /// </summary>
         public ParishMember? ChangeAuthor { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator zg³oszenia, którego dotyczy snapshot.
+        /// Identyfikator zgÅ‚oszenia, ktÃ³rego dotyczy snapshot.
         /// </summary>
-        public int SubmissionId { get; set; } = default!;
+        public int SubmissionId { get; set; }
 
         /// <summary>
-        /// Zg³oszenie, którego dotyczy snapshot (relacja nawigacyjna).
+        /// ZgÅ‚oszenie, ktÃ³rego dotyczy snapshot (relacja nawigacyjna).
         /// </summary>
         public Submission Submission { get; set; } = default!;
     }

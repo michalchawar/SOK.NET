@@ -8,14 +8,14 @@ namespace SOK.Infrastructure.Persistence.Configurations.Central
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            // Klucz g丑wny
+            // Klucz g艂贸wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalno滄
-            // (nie ma potrzeby dodatkowych indeks體 poza kluczem g丑wnym)
+            // Indeksy i unikalno艣膰
+            // (nie ma potrzeby dodatkowych indeks贸w poza kluczem g艂贸wnym)
 
             // Generowane pola
-            // (brak automatycznie generowanych p髄)
+            // (brak automatycznie generowanych p贸l)
 
             // Relacje
             builder.HasOne(u => u.Parish)

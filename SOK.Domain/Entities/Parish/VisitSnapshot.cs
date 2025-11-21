@@ -6,20 +6,20 @@ namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
     /// Reprezentuje archiwalny stan wizyty w danym momencie.
-    /// Pozwala œledziæ historiê zmian statusu, daty, przewidywanego czasu oraz autora zmiany.
-    /// Obiekt wizyty jest przypisany na sta³e do jednego zg³oszenia,
-    /// zatem snapshot nie uwzglêdnia zmian zg³oszenia.
+    /// Pozwala Å›ledziÄ‡ historiÄ™ zmian statusu, daty, przewidywanego czasu oraz autora zmiany.
+    /// Obiekt wizyty jest przypisany na staÅ‚e do jednego zgÅ‚oszenia,
+    /// zatem snapshot nie uwzglÄ™dnia zmian zgÅ‚oszenia.
     /// </summary>
     public class VisitSnapshot
     {
         /// <summary>
-        /// Unikalny identyfikator snapshotu wizyty (klucz g³ówny).
+        /// Unikalny identyfikator snapshotu wizyty (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Numer porz¹dkowy wizyty w ramach agendy w momencie utworzenia snapshotu.
+        /// Numer porzÄ…dkowy wizyty w ramach agendy w momencie utworzenia snapshotu.
         /// </summary>
         [Range(1, 300)]
         public short OrdinalNumber { get; set; }
@@ -28,31 +28,31 @@ namespace SOK.Domain.Entities.Parish
         /// Status wizyty w momencie utworzenia snapshotu.
         /// </summary>
         [DefaultValue(VisitStatus.Unplanned)]
-        public VisitStatus Status { get; set; }
+        public VisitStatus Status { get; set; } = VisitStatus.Unplanned;
 
         /// <summary>
-        /// Nazwa harmonogramu, do którego przypisana by³a wizyta w momencie utworzenia snapshotu.
-        /// Mo¿e byæ null, tylko gdy Status jest równy VisitStatus.Withdrawn.
+        /// Nazwa harmonogramu, do ktÃ³rego przypisana byÅ‚a wizyta w momencie utworzenia snapshotu.
+        /// MoÅ¼e byÄ‡ null, tylko gdy Status jest rÃ³wny VisitStatus.Withdrawn.
         /// </summary>
-        public string? ScheduleName { get; set; } = default!;
+        public string? ScheduleName { get; set; } = null;
 
         /// <summary>
-        /// Data wizyty w momencie utworzenia snapshotu (jeœli dotyczy).
+        /// Data wizyty w momencie utworzenia snapshotu (jeÅ›li dotyczy).
         /// </summary>
         public DateTime? Date { get; set; }
 
         /// <summary>
-        /// Czy data wizyty by³a widoczna dla u¿ytkownika w momencie utworzenia snapshotu.
+        /// Czy data wizyty byÅ‚a widoczna dla uÅ¼ytkownika w momencie utworzenia snapshotu.
         /// </summary>
         public bool? DateVisibility { get; set; }
 
         /// <summary>
-        /// Przewidywany czas wizyty w momencie utworzenia snapshotu (jeœli dotyczy).
+        /// Przewidywany czas wizyty w momencie utworzenia snapshotu (jeÅ›li dotyczy).
         /// </summary>
         public TimeOnly? PredictedTime { get; set; }
 
         /// <summary>
-        /// Czy przewidywany czas wizyty by³ widoczny dla u¿ytkownika w momencie utworzenia snapshotu.
+        /// Czy przewidywany czas wizyty byÅ‚ widoczny dla uÅ¼ytkownika w momencie utworzenia snapshotu.
         /// </summary>
         public bool? PredictedTimeVisibility { get; set; }
 
@@ -62,22 +62,22 @@ namespace SOK.Domain.Entities.Parish
         public DateTime ChangeTime { get; private set; }
 
         /// <summary>
-        /// Identyfikator u¿ytkownika, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu.
+        /// Identyfikator uÅ¼ytkownika, ktÃ³ry wprowadziÅ‚ zmianÄ™, nadpisujÄ…c dane z tego snapshotu.
         /// </summary>
-        public int? ChangeAuthorId { get; set; } = default!;
+        public int? ChangeAuthorId { get; set; }
 
         /// <summary>
-        /// U¿ytkownik, który wprowadzi³ zmianê, nadpisuj¹c dane z tego snapshotu (relacja nawigacyjna).
+        /// UÅ¼ytkownik, ktÃ³ry wprowadziÅ‚ zmianÄ™, nadpisujÄ…c dane z tego snapshotu (relacja nawigacyjna).
         /// </summary>
         public ParishMember? ChangeAuthor { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator wizyty, której dotyczy snapshot.
+        /// Identyfikator wizyty, ktÃ³rej dotyczy snapshot.
         /// </summary>
         public int VisitId { get; set; }
 
         /// <summary>
-        /// Wizyta, której dotyczy snapshot (relacja nawigacyjna).
+        /// Wizyta, ktÃ³rej dotyczy snapshot (relacja nawigacyjna).
         /// </summary>
         public Visit Visit { get; set; } = default!;
     }
