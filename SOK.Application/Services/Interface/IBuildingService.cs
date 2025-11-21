@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace SOK.Application.Services.Interface
 {
     /// <summary>
-    /// Us³uga do obs³ugi obiektów <see cref="Building"/>.
+    /// UsÅ‚uga do obsÅ‚ugi obiektÃ³w <see cref="Building"/>.
     /// </summary>
     public interface IBuildingService
     {
@@ -13,30 +13,30 @@ namespace SOK.Application.Services.Interface
         /// </summary>
         /// <param name="id">Identyfikator budynku do pobrania.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest obiekt <see cref="Building"/> lub <see cref="null"/>,
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest obiekt <see cref="Building"/> lub <see cref="null"/>,
         /// </returns>
         /// <remarks>
-        /// Jeœli budynek o podanym identyfikatorze nie istnieje, zwracane jest <see cref="null"/>.
+        /// JeÅ›li budynek o podanym identyfikatorze nie istnieje, zwracane jest <see cref="null"/>.
         /// </remarks>
         Task<Building?> GetBuildingAsync(int id);
 
         /// <summary>
-        /// Pobiera stronê budynków spe³niaj¹cych podany filtr.
+        /// Pobiera stronÄ™ budynkÃ³w speÅ‚niajÄ…cych podany filtr.
         /// </summary>
-        /// <param name="filter">Filtr, który spe³niaæ maj¹ budynki.</param>
+        /// <param name="filter">Filtr, ktÃ³ry speÅ‚niaÄ‡ majÄ… budynki.</param>
         /// <param name="page">Numer strony.</param>
-        /// <param name="pageSize">Liczba obiektów na stronie.</param>
+        /// <param name="pageSize">Liczba obiektÃ³w na stronie.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest lista obiektów <see cref="Building"/>.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest lista obiektÃ³w <see cref="Building"/>.
         /// </returns>
         /// <remarks>
-        /// Jeœli nie jest ustawiony ¿aden filtr, funkcja zwraca wszystkie budynki podzielone na strony.
-        /// Jeœli zaœ nie ma ¿adnego budynku lub filtr nie pasuje do ¿adnego budynku, zwracana jest pusta lista.
+        /// JeÅ›li nie jest ustawiony Å¼aden filtr, funkcja zwraca wszystkie budynki podzielone na strony.
+        /// JeÅ›li zaÅ› nie ma Å¼adnego budynku lub filtr nie pasuje do Å¼adnego budynku, zwracana jest pusta lista.
         /// </remarks>
         /// <exception cref="ArgumentException">
-        /// Jeœli podany numer strony lub rozmiar strony jest mniejszy ni¿ 1.
+        /// JeÅ›li podany numer strony lub rozmiar strony jest mniejszy niÅ¼ 1.
         /// </exception>
         //Task<IEnumerable<Building>> GetBuildingsPaginatedAsync(
         //    Expression<Func<Building, bool>>? filter = null,
@@ -46,32 +46,35 @@ namespace SOK.Application.Services.Interface
         /// <summary>
         /// Zapisuje budynek w bazie danych.
         /// </summary>
-        /// <param name="building">Budynek, który ma zostaæ zapisany.</param>
+        /// <param name="building">Budynek, ktÃ³ry ma zostaÄ‡ zapisany.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ….
         /// </returns>
         /// <exception cref="InvalidOperationException">
-        /// Jeœli budynek o takich danych istnieje ju¿ na danej ulicy.
+        /// JeÅ›li budynek o takich danych istnieje juÅ¼ na danej ulicy.
         /// </exception>
         Task CreateBuildingAsync(Building building);
 
         /// <summary>
         /// Usuwa budynek o podanym identyfikatorze.
         /// </summary>
-        /// <param name="id">Id budynku, który ma zostaæ usuniêty.</param>
+        /// <param name="id">Id budynku, ktÃ³ry ma zostaÄ‡ usuniÄ™ty.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹,
-        /// którego zawartoœci¹ jest wartoœæ logiczna okreœlaj¹ca, czy usuniêcie siê powiod³o.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ…,
+        /// ktÃ³rego zawartoÅ›ciÄ… jest wartoÅ›Ä‡ logiczna okreÅ›lajÄ…ca, czy usuniÄ™cie siÄ™ powiodÅ‚o.
         /// </returns>
         Task<bool> DeleteBuildingAsync(int id);
 
         /// <summary>
         /// Aktualizuje budynek w bazie danych.
         /// </summary>
-        /// <param name="building">Budynek, który ma zostaæ zaktualizowany.</param>
+        /// <param name="building">Budynek, ktÃ³ry ma zostaÄ‡ zaktualizowany.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentuj¹cy operacjê asynchroniczn¹.
+        /// Obiekt <see cref="Task"/>, reprezentujÄ…cy operacjÄ™ asynchronicznÄ….
         /// </returns>
+        /// <exception cref="InalidOperationException">
+        /// JeÅ›li budynek o takich danych istnieje juÅ¼ na danej ulicy.
+        /// </exception>
         Task UpdateBuildingAsync(Building building);
     }
 }

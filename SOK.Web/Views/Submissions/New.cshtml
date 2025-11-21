@@ -113,44 +113,44 @@
     </form>
 </div>
 
-<script src="~/js/address-utilities.js" asp-append-version="true"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const streetSelect = document.getElementById("StreetId");
-        const buildingSelect = document.getElementById("BuildingId");
-
-        const buildingOptions = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BuildingList));
-
-        registerBuildingPicker(streetSelect, buildingSelect, buildingOptions);
-	});
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const form-extender = document.getElementById("form-extender");
-
-        const emailInput = document.getElementById("Email").parentElement.parentElement;
-        const phoneInput = document.getElementById("Phone").parentElement.parentElement;
-        const submitterNotes = document.getElementById("SubmitterNotes").parentElement.parentElement;
-        const adminNotes = document.getElementById("AdminNotes").parentElement.parentElement;
-
-        form-extender.addEventListener("change", function () {
-            const extended = this.checked;
-
-            if (extended) {
-                emailInput.classList.remove("col-span-full");
-                phoneInput.classList.remove("hidden");
-                submitterNotes.classList.remove("hidden");
-                adminNotes.classList.remove("hidden");
-            } else {
-                emailInput.classList.add("col-span-full");
-                phoneInput.classList.add("hidden");
-                submitterNotes.classList.add("hidden");
-                adminNotes.classList.add("hidden");
-            }
-        });
-    });
-</script>
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/address-utilities.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const streetSelect = document.getElementById("StreetId");
+            const buildingSelect = document.getElementById("BuildingId");
+
+            const buildingOptions = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BuildingList));
+
+            registerBuildingPicker(streetSelect, buildingSelect, buildingOptions);
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const form-extender = document.getElementById("form-extender");
+
+            const emailInput = document.getElementById("Email").parentElement.parentElement;
+            const phoneInput = document.getElementById("Phone").parentElement.parentElement;
+            const submitterNotes = document.getElementById("SubmitterNotes").parentElement.parentElement;
+            const adminNotes = document.getElementById("AdminNotes").parentElement.parentElement;
+
+            form-extender.addEventListener("change", function () {
+                const extended = this.checked;
+
+                if (extended) {
+                    emailInput.classList.remove("col-span-full");
+                    phoneInput.classList.remove("hidden");
+                    submitterNotes.classList.remove("hidden");
+                    adminNotes.classList.remove("hidden");
+                } else {
+                    emailInput.classList.add("col-span-full");
+                    phoneInput.classList.add("hidden");
+                    submitterNotes.classList.add("hidden");
+                    adminNotes.classList.add("hidden");
+                }
+            });
+        });
+    </script>
 }

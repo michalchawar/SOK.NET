@@ -37,7 +37,20 @@ namespace SOK.Application.Services.Implementation
         public async Task CreateBuildingAsync(Building building)
         {
             _uow.Building.Add(building);
-            await _uow.SaveAsync();
+
+            try
+            {
+                await _uow.SaveAsync();
+            } catch (Exception ex)
+            {
+                _uow.Building.Remove(building);
+                if (ex.InnerException?.Message.Contains("Cannot insert duplicate key row in object") ?? false)
+                {
+                    throw new InvalidOperationException("A building with the same data already exists on the given street.");
+                }
+
+                throw;
+            }
         }
 
         /// <inheritdoc />
@@ -63,7 +76,20 @@ namespace SOK.Application.Services.Implementation
         public async Task UpdateBuildingAsync(Building building)
         {
             _uow.Building.Update(building);
-            await _uow.SaveAsync();
+
+            try
+            {
+                await _uow.SaveAsync();
+            } catch (Exception ex)
+            {
+                _uow.Building.Remove(building);
+                if (ex.InnerException?.Message.Contains("Cannot insert duplicate key row in object") ?? false)
+                {
+                    throw new InvalidOperationException("A building with the same data already exists on the given street.");
+                }
+
+                throw;
+            }
         }
     }
 }

@@ -39,7 +39,20 @@ namespace SOK.Application.Services.Implementation
         public async Task CreateStreetAsync(Street street)
         {
             _uow.Street.Add(street);
-            await _uow.SaveAsync();
+
+            try
+            {
+                await _uow.SaveAsync();
+            } catch (Exception ex)
+            {
+                _uow.Street.Remove(street);
+                if (ex.InnerException?.Message.Contains("Cannot insert duplicate key row in object") ?? false)
+                {
+                    throw new InvalidOperationException("A street with the same data already exists in the database.");
+                }
+
+                throw;
+            }
         }
 
         /// <inheritdoc />
@@ -64,7 +77,20 @@ namespace SOK.Application.Services.Implementation
         public async Task UpdateStreetAsync(Street street)
         {
             _uow.Street.Update(street);
-            await _uow.SaveAsync();
+
+            try
+            {
+                await _uow.SaveAsync();
+            } catch (Exception ex)
+            {
+                _uow.Street.Remove(street);
+                if (ex.InnerException?.Message.Contains("Cannot insert duplicate key row in object") ?? false)
+                {
+                    throw new InvalidOperationException("A street with the same data already exists in the database.");
+                }
+
+                throw;
+            }
         }
 
         public Task<IEnumerable<StreetSpecifier>> GetAllStreetSpecifiersAsync(

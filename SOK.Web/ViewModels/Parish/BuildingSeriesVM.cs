@@ -18,16 +18,18 @@ namespace SOK.Web.ViewModels.Parish
         [Range(1, 299, ErrorMessage = "Podaj poprawny numer budynku.")]
         public int From { get; set; }
 
-        [Required(ErrorMessage = "Podaj numer początkowy.")]
-        [Display(Name = "Numer pierwszego budynku")]
+        [Required(ErrorMessage = "Podaj numer końcowy.")]
+        [Display(Name = "Numer ostatniego budynku")]
         [Range(1, 299, ErrorMessage = "Podaj poprawny numer budynku.")]
         public int To { get; set; }
 
         [Display(Name = "Posiadają windę")]
         public bool HasElevator { get; set; } = false;
 
-        [Display(Name = "Parzyste i nieparzyste razem")]
-        public bool Alternate { get; set; } = true;
+        [Display(Name = "Tryb tworzenia")]
+        [AllowedValues(0, 1, 2, ErrorMessage = "Nieprawidłowa wartość trybu tworzenia.")]
+        [Description("0 - Wszystkie, 1 - Parzyste, 2 - Nieparzyste")]
+        public int InsertMode { get; set; } = 0;
 
         
         [Required(ErrorMessage = "Wybierz ulicę.")]

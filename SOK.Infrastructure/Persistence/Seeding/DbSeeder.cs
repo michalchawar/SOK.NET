@@ -153,8 +153,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 context.AddRange([sp1, sp2, sp3, sp4]);
 
                 Street 
-                    street1 = new Street { City = city, Type = sp1, Name = "Pierwsza" },
-                    street2 = new Street { City = city, Type = sp1, Name = "Druga" };
+                    street1 = new Street { City = city, Type = sp4, Name = "Pierwsza" },
+                    street2 = new Street { City = city, Type = sp4, Name = "Druga" };
                 context.AddRange([street1, street2]);
 
                 Building 

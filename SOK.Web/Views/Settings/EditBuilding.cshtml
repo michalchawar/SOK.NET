@@ -90,7 +90,7 @@
                 <div>
                     <label asp-for="FloorCount" class="w-full">
                         <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.FloorCount)</span>
-                        <input asp-for="FloorCount" class="input input-lg w-full" />
+                        <input asp-for="FloorCount" class="input input-lg w-full" min=-1 max=400 />
                     </label>
                 </div>
             
@@ -103,7 +103,7 @@
                 <div>
                     <label asp-for="ApartmentCount" class="w-full">
                         <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.ApartmentCount)</span>
-                        <input asp-for="ApartmentCount" class="input input-lg w-full" />
+                        <input asp-for="ApartmentCount" class="input input-lg w-full" min=-1 max=400 />
                     </label>
                 </div>
                 
@@ -116,7 +116,7 @@
                 <div class="mb-4">
                     <label asp-for="HighestApartmentNumber" class="w-full">
                         <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.HighestApartmentNumber)</span>
-                        <input asp-for="HighestApartmentNumber" class="input input-lg w-full" />
+                        <input asp-for="HighestApartmentNumber" class="input input-lg w-full" min=-1 max=299 />
                     </label>
                 </div>
             </div>
@@ -138,3 +138,7 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -69,6 +69,9 @@ namespace SOK.Application.Services.Interface
         /// <returns>
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Jeśli ulica o takich danych już istnieje.
+        /// </exception>
         Task UpdateStreetAsync(Street street);
 
         /// <summary>

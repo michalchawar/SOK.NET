@@ -138,6 +138,11 @@ namespace SOK.Web.Controllers
             {
                 await _streetService.CreateStreetAsync(street);
             }
+            catch (InvalidOperationException)
+            {
+                TempData["error"] = "Ulica o podanych danych już istnieje.";
+                return View(model);
+            }
             catch (Exception)
             {
                 TempData["error"] = "Wystąpił błąd podczas tworzenia ulicy. Spróbuj ponownie.";
@@ -172,6 +177,11 @@ namespace SOK.Web.Controllers
             try
             {
                 await _streetService.UpdateStreetAsync(street);
+            }
+            catch (InvalidOperationException)
+            {
+                TempData["error"] = "Ulica o podanych danych już istnieje.";
+                return View(model);
             }
             catch (Exception)
             {
@@ -257,10 +267,13 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
+            int number = int.Parse(new string(model.Signage.TakeWhile(c => char.IsDigit(c)).ToArray()));
+            string letter = new string(model.Signage.SkipWhile(c => char.IsDigit(c)).ToArray());
+
             Building building = new()
             {
-                Number = int.Parse(new string(model.Signage.TakeWhile(c => char.IsDigit(c)).ToArray())),
-                Letter = new string(model.Signage.SkipWhile(c => char.IsDigit(c)).ToArray()),
+                Number = number,
+                Letter = string.IsNullOrWhiteSpace(letter) ? null : letter,
                 StreetId = model.StreetId,
                 AllowSelection = model.IsVisible,
                 FloorCount = model.FloorCount,
@@ -273,6 +286,11 @@ namespace SOK.Web.Controllers
             {
                 await _buildingService.CreateBuildingAsync(building);
             }
+            catch (InvalidOperationException)
+            {
+                TempData["error"] = "Budynek o podanych danych już istnieje na tej ulicy.";
+                return View(model);
+            }
             catch (Exception)
             {
                 TempData["error"] = "Wystąpił błąd podczas tworzenia budynku.";
@@ -283,6 +301,29 @@ namespace SOK.Web.Controllers
             return RedirectToAction("Streets");
         }
         
+        [HttpGet("Settings/Buildings/Create/Series")]
+        public async Task<IActionResult> CreateBuildingSeries([FromQuery] int streetId)
+        {
+            var street = (await _streetService.GetAllStreetsAsync(s => s.Id == streetId, type: true)).FirstOrDefault();
+
+            if (street is null)
+            {
+                TempData["error"] = "Nie znaleziono ulicy, do której chcesz dodać budynki.";
+                return RedirectToAction("Streets");
+            }
+
+            BuildingSeriesVM model = new()
+            {
+                From = 1,
+                To = 10,
+                StreetId = streetId,
+                StreetName = street.Type.Abbreviation + " " + street.Name
+            };
+
+            return View(model);
+        }
+
+
         [HttpPost("Settings/Buildings/Create/Series")]
         public async Task<IActionResult> CreateBuildingSeries(BuildingSeriesVM model)
         {
@@ -298,18 +339,32 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
-            if (!model.Alternate && (model.From % 2) != (model.To % 2))
+            int successCount = 0;
+            int startingNumber, endingNumber;
+            switch (model.InsertMode)
             {
-                TempData["error"] = "Granice zakresu muszą być obie tej samej parzystości.";
-                return View(model);
+                case 0: // All
+                    startingNumber = model.From;
+                    endingNumber = model.To;
+                    break;
+                case 1: // Even
+                    startingNumber = model.From % 2 == 0 ? model.From : model.From + 1;
+                    endingNumber = model.To % 2 == 0 ? model.To : model.To - 1;
+                    break;
+                case 2: // Odd
+                    startingNumber = model.From % 2 != 0 ? model.From : model.From + 1;
+                    endingNumber = model.To % 2 != 0 ? model.To : model.To - 1;
+                    break;
+                default:
+                    TempData["error"] = "Nieprawidłowy tryb tworzenia budynków.";
+                    return View(model);
             }
             
-            for (int i = model.From; i <= model.To; i += 2)
+            for (int i = startingNumber; i <= endingNumber; i += model.InsertMode == 0 ? 1 : 2)
             {
                 Building building = new()
                 {
                     Number = i,
-                    Letter = string.Empty,
                     StreetId = model.StreetId,
                     HasElevator = model.HasElevator,
                 };
@@ -317,6 +372,7 @@ namespace SOK.Web.Controllers
                 try
                 {
                     await _buildingService.CreateBuildingAsync(building);
+                    successCount++;
                 }
                 catch (Exception)
                 {
@@ -324,7 +380,7 @@ namespace SOK.Web.Controllers
                 }
             }
 
-            TempData["success"] = "Pomyślnie utworzono budynki.";
+            TempData["success"] = "Pomyślnie utworzono budynki w liczbie: " + successCount + ".";
             return RedirectToAction("Streets");
         }
         
@@ -374,8 +430,11 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
-            building.Number = int.Parse(new string(model.Signage.TakeWhile(c => char.IsDigit(c)).ToArray()));
-            building.Letter = new string(model.Signage.SkipWhile(c => char.IsDigit(c)).ToArray());
+            int number = int.Parse(new string(model.Signage.TakeWhile(c => char.IsDigit(c)).ToArray()));
+            string letter = new string(model.Signage.SkipWhile(c => char.IsDigit(c)).ToArray());
+
+            building.Number = number;
+            building.Letter = string.IsNullOrWhiteSpace(letter) ? null : letter;
             building.StreetId = model.StreetId;
             building.AllowSelection = model.IsVisible;
             building.FloorCount = model.FloorCount;
@@ -386,6 +445,11 @@ namespace SOK.Web.Controllers
             try
             {
                 await _buildingService.UpdateBuildingAsync(building);
+            }
+            catch (InvalidOperationException)
+            {
+                TempData["error"] = "Budynek o podanych danych już istnieje na tej ulicy.";
+                return View(model);
             }
             catch (Exception)
             {

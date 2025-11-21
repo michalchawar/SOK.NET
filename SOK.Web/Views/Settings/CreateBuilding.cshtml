@@ -5,6 +5,13 @@
 
 <div class="min-h-full w-full flex flex-col items-center justify-center">
     <form asp-action="CreateBuilding" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <a asp-action="CreateBuildingSeries" asp-route-streetId="@Model.StreetId" class="w-full btn btn-primary btn-outline px-12 py-6 rounded-sm flex gap-3 justify-center items-center text-center">
+            <h4 class="flex-1 text-lg font-semibold">
+                Dodaj wiele budynków na raz
+            </h4>
+            <i class="bi bi-chevron-double-right text-3xl"></i>
+        </a>
+
         <!-- === Sekcja 1: Ulica === -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
@@ -90,7 +97,7 @@
                 <div>
                     <label asp-for="FloorCount" class="w-full">
                         <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.FloorCount)</span>
-                        <input asp-for="FloorCount" class="input input-lg w-full" />
+                        <input asp-for="FloorCount" class="input input-lg w-full" min=-1 max=100 />
                     </label>
                 </div>
             
@@ -103,7 +110,7 @@
                 <div>
                     <label asp-for="ApartmentCount" class="w-full">
                         <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.ApartmentCount)</span>
-                        <input asp-for="ApartmentCount" class="input input-lg w-full" />
+                        <input asp-for="ApartmentCount" class="input input-lg w-full" min=-1 max=400 />
                     </label>
                 </div>
                 
@@ -116,7 +123,7 @@
                 <div class="mb-4">
                     <label asp-for="HighestApartmentNumber" class="w-full">
                         <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.HighestApartmentNumber)</span>
-                        <input asp-for="HighestApartmentNumber" class="input input-lg w-full" />
+                        <input asp-for="HighestApartmentNumber" class="input input-lg w-full" min=-1 max=299 />
                     </label>
                 </div>
             </div>
@@ -138,3 +145,7 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
