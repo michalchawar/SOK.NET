@@ -15,5 +15,24 @@ namespace SOK.Infrastructure.Extensions
         /// </returns>
         public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> self)
             => self.Select((item, index) => (item, index));
+
+        /// <summary>
+        /// Pobiera wartość pod kluczem <paramref name="key"/> ze słownika, a jeśli nie istnieje zwraca <paramref name="defaultValue"/>.
+        /// </summary>
+        /// <typeparam name="TKey">Typ kluczy słownika.</typeparam>
+        /// <typeparam name="TValue">Typ wartości słownika.</typeparam>
+        /// <param name="dictionary">Słownik.</param>
+        /// <param name="key">Klucz, którego wartość należy pobrać.</param>
+        /// <param name="defaultValue">Domyślna wartość zwracana.</param>
+        /// <returns>
+        /// Wartość pod kluczem <paramref name="key"/>, jeśli istnieje, w przeciwnym przypadku <paramref name="defaultValue"/>.
+        /// </returns>
+        public static TValue GetValueOrDefault<TKey, TValue>(
+            this IDictionary<TKey, TValue> dictionary,
+            TKey key,
+            TValue defaultValue)
+        {
+            return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
+        }
     }
 }

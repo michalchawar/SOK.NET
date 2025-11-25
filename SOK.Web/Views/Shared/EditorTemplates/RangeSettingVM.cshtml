@@ -1,0 +1,15 @@
+@model RangeSettingVM
+
+<label asp-for="Value" class="w-full flex flex-col gap-1">
+    <h4 class="text-xl font-medium">@Model.Name</h4>
+    <p class="text-sm opacity-70 mb-2">@Model.Description</p>
+    <input asp-for="Value" type="range" min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+        readonly='@(Model.Readonly ? "readonly" : null)' disabled='@(Model.Readonly ? "disabled" : null)'
+        class="range range-lg range-primary w-full" />
+    <h5 class="text-center text-lg font-semibold font-nunito-sans">@Model.Value</h5>
+    @if (!string.IsNullOrEmpty(Model.Hint))
+    {
+        <span class="text-sm opacity-70"><i>@Model.Hint</i></span>
+    }
+    <span asp-validation-for="Value" class="text-error text-sm"></span>
+</label>

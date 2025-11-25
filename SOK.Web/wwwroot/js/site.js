@@ -12,17 +12,21 @@ const notifications = {
 
     _createNotification: function (type = this._types.default, text = '') {
         let alertElement = parseHTMLString(`
-            <div role="alert" class="alert ${type.className} font-bold text-white transition 
-                                     duration-500 opacity-0 shadow-md mb-2.5">
-                <i class="bi bi-${type.iconName}"></i>
-                <span>${text}</span>
+            <div role="alert" class="text-white transition 
+                    duration-500 opacity-0 shadow-md mb-2.5 flex items-center">
+                <div class="bg-${type.className} rounded-sm p-4 text-2xl">   
+                    <i class="bi bi-${type.iconName}"></i>
+                </div>
+                <div class="notification-content rounded-xs bg-${type.className}/60 p-3 flex-1 flex items-center">
+                    <div class="flex-1">${text}</div>
+                </div>
             </div>
         `);
 
         let progressElement = timeLeft.create(this._durationInMs);
         let container = $("#notification-container");
 
-        alertElement.append(progressElement.element);
+        alertElement.children(".notification-content").append(progressElement.element);
         container.append(alertElement);
 
         reflow(alertElement[0]);
@@ -40,19 +44,23 @@ const notifications = {
             iconName: 'info-circle'
         },
         success: {
-            className: 'alert-success',
+            // bg-success bg-success/60
+            className: 'success',
             iconName: 'check-circle'
         },
         error: {
-            className: 'alert-error',
+            // bg-error bg-error/60
+            className: 'error',
             iconName: 'x-circle'
         },
         warning: {
-            className: 'alert-warning',
+            // bg-warning bg-warning/60
+            className: 'warning',
             iconName: 'exclamation-triangle'
         },
         info: {
-            className: 'alert-info',
+            // bg-info bg-info/60
+            className: 'info',
             iconName: 'info-circle'
         },
     },
@@ -68,6 +76,15 @@ const notifications = {
     warning: function (text = '') {
         this._createNotification(this._types.warning, text);
     },
+    resolveType: function (typeString = '', text = '') {
+        switch (typeString.toLowerCase()) {
+            case 'success': this.success(text); break;
+            case 'error': this.error(text); break;
+            case 'info': this.info(text); break;
+            case 'warning': this.warning(text); break;
+            default: return;
+        }
+    }
 }
 
 const timeLeft = {
