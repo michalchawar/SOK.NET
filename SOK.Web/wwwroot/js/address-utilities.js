@@ -18,7 +18,7 @@ const registerBuildingPicker = function (streetSelectElement, buildingSelectElem
         const streetId = this.value;
 
         // Wyczyść poprzednie opcje budynków
-        buildingSelectElement.innerHTML = '<option disabled selected class="">--Wybierz--</option>';
+        buildingSelectElement.innerHTML = '<option value="0" disabled selected>--Wybierz--</option>';
         if (streetId && streetId in buildingSelectOptions) {
             buildingSelectOptions[streetId].forEach(option => {
                 const optionElement = document.createElement("option");

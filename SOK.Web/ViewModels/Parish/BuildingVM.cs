@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SOK.Application.Common.Helpers;
 using SOK.Domain.Entities.Parish;
 
 namespace SOK.Web.ViewModels.Parish
@@ -13,7 +14,7 @@ namespace SOK.Web.ViewModels.Parish
     public class BuildingVM
     {
         [Required(ErrorMessage = "Podaj oznaczenie budynku.")]
-        [RegularExpression(@"^([1-2][0-9]{0,2}|[1-9][0-9]{0,1})[a-zA-Z]{0,3}$", ErrorMessage = "Podaj poprawne oznaczenie budynku (numer i ewentualna litera).")]
+        [RegularExpression(RegExpressions.BuildingNumberPattern, ErrorMessage = "Podaj poprawne oznaczenie budynku (numer i ewentualna litera).")]
         [Display(Name = "Numer (i litera) budynku")]
         public string Signage { get; set; } = string.Empty;
 

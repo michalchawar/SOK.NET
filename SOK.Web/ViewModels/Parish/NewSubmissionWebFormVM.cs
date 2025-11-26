@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SOK.Application.Common.Helpers;
-using SOK.Domain.Entities.Parish;
-using SOK.Domain.Enums;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace SOK.Web.ViewModels.Parish
 {
-    public class NewSubmissionVM
+    public class NewSubmissionWebFormVM
     {
         [Required(ErrorMessage = "Podaj swoje imię.")]
         [MinLength(2, ErrorMessage = "Imię musi mieć conajmniej 2 znaki.")]
@@ -22,17 +19,15 @@ namespace SOK.Web.ViewModels.Parish
         [Display(Name = "Nazwisko")]
         public string Surname { get; set; } = string.Empty;
 
+        [Display(Name = "Chcę otrzymywać powiadomienia e-mail")]
+        public bool WantsEmailNotification { get; set; } = false;
+
         [EmailAddress(ErrorMessage = "Podaj poprawny adres e-mail.")]
         [MinLength(5, ErrorMessage = "Adres e-mail musi mieć conajmniej 5 znaków.")]
         [MaxLength(200, ErrorMessage = "Adres e-mail może mieć maksymalnie 200 znaków.")]
+        [RegularExpression(RegExpressions.EmailPattern, ErrorMessage = "Podaj poprawny adres e-mail.")]
         [Display(Name = "Adres e-mail")]
         public string? Email { get; set; } = null;
-
-        [Phone(ErrorMessage = "Podaj poprawny numer telefonu.")]
-        [MinLength(5, ErrorMessage = "Numer telefonu musi mieć conajmniej 5 znaków.")]
-        [MaxLength(20, ErrorMessage = "Numer telefonu może mieć maksymalnie 20 znaków.")]
-        [Display(Name = "Numer telefonu")]
-        public string? Phone { get; set; } = null;
 
 
         [Required(ErrorMessage = "Wybierz swoją bramę.")]
@@ -50,27 +45,25 @@ namespace SOK.Web.ViewModels.Parish
         [Display(Name = "Numer mieszkania")]
         public string Apartment { get; set; } = string.Empty;
 
+        [Display(Name = "Mam dodatkowe uwagi")]
+        public bool HasAdditionalNotes { get; set; } = false;
+
         [MaxLength(500, ErrorMessage = "Wiadomość nie może przekraczać 500 znaków.")]
-        [Display(Name = "Wiadomość do administratora (opcjonalnie)")]
+        [Display(Name = "Dodatkowe uwagi (opcjonalnie)")]
         public string? SubmitterNotes { get; set; } = null;
 
-        [MaxLength(500, ErrorMessage = "Notatka nie może przekraczać 500 znaków.")]
-        [Display(Name = "Notatka systemowa (wewnętrzna, opcjonalnie)")]
-        public string? AdminNotes { get; set; } = null;
+        [Required(ErrorMessage = "Musisz wyrazić zgodę na przetwarzanie danych osobowych.")]
+        [Display(Name = "Wyrażam zgodę na przetwarzanie danych osobowych")]
+        public bool GdprConsent { get; set; } = false;
 
-        [Display(Name = "Metoda otrzymania zgłoszenia")]
-        [DefaultValue(SubmitMethod.NotRegistered)]
-        public SubmitMethod Method { get; set; } = SubmitMethod.NotRegistered;
+        [ValidateNever]
+        public ScheduleVM Schedule { get; set; } = default!;
 
-        [Display(Name = "Harmonogram")]
-        public int ScheduleId { get; set; } = default!;
-
+        [ValidateNever]
+        public ParishVM Parish { get; set; } = default!;
 
         [ValidateNever]
         public IEnumerable<SelectListItem> StreetList { get; set; } = default!;
-
-        [ValidateNever]
-        public IEnumerable<SelectListItem> ScheduleList { get; set; } = default!;
 
         [ValidateNever]
         public IDictionary<int, IEnumerable<SelectListItem>> BuildingList { get; set; } = default!;

@@ -129,14 +129,14 @@
         });
 
         document.addEventListener("DOMContentLoaded", function () {
-            const form-extender = document.getElementById("form-extender");
+            const formExtender = document.getElementById("form-extender");
 
             const emailInput = document.getElementById("Email").parentElement.parentElement;
             const phoneInput = document.getElementById("Phone").parentElement.parentElement;
             const submitterNotes = document.getElementById("SubmitterNotes").parentElement.parentElement;
             const adminNotes = document.getElementById("AdminNotes").parentElement.parentElement;
 
-            form-extender.addEventListener("change", function () {
+            formExtender.addEventListener("change", function () {
                 const extended = this.checked;
 
                 if (extended) {

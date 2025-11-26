@@ -15,7 +15,7 @@
 }
 
 <div id="general-settings-app" class="min-h-full w-full flex flex-col gap-3 items-center justify-start">
-    <div class="sticky -top-3 z-10 shadow-md flex justify-between items-center w-11/12 text-3xl font-bold font-nunito-sans bg-base-300 rounded-sm p-5">
+    <div class="sticky -top-4 z-10 shadow-md flex justify-between items-center w-11/12 text-3xl font-bold font-nunito-sans bg-base-300 rounded-sm p-5">
         <h2 class="">Ustawienia</h2>
 
         <!-- Przycisk zapisu (pokazuje się tylko gdy są zmiany) -->
@@ -103,6 +103,8 @@
                         });
                     }
                 });
+                
+                registerVueApp('general-settings-app');
             },
             computed: {
                 hasChanges() {

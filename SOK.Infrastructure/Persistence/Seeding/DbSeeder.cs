@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SOK.Application.Common.DTO;
+using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -173,8 +174,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 context.AddRange([plan]);
 
                 Schedule 
-                    schedule1 = new Schedule { Name = "W terminie", ShortName = "T", Plan = plan },
-                    schedule2 = new Schedule { Name = "Dodatkowa",  ShortName = "D", Plan = plan };
+                    schedule1 = new Schedule { Name = "Kolęda w terminie", ShortName = "T", Plan = plan },
+                    schedule2 = new Schedule { Name = "Kolęda dodatkowa",  ShortName = "D", Plan = plan };
                 context.AddRange([schedule1, schedule2]);
 
                 await context.SaveChangesAsync();
@@ -271,7 +272,26 @@ namespace SOK.Infrastructure.Persistence.Seeding
                     }
                 }
 
-                context.Add(new ParishInfo { Name = "DefaultScheduleId", Value = schedule1.Id.ToString() });
+                KeyValuePair<string, string>[] defaultSettings = new[]
+                {
+                    new KeyValuePair<string, string>(InfoKeys.Parish.FullName, "Parafia Domyślna (nazwa pełna)"),
+                    new KeyValuePair<string, string>(InfoKeys.Parish.ShortName, "Parafia Domyślna"),
+                    new KeyValuePair<string, string>(InfoKeys.Parish.UniqueId, parishUid),
+                    new KeyValuePair<string, string>(InfoKeys.Parish.Diocese, "Archidiecezja Przykładowa"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.CityName, "Miasto"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.StreetAndBuilding, "pl. Kościelny 1"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.PostalCode, "00-000"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.RegionAndCountry, "Województwo losowe, Polska"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.Email, "parafia@domyslna.test"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.MainPhone, "+48 123 456789"),
+                    new KeyValuePair<string, string>(InfoKeys.Contact.SecondaryPhone, "+48 987 654 321"),
+                    new KeyValuePair<string, string>("DefaultScheduleId", schedule1.Id.ToString()),
+                };
+
+                foreach (var setting in defaultSettings)
+                {
+                    context.Add(new ParishInfo { Name = setting.Key, Value = setting.Value });
+                }
                 await context.SaveChangesAsync();
 
                 await transaction.CommitAsync();

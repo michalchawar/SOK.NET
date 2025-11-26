@@ -39,7 +39,7 @@
 
         <!-- lista -->
         <div class="flex-grow overflow-y-scroll py-2 ps-2 pe-4" v-if="submissions.length > 0 || !isDataLoaded">
-            <div class="flex flex-col gap-2" id="submission-cards-container" style="display: none;">
+            <div class="flex flex-col gap-2">
                 <div v-for="s in submissions" :key="s.id"
                     class="submission-card bg-base-200 grid cursor-pointer grid-cols-[3fr_1fr] grid-rows-[20%_40%_40%] px-4 py-3 transition-colors hover:bg-base-300">
                     <div class="mb-0 opacity-40">
@@ -101,15 +101,39 @@
                         person: "",
                     },
                     isDataLoaded: false,
+                    timeoutIds: new Map(),
+                    debounceTimeout: null,
                 }
             },
             mounted() {
-                document.querySelector("#submission-cards-container").style.display = "";
                 this.loadSubmissions();
+                registerVueApp('submissions-app');
+            },
+            beforeUnmount() {
+                // Wyczyść wszystkie timery przy unmount
+                this.timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
+                this.timeoutIds.clear();
+                if (this.debounceTimeout) {
+                    clearTimeout(this.debounceTimeout);
+                }
             },
             methods: {
-                async loadSubmissions() {
+                loadSubmissions() {
+                    // Debouncing - czekaj 250ms po ostatnim wpisaniu
+                    if (this.debounceTimeout) {
+                        clearTimeout(this.debounceTimeout);
+                    }
+                    
+                    this.debounceTimeout = setTimeout(() => {
+                        this.fetchSubmissions();
+                    }, 250);
+                },
+                async fetchSubmissions() {
                     this.isDataLoaded = false;
+
+                    // Wyczyść poprzednie timery
+                    this.timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
+                    this.timeoutIds.clear();
 
                     let response = await fetch(`/api/submissions?address=${encodeURIComponent(this.filters.address)}&submitter=${encodeURIComponent(this.filters.person)}`);
                     this.submissions = await response.json();
@@ -118,9 +142,48 @@
 
                     this.submissions.forEach(s => {
                         s.timeAgo = computeTimeDiffString(s.submitTime + "Z");
+                        this.scheduleNextUpdate(s);
                     });
 
                     this.isDataLoaded = true;
+                },
+                scheduleNextUpdate(submission) {
+                    let diff = Date.now() - new Date(submission.submitTime + "Z");
+                    let interval = {
+                        seconds: Math.floor(diff / 1000),
+                        minutes: Math.floor(diff / (1000 * 60)),
+                        hours: Math.floor(diff / (1000 * 60 * 60)),
+                        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                    };
+
+                    let nextUpdateMs;
+
+                    if (interval.seconds < 60) {
+                        // Aktualizuj co sekundę
+                        nextUpdateMs = 1000;
+                    } else if (interval.minutes < 60) {
+                        // Aktualizuj co minutę (przy pełnej minucie)
+                        nextUpdateMs = (60 - interval.seconds % 60) * 1000;
+                    } else if (interval.hours < 24) {
+                        // Aktualizuj co godzinę (przy pełnej godzinie)
+                        nextUpdateMs = (60 - interval.minutes % 60) * 60 * 1000;
+                    } else {
+                        // Aktualizuj co dzień (przy pełnym dniu)
+                        nextUpdateMs = (24 - interval.hours % 24) * 60 * 60 * 1000;
+                    }
+
+                    // Wyczyść poprzedni timeout jeśli istnieje
+                    if (this.timeoutIds.has(submission.id)) {
+                        clearTimeout(this.timeoutIds.get(submission.id));
+                    }
+
+                    // Zaplanuj następną aktualizację
+                    let timeoutId = setTimeout(() => {
+                        submission.timeAgo = computeTimeDiffString(submission.submitTime + "Z");
+                        this.scheduleNextUpdate(submission);
+                    }, nextUpdateMs);
+
+                    this.timeoutIds.set(submission.id, timeoutId);
                 },
             }
         }).mount("#submissions-app");

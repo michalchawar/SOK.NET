@@ -85,6 +85,11 @@ app.UseAuthorization();
 app.UseMiddleware<ParishResolver>();
 
 app.MapControllerRoute(
+    name: "publicForm",
+    pattern: "{parishUid}/submissions/{action=New}",
+    defaults: new { controller = "PublicForm" });
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 

@@ -54,5 +54,13 @@ namespace SOK.Infrastructure.Repositories
                 dbSet.Remove(parishInfo);
             }
         }
+
+        /// <inheritdoc />
+        public Task<Dictionary<string, string>> GetValuesAsDictionaryAsync(IEnumerable<string> options)
+        {
+            return GetQueryable()
+                .Where(pi => options.Contains(pi.Name))
+                .ToDictionaryAsync(pi => pi.Name, pi => pi.Value);
+        }
     }
 }

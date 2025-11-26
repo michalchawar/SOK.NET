@@ -39,5 +39,7 @@ namespace SOK.Infrastructure.Persistence.Design
         public Task<ParishDto> BindParishAsync() => Task.FromResult(new ParishDto());
 
         public Task<ParishEntry?> GetCurrentParishAsync() => Task.FromResult(new ParishEntry())!;
+
+        public bool IsParishSet() => false;
     }
 }

@@ -32,6 +32,19 @@ namespace SOK.Application.Services.Interface
         Task<string?> GetValueAsync(string optionName);
 
         /// <summary>
+        /// Pobiera wartości informacji o nazwach z listy <paramref name="options"/>.
+        /// </summary>
+        /// <param name="options">Lista z nazwami pojedynczych informacji.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest słownik z kluczami i wartościami informacji.
+        /// </returns>
+        /// <remarks>
+        /// Jeśli żadna wartość nie figuruje w bazie danych, funkcja zwraca pusty słownik.
+        /// </remarks>
+        Task<Dictionary<string, string>> GetValuesAsync(IEnumerable<string> options);
+
+        /// <summary>
         /// Aktualizuje wartość informacji o nazwie <paramref name="optionName"/>.
         /// </summary>
         /// <param name="optionName">Nazwa informacji.</param>

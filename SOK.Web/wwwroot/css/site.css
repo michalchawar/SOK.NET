@@ -36,6 +36,28 @@ body {
     .collapse-arrow > .collapse-title {
         @apply after:top-1/2;
     }
+
+    .label {
+        @apply text-wrap;
+    }
+
+    .input, .select, .textarea {
+        transition: border-color 0.2s, box-shadow 0.2s, outline 0.05s, outline-offset 0.05s;
+    }
+
+    [id$="-app"]:not([data-is-loaded="true"]) {
+        @apply relative;
+
+        &::after {
+            content: "Loading...";
+            @apply loading loading-spinner loading-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+        }
+
+        & * {
+            @apply hidden;
+        }
+
+    }
 }
 
 html {

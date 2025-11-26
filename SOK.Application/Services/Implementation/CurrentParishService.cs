@@ -7,7 +7,7 @@ using SOK.Domain.Entities.Parish;
 namespace SOK.Application.Services.Implementation
 {
     /// <summary>
-    /// Us≥uga do ≥adowania i przechowywania aktualnie wybranej parafii.
+    /// Us≈Çuga do ≈Çadowania i przechowywania aktualnie wybranej parafii.
     /// Parafia jest pobierana z centralnej bazy danych na podstawie jej publicznego 
     /// unikalnego identyfikatora (<c>UID</c>).
     /// </summary>
@@ -22,6 +22,8 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc/>
         public string? ConnectionString { get; private set; }
 
+        private bool _isParishSet = false;
+
         public CurrentParishService(IUnitOfWorkCentral central, ICryptoService cryptoService)
         {
             _uow = central;
@@ -33,23 +35,28 @@ namespace SOK.Application.Services.Implementation
         {
             var parish = await _uow.Parishes.GetAsync(p => p.UniqueId.ToString() == parishUid);
 
-            if (parish != null)
+            if (parish is null)
             {
-                ParishUid = parishUid;
-                ConnectionString = _cryptoService.Decrypt(parish.EncryptedConnectionString);
+                Console.WriteLine($"Parish with UID {parishUid} not found.");
+                return false;
+            }
+            ParishUid = parishUid;
+            ConnectionString = _cryptoService.Decrypt(parish.EncryptedConnectionString);
+            _isParishSet = true;
 
-                return true;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Parish with UID {parishUid} not found.");
-            }
+            return true;
         }
 
         /// <inheritdoc />
         public Task<ParishEntry?> GetCurrentParishAsync()
         {
             return _uow.Parishes.GetAsync(p => p.UniqueId.ToString() == ParishUid);
+        }
+        
+        /// <inheritdoc />
+        public bool IsParishSet()
+        {
+            return _isParishSet;
         }
     }
 }

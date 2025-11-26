@@ -87,6 +87,7 @@ namespace SOK.Infrastructure.Persistence.Context
             }
             else
             {
+                optionsBuilder.UseSqlServer("");
                 Console.WriteLine($"Connection string for the parish with UID {_currentParishService.ParishUid} is not set.");
             }
 

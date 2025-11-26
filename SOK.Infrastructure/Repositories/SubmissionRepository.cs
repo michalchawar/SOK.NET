@@ -27,6 +27,9 @@ namespace SOK.Infrastructure.Repositories
 
             if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
             if (page < 1) throw new ArgumentException("Page must be positive.");
+
+            query = query.OrderByDescending(s => s.SubmitTime);
+
             query = query.Skip((page - 1) * pageSize);
             query = query.Take(pageSize);
 

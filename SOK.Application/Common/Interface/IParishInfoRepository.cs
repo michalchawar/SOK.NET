@@ -14,5 +14,15 @@ namespace SOK.Application.Common.Interface
         Task ClearValueAsync(string name);
 
         Task<Dictionary<string, string>> ToDictionaryAsync();
+
+        /// <summary>
+        /// Pobiera wartości informacji o nazwach z listy <paramref name="options"/>.
+        /// </summary>
+        /// <param name="options">Nazwy pojedynczych informacji do pobrania.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest słownik z kluczami i wartościami informacji.
+        /// </returns>
+        Task<Dictionary<string, string>> GetValuesAsDictionaryAsync(IEnumerable<string> options);
     }
 }

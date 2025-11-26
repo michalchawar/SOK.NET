@@ -266,6 +266,9 @@
                     this.form.priests[index].isActive = !checked;
                 },
                 removePriest(index) { this.form.priests.splice(index, 1); },
+            },
+            mounted() {
+                registerVueApp('edit-plan-app');
             }
         }).mount('#edit-plan-app');
     </script>

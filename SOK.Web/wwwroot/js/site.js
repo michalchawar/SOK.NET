@@ -136,3 +136,8 @@ function sidebarChangeState(event) {
         sidebar.removeClass(sidebarWidthClass.expanded).addClass(sidebarWidthClass.collapsed);
     }
 }
+
+function registerVueApp(appElementId) {
+    let appElement = $(`#${appElementId}`);
+    appElement.attr("data-is-loaded", "true");
+}

@@ -74,5 +74,11 @@ namespace SOK.Application.Services.Implementation
 
         /// <inheritdoc />
         public async Task<Dictionary<string, string>> GetDictionaryAsync() => await _uow.ParishInfo.ToDictionaryAsync();
+
+        /// <inheritdoc />
+        public Task<Dictionary<string, string>> GetValuesAsync(IEnumerable<string> options)
+        {
+            return _uow.ParishInfo.GetValuesAsDictionaryAsync(options);
+        }
     }
 }

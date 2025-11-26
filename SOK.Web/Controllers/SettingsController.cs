@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Web.Filters;
@@ -15,7 +16,7 @@ using SOK.Web.ViewModels.Parish;
 namespace SOK.Web.Controllers
 {
     [Authorize]
-    [ActivePage("Plans")]
+    [ActivePage("Settings")]
     public class SettingsController : Controller
     {
         private readonly IParishMemberService _parishMemberService;
@@ -70,22 +71,22 @@ namespace SOK.Web.Controllers
                         Name = "Dane ogólne",
                         Settings =
                         [
-                            new StringSettingVM("Parish.FullName", settingsDict) {
+                            new StringSettingVM(InfoKeys.Parish.FullName, settingsDict) {
                                 Name = "Pełna nazwa parafii",
                                 Description = "Nazwa parafii wyświetlana w dokładnych danych oraz dokumentach.",
                                 Hint = "Np. Parafia Rzymskokatolicka pw. św. Anny w Brzegu",
                             },
-                            new StringSettingVM("Parish.Name", settingsDict) {
+                            new StringSettingVM(InfoKeys.Parish.ShortName, settingsDict) {
                                 Name = "Nazwa parafii",
                                 Description = "Nazwa parafii wyświetlana w nagłówkach i krótszych formatach.",
                                 Hint = "Np. Parafia pw. św. Anny",
                             },
-                            new StringSettingVM("Parish.UniqueId", settingsDict) {
+                            new StringSettingVM(InfoKeys.Parish.UniqueId, settingsDict) {
                                 Name = "UID parafii",
                                 Description = "Unikatowy identyfikator parafii, który przypisany jest do niej w systemie.",
                                 Readonly = true,
                             },
-                            new StringSettingVM("Parish.Diocese", settingsDict) {
+                            new StringSettingVM(InfoKeys.Parish.Diocese, settingsDict) {
                                 Name = "Diecezja",
                                 Description = "Nazwa diecezji, do której parafia należy. Wyświetlana jest w dokładnych danych.",
                                 Hint = "Np. Archidiecezja Łódzka",
@@ -97,19 +98,19 @@ namespace SOK.Web.Controllers
                         Name = "Kontakt",
                         Settings =
                         [
-                            new StringSettingVM("Contact.Email", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.Email, settingsDict) {
                                 Name = "Adres e-mail",
                                 Description = "Parafialny adres e-mail, przeznaczony do korespondencji w temacie organizacji kolędy. Jeśli nie ma takiego, powinien to być główny adres mailowy parafii.",
                                 Hint = "Np. koleda@parafia-sw-mikolaja.pl",
                                 Type = InputType.Email,
                             },
-                            new StringSettingVM("Contact.MainPhone", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.MainPhone, settingsDict) {
                                 Name = "Numer telefonu",
                                 Description = "Główny parafialny numer telefonu. Wyświetlany w wielu miejscach.",
                                 Hint = "Np. +48 489 291 425",
                                 Type = InputType.Tel,
                             },
-                            new StringSettingVM("Contact.SecondaryPhone", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.SecondaryPhone, settingsDict) {
                                 Name = "Numer telefonu (dodatkowy)",
                                 Description = "Drugi parafialny numer telefonu (opcjonalnie). Wyświetlany w wielu miejscach.",
                                 Hint = "Np. +48 976 424 685",
@@ -122,22 +123,22 @@ namespace SOK.Web.Controllers
                         Name = "Adres parafii",
                         Settings =
                         [
-                            new StringSettingVM("Contact.StreetAndBuilding", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.StreetAndBuilding, settingsDict) {
                                 Name = "Ulica i numer budynku",
                                 Description = "Te dane będą się wyświetlać bezpośrednio, gdy będzie taka potrzeba.",
                                 Hint = "Np. pl. Kościelny 4a",
                             },
-                            new StringSettingVM("Contact.CityName", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.CityName, settingsDict) {
                                 Name = "Miasto",
                                 Description = "Nazwa miasta, wyświetlana w dokładnym adresie.",
                                 Hint = "Np. Gdańsk",
                             },
-                            new StringSettingVM("Contact.PostalCode", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.PostalCode, settingsDict) {
                                 Name = "Kod pocztowy",
                                 Description = "Kod będzie pokazany przy wyświetlaniu pełnego adresu parafii.",
                                 Hint = "Np. 42-512",
                             },
-                            new StringSettingVM("Contact.RegionAndCountry", settingsDict) {
+                            new StringSettingVM(InfoKeys.Contact.RegionAndCountry, settingsDict) {
                                 Name = "Województwo i państwo",
                                 Description = "Te dane będą pokazane przy wyświetlaniu pełnego adresu parafii.",
                                 Hint = "Np. Województwo mazowieckie, Polska",
@@ -148,32 +149,32 @@ namespace SOK.Web.Controllers
                     {
                         Name = "Poczta e-mail",
                         Settings = [
-                            new CheckSettingVM("Email.EnableEmailSending", settingsDict) {
+                            new CheckSettingVM(InfoKeys.Email.EnableEmailSending, settingsDict) {
                                 Name = "Automatycznie rozsyłaj e-maile",
                                 Description = "Automatycznie wysyłaj maile ma wysyłać e-maile do zgłaszających (np. z powiadomieniami o przyjęciu zgłoszenia).",
                             },
-                            new StringSettingVM("Email.SmtpServer", settingsDict) {
+                            new StringSettingVM(InfoKeys.Email.SmtpServer, settingsDict) {
                                 Name = "Serwer SMTP",
                                 Description = "Adres serwera SMTP, który będzie używany do wysyłania poczty e-mail z systemu.",
                                 Hint = "Np. smtp.parafia-sw-mikolaja.pl",
                             },
-                            new CheckSettingVM("Email.SmtpRequireAuth", settingsDict) {
+                            new CheckSettingVM(InfoKeys.Email.SmtpRequireAuth, settingsDict) {
                                 Name = "Wymagaj uwierzytelniania SMTP",
                                 Description = "Czy serwer SMTP obsługuje uwierzytelnianie użytkowników przed wysłaniem poczty e-mail?",
                             },
-                            new IntSettingVM("Email.SmtpPort", settingsDict) {
+                            new IntSettingVM(InfoKeys.Email.SmtpPort, settingsDict) {
                                 Name = "Port SMTP",
                                 Description = "Port serwera SMTP, który będzie używany do wysyłania poczty e-mail z systemu.",
                                 Hint = "Dla ruchu szyfrowanego zwykle jest to 465, dla nieszyfrowanego 25 lub 587.",
                                 MinValue = 1,
                                 MaxValue = 65535,
                             },
-                            new StringSettingVM("Email.SmtpUserName", settingsDict) {
+                            new StringSettingVM(InfoKeys.Email.SmtpUserName, settingsDict) {
                                 Name = "Nazwa użytkownika SMTP",
                                 Description = "Nazwa użytkownika do uwierzytelniania na serwerze SMTP.",
                                 Hint = "Np. koleda@sw-antoni-szczecin.pl",
                             },
-                            new StringSettingVM("Email.SmtpPassword", settingsDict) {
+                            new StringSettingVM(InfoKeys.Email.SmtpPassword, settingsDict) {
                                 Name = "Hasło użytkownika SMTP",
                                 Description = "Hasło do konta użytkownika na serwerze SMTP.",
                                 Hint = "Wprowadź hasło do konta.",

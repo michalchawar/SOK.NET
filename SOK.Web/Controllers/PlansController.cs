@@ -53,7 +53,7 @@ namespace SOK.Web.Controllers
             // Ustaw jako aktywny
             await _planService.SetActivePlanAsync(plan);
 
-            TempData["success"] = $"Plan '{plan.Id}' został aktywowany.";
+            TempData["success"] = $"Plan '{plan.Name}' został aktywowany.";
             return RedirectToAction(nameof(Index));
         }
 
