@@ -25,7 +25,9 @@ namespace SOK.Application.Services.Implementation
                 (await _uow.Submission.GetPaginatedAsync(
                     s => s.Id == id,
                     submitter: true,
-                    address: true))
+                    address: true,
+                    visit: true,
+                    formSubmission: true))
                 .FirstOrDefault();
         }
 
@@ -39,7 +41,8 @@ namespace SOK.Application.Services.Implementation
                     s => s.UniqueId == submissionGuid,
                     submitter: true,
                     address: true,
-                    visit: true))
+                    visit: true,
+                    formSubmission: true))
                 .FirstOrDefault();
 
             return result;

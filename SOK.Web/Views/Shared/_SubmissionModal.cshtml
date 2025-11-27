@@ -1,0 +1,535 @@
+@using SOK.Application.Common.DTO
+@model PatchSubmissionDto
+<!-- Modal zgłoszenia - reużywalny partial -->
+<div id="submission-modal-app" v-cloak>
+    <div class="modal" :class="{ 'modal-open': isOpen }">
+        <div class="modal-box w-11/12 max-w-5xl max-h-11/12 flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-2xl">
+                    <span v-if="!isEditing">Szczegóły zgłoszenia</span>
+                    <span v-else class="text-warning">Edycja zgłoszenia</span>
+                </h3>
+                <div class="flex items-center gap-2">
+                    <!-- Akcje edycji -->
+                    <div class="flex justify-between gap-2">
+                        <div class="flex gap-2">
+                            <button v-if="!isEditing" @@click="startEdit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil"></i> Edytuj
+                            </button>
+                            <button v-if="isEditing" @@click="cancelEdit" class="btn btn-outline btn-sm">Anuluj</button>
+                            <button v-if="isEditing" @@click="save" :disabled="isSaving" class="btn btn-success btn-sm">
+                                <span v-if="!isSaving"><i class="bi bi-check"></i> Zapisz</span>
+                                <span v-else class="loading loading-spinner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Menu akcji -->
+                    <div class="dropdown dropdown-bottom dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost size-10"><i class="bi bi-three-dots-vertical text-lg "></i></div>
+                        <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                            <li>
+                                <button disabled
+                                        class="">
+                                    <i class="bi bi-envelope-arrow-up"></i> Wyślij maila
+                                </button>
+                            </li>
+                            <li>
+                                <button :disabled="data === null || !data.hasFormSubmission"
+                                        @@click="showFormData"
+                                        class="">
+                                    <i class="bi bi-file-earmark-text"></i> Dane z formularza
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Zamknij -->
+                    <button @@click="close" class="btn size-10 btn-ghost"><i class="bi bi-x-lg text-lg"></i></button>
+                </div>
+            </div>
+                
+            <div class="divider my-2"></div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-scroll">
+                <!-- Loading -->
+                <div v-if="isLoading" class="flex justify-center py-12">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+                <!-- Error -->
+                <div v-else-if="error" class="alert alert-error">
+                    <span>{{ error }}</span>
+                </div>
+                <!-- Content -->
+                <div v-else-if="data">
+                <!form id="container-form" class="space-y-4" @@submit.prevent.stop>
+                    <!-- Save message -->
+                    <div v-if="saveMsg" :class="['alert', saveMsg.type === 'success' ? 'alert-success' : 'alert-error']">
+                        {{ saveMsg.text }}
+                    </div>
+                    <!-- Dane zgłoszenia -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Zgłaszający -->
+                        <div class="card bg-base-200">
+                            <div class="card-body">
+                                <h4 class="card-title"><i class="bi bi-person-fill"></i> Zgłaszający</h4>
+                                <div v-if="!isEditing" class="grid grid-cols-2 gap-4">
+                                    <div><span class="text-sm opacity-70">Imię:</span><p class="font-semibold">{{ data.submitter.name }}</p></div>
+                                    <div><span class="text-sm opacity-70">Nazwisko:</span><p class="font-semibold">{{ data.submitter.surname }}</p></div>
+                                    <div><span class="text-sm opacity-70">Email:</span><p>{{ data.submitter.email || '—' }}</p></div>
+                                    <div><span class="text-sm opacity-70">Telefon:</span><p>{{ data.submitter.phone || '—' }}</p></div>
+                                </div>
+                                <div v-else class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <input asp-for="Name" v-model="edit.name" class="input aria-invalid:input-error" placeholder="Imię" />
+                                        <span asp-validation-for="Name" class="text-sm text-error"></span>
+                                    </div>
+                                    <div>
+                                        <input asp-for="Surname" v-model="edit.surname" class="input aria-invalid:input-error" placeholder="Nazwisko" />
+                                        <span asp-validation-for="Surname" class="text-sm text-error"></span>
+                                    </div>
+                                    <div>
+                                        <input asp-for="Email" v-model="edit.email" type="email" class="input aria-invalid:input-error" placeholder="Email" />
+                                        <span asp-validation-for="Email" class="text-sm text-error"></span>
+                                    </div>
+                                    <div>
+                                        <input asp-for="Phone" v-model="edit.phone" class="input aria-invalid:input-error" placeholder="Telefon" />
+                                        <span asp-validation-for="Phone" class="text-sm text-error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Adres -->
+                        <div class="card bg-base-200">
+                            <div class="card-body">
+                                <h4 class="card-title"><i class="bi bi-geo-alt-fill"></i> Adres</h4>
+                                <div v-if="!isEditing">
+                                    <p class="text-lg font-semibold">{{ data.address.streetType }} {{ data.address.streetName }} {{ data.address.buildingNumber }}{{ data.address.buildingLetter }} / {{ data.address.apartmentNumber }}{{ data.address.apartmentLetter }}</p>
+                                    <p class="text-sm opacity-70">{{ data.address.cityName }}</p>
+                                </div>
+                                <div v-else class="space-y-3">
+                                    <label class="floating-label">
+                                        <span>Ulica</span>
+                                        <select id="edit-street-select" class="select w-full" v-model="edit.streetId">
+                                            <option disabled selected value="0">--Wybierz--</option>
+                                            <option v-for="street in streets" :value="street.id">{{ street.type }} {{ street.name }}</option>
+                                        </select>
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label asp-for="BuildingId" class="floating-label">
+                                            <span>Budynek</span>
+                                            <select asp-for="BuildingId" id="edit-building-select" class="select" v-model="edit.buildingId">
+                                                <option disabled selected value="0">--Wybierz--</option>
+                                            </select>
+                                            <span asp-validation-for="BuildingId" class="text-error"></span>
+                                        </label>
+                                        <label asp-for="Apartment" class="floating-label">
+                                            <span>Mieszkanie</span>
+                                            <input asp-for="Apartment" v-model="edit.apartment" class="input" placeholder="np. 12a" />
+                                            <span asp-validation-for="Apartment" class="text-error"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Notatki i Statusy -->
+                        <div class="card bg-base-200 col-span-full">
+                            <div class="card-body">
+                                <h4 class="card-title"><i class="bi bi-chat-left-text"></i> Notatki i Status</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="label"><span class="label-text font-semibold">Notatka zgłaszającego:</span></label>
+                                        <p v-if="!isEditing" class="p-3 bg-base-300 rounded">{{ data.submitterNotes || '—' }}</p>
+                                        <textarea v-else v-model="edit.submitterNotes" class="textarea w-full" rows="2" maxlength="500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="label"><span class="label-text font-semibold">Wiadomość dla zgłaszającego:</span></label>
+                                        <p v-if="!isEditing" class="p-3 bg-base-300 rounded">{{ data.adminMessage || '—' }}</p>
+                                        <textarea v-else v-model="edit.adminMessage" class="textarea w-full" rows="2" maxlength="500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="label"><span class="label-text font-semibold">Notatka wewnętrzna:</span></label>
+                                        <p v-if="!isEditing" class="p-3 bg-base-300 rounded">{{ data.adminNotes || '—' }}</p>
+                                        <textarea v-else v-model="edit.adminNotes" class="textarea w-full" rows="2" maxlength="500"></textarea>
+                                    </div>
+                
+                                    <div class="divider my-2"></div>
+                
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="label"><span class="label-text font-semibold">Status realizacji notatek:</span></label>
+                                            <p v-if="!isEditing" class="badge badge-lg">{{ notesStatusLabel(data.notesStatus) }}</p>
+                                            <select v-else v-model="edit.notesStatus" class="select w-full">
+                                                <option value="0">N/A</option>
+                                                <option value="1">Oczekuje</option>
+                                                <option value="2">W trakcie</option>
+                                                <option value="3">Zrealizowane</option>
+                                                <option value="4">Anulowane</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="label"><span class="label-text font-semibold">Metoda zgłoszenia:</span></label>
+                                            <p v-if="!isEditing" class="badge badge-lg">{{ submitMethodLabel(data.submitMethod) }}</p>
+                                            <select v-else v-model="edit.submitMethod" class="select w-full">
+                                                <option value="0">Nie zarejestrowano</option>
+                                                <option value="1">Formularz papierowy</option>
+                                                <option value="2">Formularz internetowy</option>
+                                                <option value="3">Telefon</option>
+                                                <option value="4">Osobiście</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Info -->
+                    <div class="text-sm opacity-70">
+                        <p>ID: {{ data.id }} | UID: {{ data.uniqueId }}</p>
+                        <p>Zgłoszono: {{ formatDate(data.submitTime) }}</p>
+                    </div>
+                </!form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop" @@click="close"></div>
+    </div>
+    
+    <!-- FormSubmission Data Modal -->
+    <div :class="['modal', formDataOpen && 'modal-open']">
+        <div class="modal-box max-w-3xl">
+            <h3 class="text-lg font-bold mb-4">Dane z formularza internetowego</h3>
+            
+            <div v-if="formDataLoading" class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+            
+            <div v-else-if="formData" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Imię:</span></label>
+                        <p class="text-sm">{{ formData.name }}</p>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Nazwisko:</span></label>
+                        <p class="text-sm">{{ formData.surname }}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Email:</span></label>
+                        <p class="text-sm">{{ formData.email || 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Telefon:</span></label>
+                        <p class="text-sm">{{ formData.phone || 'N/A' }}</p>
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Ulica:</span></label>
+                        <p class="text-sm">{{ formData.streetName }}</p>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Numer budynku:</span></label>
+                        <p class="text-sm">{{ formData.buildingNumber }}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Numer mieszkania:</span></label>
+                        <p class="text-sm">{{ formData.apartment || 'N/A' }}</p>
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div>
+                    <label class="label"><span class="label-text font-semibold">Notatki zgłaszającego:</span></label>
+                    <p class="text-sm whitespace-pre-wrap">{{ formData.submitterNotes || 'Brak' }}</p>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">IP zgłaszającego:</span></label>
+                        <p class="text-sm font-mono">{{ formData.submitterIp }}</p>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">User Agent:</span></label>
+                        <p class="text-xs break-all">{{ formData.submitterUserAgent }}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label"><span class="label-text font-semibold">Zgoda GDPR:</span></label>
+                    <p class="text-sm">{{ formData.gdprConsent ? '✅ Wyrażono' : '❌ Nie wyrażono' }}</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Data zgłoszenia:</span></label>
+                        <p class="text-sm">{{ formatDate(formData.submitTime) }}</p>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">UID zgłoszenia:</span></label>
+                        <p class="text-sm font-mono">{{ formData.uniqueId }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-action">
+                <button @@click="closeFormData" class="btn">Zamknij</button>
+            </div>
+        </div>
+        <div class="modal-backdrop" @@click="closeFormData"></div>
+    </div>
+</div>
+
+@* NEEDS:
+
+<partial name="_ValidationScriptsPartial" />
+<partial name="_VueScript" />
+
+<script src="~/js/address-utilities.js" asp-append-version="true"></script> *@
+
+<script>
+    window.initSubmissionModal = function() {
+        if (window.submissionModalApp) return;
+        
+        const { createApp } = Vue;
+        
+        window.submissionModalApp = createApp({
+            data: () => ({
+                isOpen: false,
+                isLoading: false,
+                isEditing: false,
+                isSaving: false,
+                error: null,
+                data: null,
+                edit: {},
+                buildingOptions: {},
+                streets: [],
+                saveMsg: null,
+                formDataOpen: false,
+                formData: null,
+                formDataLoading: false
+            }),
+            async mounted() {
+                registerVueApp('submission-modal-app');
+
+                try {
+                    await this.loadStreetsWithBuildings();
+                } catch (e) {
+                    console.error('Nie udało się załadować ulic i budynków:', e);
+                    notifications.error('Nie udało się załadować ulic i budynków w panelu edycji zgłoszeń.');
+                }
+            },
+            methods: {
+                async open(id) {
+                    this.isOpen = true;
+                    this.isLoading = true;
+                    this.error = null;
+                    try {
+                        const res = await fetch(`/api/submissions/${id}`);
+                        if (!res.ok) throw new Error('Nie udało się pobrać zgłoszenia');
+                        this.data = await res.json();
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async loadStreetsWithBuildings() {
+                    const streetSelect = document.getElementById('edit-street-select');
+                    const buildingSelect = document.getElementById('edit-building-select');
+
+                    try {
+                        const resStreets = await fetch('/api/streets');
+                        this.streets = await resStreets.json();
+
+                        const res = await fetch('/api/streets/building-options');
+                        this.buildingOptions = await res.json();
+                        console.log(this.buildingOptions);
+                    } catch (e) {
+                        console.error('Błąd podczas ładowania ulic i budynków:', e);
+                    }
+                },
+                refreshBuildingPicker() {
+                    const streetSelect = document.getElementById('edit-street-select');
+                    const buildingSelect = document.getElementById('edit-building-select');
+                    
+                    registerBuildingPicker(streetSelect, buildingSelect, this.buildingOptions);
+                    
+                    // Find street for current building and pre-select it
+                    this.edit.streetId = 0;
+                    for (const streetId in this.buildingOptions) {
+                        if (this.buildingOptions[streetId].some(b => b.Value === this.edit.buildingId.toString())) {
+                            this.edit.streetId = parseInt(streetId);
+                            break;
+                        }
+                    }
+                    streetSelect.value = this.edit.streetId;
+                    streetSelect.dispatchEvent(new Event('change'));
+                },
+                async startEdit() {
+                    this.isEditing = true;
+                    const d = this.data;
+                    this.edit = {
+                        name: d.submitter.name,
+                        surname: d.submitter.surname,
+                        email: d.submitter.email || '',
+                        phone: d.submitter.phone || '',
+                        streetId: 0,
+                        buildingId: d.address.buildingId,
+                        apartment: (d.address.apartmentNumber || '') + (d.address.apartmentLetter || ''),
+                        submitterNotes: d.submitterNotes || '',
+                        adminMessage: d.adminMessage || '',
+                        adminNotes: d.adminNotes || '',
+                        notesStatus: d.notesStatus,
+                        submitMethod: d.submitMethod
+                    };
+                    
+                    // Initialize registerBuildingPicker after Vue renders selects
+                    this.$nextTick(() => {
+                        this.refreshBuildingPicker();
+                        
+                        // Reinitialize jQuery Unobtrusive Validation for dynamically rendered inputs
+                        this.rebindValidation();
+                    });
+                },
+                rebindValidation() {
+                    // Znajdź wszystkie formularze w modalu i ponownie podepnij walidację
+                    const formElement = document.querySelector('#container-form');
+                    if (formElement && $.validator && $.validator.unobtrusive) {
+                        // Parse validation attributes on all forms within modal
+                        $.validator.unobtrusive.parse($(formElement));
+                    }
+                },
+                cancelEdit() {
+                    this.isEditing = false;
+                    this.saveMsg = null;
+                },
+                isFormValid() {
+                    const formElement = document.querySelector('#container-form');
+                    if (formElement) {
+                        return $(formElement).find('[aria-invalid="true"]').length === 0;
+                    }
+                    return true;
+                },
+                async save() {
+                    if (!this.isFormValid()) {
+                        notifications.error('Popraw błędy w danych zgłoszenia.');
+                        return;
+                    }
+
+                    this.isSaving = true;
+                    this.saveMsg = null;
+                    try {
+                        const id = this.data.id;
+                        
+                        // Build PATCH payload with only changed fields
+                        const payload = {};
+                        const d = this.data;
+                        
+                        if (this.edit.name !== d.submitter.name) payload.name = this.edit.name;
+                        if (this.edit.surname !== d.submitter.surname) payload.surname = this.edit.surname;
+                        if (this.edit.email !== (d.submitter.email || '')) payload.email = this.edit.email || null;
+                        if (this.edit.phone !== (d.submitter.phone || '')) payload.phone = this.edit.phone || null;
+                        
+                        const newBuildingId = parseInt(document.getElementById('edit-building-select').value);
+                        if (newBuildingId !== d.address.buildingId) payload.buildingId = newBuildingId;
+                        
+                        if (this.edit.apartment !== d.address.apartment) payload.apartment = this.edit.apartment || null;
+                        
+                        if (this.edit.submitterNotes !== (d.submitterNotes || '')) payload.submitterNotes = this.edit.submitterNotes || null;
+                        if (this.edit.adminMessage !== (d.adminMessage || '')) payload.adminMessage = this.edit.adminMessage || null;
+                        if (this.edit.adminNotes !== (d.adminNotes || '')) payload.adminNotes = this.edit.adminNotes || null;
+                        
+                        if (this.edit.notesStatus !== d.notesStatus) payload.notesStatus = parseInt(this.edit.notesStatus);
+                        if (this.edit.submitMethod !== d.submitMethod) payload.submitMethod = parseInt(this.edit.submitMethod);
+                        
+                        // Only send PATCH if there are changes
+                        if (Object.keys(payload).length > 0) {
+                            const res = await fetch(`/api/submissions/${id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            if (!res.ok) throw new Error('Błąd zapisu');
+                        }
+                        
+                        // Refresh data
+                        const res = await fetch(`/api/submissions/${id}`);
+                        this.data = await res.json();
+                        this.isEditing = false;
+                        notifications.success('Zmiany zostały zapisane.');
+                        
+                        // Trigger callback to refresh list in parent view
+                        if (window.onSubmissionUpdated) {
+                            window.onSubmissionUpdated();
+                        }
+                    } catch (e) {
+                        notifications.error(e.message);
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                async showFormData() {
+                    this.formDataOpen = true;
+                    this.formDataLoading = true;
+                    try {
+                        const res = await fetch(`/api/submissions/${this.data.id}/form`);
+                        if (!res.ok) throw new Error('Brak danych formularza');
+                        this.formData = await res.json();
+                    } catch (e) {
+                        alert(e.message);
+                        this.formDataOpen = false;
+                    } finally {
+                        this.formDataLoading = false;
+                    }
+                },
+                closeFormData() {
+                    this.formDataOpen = false;
+                    this.formData = null;
+                },
+                close() {
+                    if (this.isEditing && !confirm('Masz niezapisane zmiany. Zamknąć?')) return;
+                    this.isOpen = false;
+                    this.data = null;
+                    this.isEditing = false;
+                    this.error = null;
+                },
+                formatDate(d) {
+                    if (!d) return 'N/A';
+                    return new Date(d).toLocaleString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                },
+                notesStatusLabel(val) {
+                    const labels = ['N/A', 'Oczekuje', 'W trakcie', 'Zrealizowane', 'Anulowane'];
+                    return labels[val] || 'N/A';
+                },
+                submitMethodLabel(val) {
+                    const labels = ['Nie zarejestrowano', 'Formularz papierowy', 'Formularz internetowy', 'Telefon', 'Osobiście'];
+                    return labels[val] || 'N/A';
+                }
+            }
+        }).mount('#submission-modal-app');
+    };
+
+    window.openSubmissionModal = function(id) {
+        if (!window.submissionModalApp) window.initSubmissionModal();
+        window.submissionModalApp.open(id);
+    };
+</script>
+
+<style>
+[v-cloak] { display: none; }
+</style>

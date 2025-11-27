@@ -18,6 +18,7 @@ namespace SOK.Application.Common.Interface
             bool visit = false,
             bool history = false,
             bool formSubmission = false,
+            bool plan = false,
             bool tracked = false);
 
         Task<Submission?> GetRandomAsync();

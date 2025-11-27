@@ -41,6 +41,7 @@
         <div class="flex-grow overflow-y-scroll py-2 ps-2 pe-4" v-if="submissions.length > 0 || !isDataLoaded">
             <div class="flex flex-col gap-2">
                 <div v-for="s in submissions" :key="s.id"
+                    @@click="openModal(s.id)"
                     class="submission-card bg-base-200 grid cursor-pointer grid-cols-[3fr_1fr] grid-rows-[20%_40%_40%] px-4 py-3 transition-colors hover:bg-base-300">
                     <div class="mb-0 opacity-40">
                         <span>{{ s.address.streetType }}</span>
@@ -86,8 +87,13 @@
     </div>
 </div>
 
+<partial name="_SubmissionModal" />
+
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <partial name="_VueScript" />
+    
+    <script src="~/js/address-utilities.js"></script>
     
     <script>
         const { createApp } = Vue;
@@ -108,6 +114,14 @@
             mounted() {
                 this.loadSubmissions();
                 registerVueApp('submissions-app');
+                
+                // Inicjalizuj modal
+                window.initSubmissionModal();
+                
+                // Callback po aktualizacji
+                window.onSubmissionUpdated = () => {
+                    this.loadSubmissions();
+                };
             },
             beforeUnmount() {
                 // Wyczyść wszystkie timery przy unmount
@@ -118,6 +132,9 @@
                 }
             },
             methods: {
+                openModal(id) {
+                    window.openSubmissionModal(id);
+                },
                 loadSubmissions() {
                     // Debouncing - czekaj 250ms po ostatnim wpisaniu
                     if (this.debounceTimeout) {

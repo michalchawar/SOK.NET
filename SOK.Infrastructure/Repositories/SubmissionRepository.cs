@@ -21,6 +21,7 @@ namespace SOK.Infrastructure.Repositories
             bool visit = false,
             bool history = false, 
             bool formSubmission = false,
+            bool plan = false,
             bool tracked = false)
         {
             var query = GetQueryable(filter: filter, tracked: tracked);

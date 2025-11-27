@@ -2,6 +2,8 @@
 @source "./wwwroot/**/*.js,./Views/**/*.cshtml";
 @plugin "daisyui";
 
+@custom-variant aria-invalid (&[aria-invalid="true"]);
+
 @theme {
     --color-primary: var(--color-sky-600);
     --color-secondary: var(--color-amber-500);
@@ -43,6 +45,10 @@ body {
 
     .input, .select, .textarea {
         transition: border-color 0.2s, box-shadow 0.2s, outline 0.05s, outline-offset 0.05s;
+    }
+
+    .btn:focus {
+        box-shadow: 0 0 0 .1rem #e1e1e1,0 0 0 .25rem var(--color-primary) !important;
     }
 
     [id$="-app"]:not([data-is-loaded="true"]) {

@@ -15,7 +15,10 @@ namespace SOK.Application.Common.DTO
         public string AdminMessage { get; set; } = string.Empty;
         public string AdminNotes { get; set; } = string.Empty;
         public NotesFulfillmentStatus NotesStatus { get; set; }
+        public SubmitMethod SubmitMethod { get; set; }
         public DateTime SubmitTime { get; set; }
+        
+        public bool HasFormSubmission { get; set; }
 
         public SubmissionDto(Submission submission)
         {
@@ -26,6 +29,8 @@ namespace SOK.Application.Common.DTO
             AdminNotes = submission.AdminNotes ?? string.Empty;
             NotesStatus = submission.NotesStatus;
             SubmitTime = submission.SubmitTime;
+            HasFormSubmission = submission.FormSubmission != null;
+            SubmitMethod = submission.FormSubmission?.Method ?? SubmitMethod.NotRegistered;
 
             Submitter = new SubmitterDto(submission.Submitter);
             Address = new AddressDto(submission.Address);
