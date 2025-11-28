@@ -46,6 +46,11 @@ services:
       Admin__SqlServer: "Server=db,1433;Database=master;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
       ConnectionStrings__CentralDb: "Server=db,1433;Database=CentralDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
       Crypto__Key: "${CRYPTO_KEY}"
+      Admin__Username: "${ADMIN_USERNAME}"
+      Admin__Password: "${ADMIN_PASSWORD}"
+      Admin__Email: "${ADMIN_EMAIL}"
+      Admin__DisplayName: "${ADMIN_DISPLAY_NAME}"
+      Admin__SeedExampleData: "${ADMIN_SEED_EXAMPLE_DATA:-false}"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sok.rule=Host(`${DOMAIN_NAME}`)"

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SOK.Application.Common.DTO;
 using SOK.Application.Common.Helpers;
@@ -21,19 +22,22 @@ namespace SOK.Infrastructure.Persistence.Seeding
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IParishProvisioningService _parishProvisioning;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
 
         public DbSeeder(
             CentralDbContext context,
             UserManager<Domain.Entities.Central.User> userManager,
             RoleManager<IdentityRole> roleManager,
             IParishProvisioningService parishProvisioning,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
             _parishProvisioning = parishProvisioning;
             _serviceProvider = serviceProvider;
+            _configuration = configuration;
         }
 
         /// <inheritdoc />
@@ -80,8 +84,12 @@ namespace SOK.Infrastructure.Persistence.Seeding
             }
 
             // 3. Przygotuj konto administratora
-            var adminUserName = "admin";
-            var adminUser = await _userManager.FindByNameAsync(adminUserName);
+            var adminUserName = string.IsNullOrEmpty(_configuration["Admin:Username"]) ? "admin" : _configuration["Admin:Username"];
+            var adminPassword = string.IsNullOrEmpty(_configuration["Admin:Password"]) ? "admin" : _configuration["Admin:Password"];
+            var adminEmail = string.IsNullOrEmpty(_configuration["Admin:Email"]) ? $"{adminUserName}@system.local" : _configuration["Admin:Email"];
+            var adminDisplayName = string.IsNullOrEmpty(_configuration["Admin:DisplayName"]) ? "System Administrator" : _configuration["Admin:DisplayName"];
+            
+            var adminUser = await _userManager.FindByNameAsync(adminUserName!);
             bool shouldAdminBeCreated = adminUser is null;
 
             if (shouldAdminBeCreated)
@@ -89,8 +97,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 adminUser = new Domain.Entities.Central.User
                 {
                     UserName = adminUserName,
-                    Email = adminUserName + "@system.local",
-                    DisplayName = "System Administrator",
+                    Email = adminEmail,
+                    DisplayName = adminDisplayName!,
                     EmailConfirmed = true
                 };
             }
@@ -109,7 +117,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
             if (shouldAdminBeCreated) {
                 adminUser!.Parish = parish;
 
-                var result = await _userManager.CreateAsync(adminUser!, "admin");
+                var result = await _userManager.CreateAsync(adminUser!, adminPassword!);
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(adminUser!, Role.Administrator);
@@ -141,6 +149,13 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 ParishMember admin = new ParishMember { CentralUserId = adminId, DisplayName = "Administrator" };
                 context.Add(admin);
                 await context.SaveChangesAsync();
+                
+                bool shouldSeedParishData = _configuration.GetValue<bool>("Admin:SeedExampleData", false);
+                if (!shouldSeedParishData)
+                {
+                    await transaction.CommitAsync();
+                    return;
+                }
 
                 City 
                     city = new City { Name = "Miasto", DisplayName = "Miasto" };
@@ -285,7 +300,6 @@ namespace SOK.Infrastructure.Persistence.Seeding
                     new KeyValuePair<string, string>(InfoKeys.Contact.Email, "parafia@domyslna.test"),
                     new KeyValuePair<string, string>(InfoKeys.Contact.MainPhone, "+48 123 456789"),
                     new KeyValuePair<string, string>(InfoKeys.Contact.SecondaryPhone, "+48 987 654 321"),
-                    new KeyValuePair<string, string>("DefaultScheduleId", schedule1.Id.ToString()),
                 };
 
                 foreach (var setting in defaultSettings)
