@@ -46,6 +46,9 @@ namespace SOK.Infrastructure.Extensions
         /// </returns>
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
+            // Rejestracja HttpContextAccessor (potrzebny do śledzenia autora zmian w snapshotach)
+            services.AddHttpContextAccessor();
+
             // Rejestracja usług
             services.AddScoped<IParishInfoService, ParishInfoService>();
             services.AddScoped<ISubmissionService, SubmissionService>();

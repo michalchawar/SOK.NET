@@ -27,7 +27,8 @@ namespace SOK.Application.Services.Implementation
                     submitter: true,
                     address: true,
                     visit: true,
-                    formSubmission: true))
+                    formSubmission: true,
+                    tracked: true))
                 .FirstOrDefault();
         }
 
@@ -42,7 +43,8 @@ namespace SOK.Application.Services.Implementation
                     submitter: true,
                     address: true,
                     visit: true,
-                    formSubmission: true))
+                    formSubmission: true,
+                    tracked: true))
                 .FirstOrDefault();
 
             return result;
@@ -204,7 +206,6 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task UpdateSubmissionAsync(Submission submission)
         {
-            _uow.Submission.Update(submission);
             await _uow.SaveAsync();
         }
 
