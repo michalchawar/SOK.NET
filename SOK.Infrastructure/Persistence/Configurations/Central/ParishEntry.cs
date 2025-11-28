@@ -9,10 +9,10 @@ namespace SOK.Infrastructure.Persistence.Configurations.Central
     {
         public void Configure(EntityTypeBuilder<ParishEntry> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(p => p.UniqueId)
                 .IsUnique();
 
@@ -23,7 +23,7 @@ namespace SOK.Infrastructure.Persistence.Configurations.Central
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             // Relacje
-            // (ParishEntry nie jest podrzêdny wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+            // (ParishEntry nie jest podrzÄ™dny wzglÄ™dem Å¼adnej encji, nie konfigurujemy relacji)
         }
     }
 }

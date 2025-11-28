@@ -2,11 +2,6 @@
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SOK.Application.Services.Implementation
 {
@@ -21,10 +16,10 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<string> GetValueAsync(string optionName)
+        public async Task<string?> GetValueAsync(string optionName)
         {
-            ParishInfo option = await _uow.ParishInfo.GetAsync(pi => pi.Name == optionName);
-            return option.Value;
+            ParishInfo? option = await _uow.ParishInfo.GetAsync(pi => pi.Name == optionName);
+            return option?.Value ?? null;
         }
 
         /// <inheritdoc />
@@ -70,9 +65,7 @@ namespace SOK.Application.Services.Implementation
                 {
                     ApartmentNumber = int.Parse(infos.GetValueOrDefault("Address.ApartmentNumber", "0")),
                     ApartmentLetter = infos.GetValueOrDefault("Address.ApartmentLetter"),
-                    Building = building,
-                    Street = street,
-                    City = city
+                    Building = building
                 }
             };
 
@@ -80,6 +73,12 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetDictionary() => await _uow.ParishInfo.ToDictionaryAsync();
+        public async Task<Dictionary<string, string>> GetDictionaryAsync() => await _uow.ParishInfo.ToDictionaryAsync();
+
+        /// <inheritdoc />
+        public Task<Dictionary<string, string>> GetValuesAsync(IEnumerable<string> options)
+        {
+            return _uow.ParishInfo.GetValuesAsDictionaryAsync(options);
+        }
     }
 }

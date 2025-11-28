@@ -8,19 +8,30 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Submitter> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(s => s.UniqueId)
                 .IsUnique();
+            builder.HasIndex(s => s.FilterableString);
 
             // Generowane pola
-            builder.Property(s => s.UniqueId)
-                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+            builder.Property(s => s.FilterableString)
+                .HasComputedColumnSql(
+                    // Å‚Ä…czymy dane w rÃ³Å¼nych kolejnoÅ›ciach i maÅ‚ymi literami
+                    "LOWER(CONCAT_WS(' ', " +
+                        "COALESCE(Name, ''), " +
+                        "COALESCE(Surname, ''), " +
+                        "COALESCE(Name, ''), " +
+                        "COALESCE(Email, ''), " +
+                        "COALESCE(Phone, '')" +
+                    "))",
+                    stored: true);
+
 
             // Relacje
-            // (Submitter nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+            // (Submitter nie jest podrzÄ™dne wzglÄ™dem Å¼adnej encji, nie konfigurujemy relacji)
         }
     }
 }

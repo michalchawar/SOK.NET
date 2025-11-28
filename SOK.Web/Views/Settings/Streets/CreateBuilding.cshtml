@@ -1,0 +1,151 @@
+@model BuildingVM
+@{
+    ViewData["Title"] = "Utwórz budynek";
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="CreateBuilding" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <a asp-action="CreateBuildingSeries" asp-route-streetId="@Model.StreetId" class="w-full btn btn-primary btn-outline px-12 py-6 rounded-sm flex gap-3 justify-center items-center text-center">
+            <h4 class="flex-1 text-lg font-semibold">
+                Dodaj wiele budynków na raz
+            </h4>
+            <i class="bi bi-chevron-double-right text-3xl"></i>
+        </a>
+
+        <!-- === Sekcja 1: Ulica === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Ulica</h2>
+                <p class="text-sm opacity-40">
+                    Nazwa ulicy, do której będzie przypisany budynek.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-2xl">
+                    @Model.StreetName
+                </h4>
+                <input type="hidden" asp-for="StreetName" />
+                <input type="hidden" asp-for="StreetId" />
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 2: Brama === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Oznaczenie budynku</h2>
+                <p class="text-sm opacity-40">
+                    Określ, jakie oznaczenie ma mieć budynek. Musi być to jakiś numer, ale może po nim następować litera (np. 24A).
+                </p>
+            </div>
+            <div>
+                <label asp-for="Signage" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.Signage)</span>
+                    <input asp-for="Signage" class="input input-lg w-full" placeholder="Np. 8C" />
+                    <span asp-validation-for="Signage" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Ustawienia === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Widoczność budynku</h2>
+                <p class="text-sm opacity-40">
+                    Jeśli odznaczysz tę opcję, budynek nie będzie się pokazywał w formularzu zgłoszeniowym dla anonimowych użytkowników.
+                </p>
+            </div>
+            <div>
+                <label asp-for="IsVisible" class="w-full">
+                    <input asp-for="IsVisible" class="checkbox checkbox-primary checkbox-lg mr-2" />
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.IsVisible)</span>
+                </label>
+            </div>
+            
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Dostępność windy</h2>
+                <p class="text-sm opacity-40">
+                    Określ, czy w budynku znajduje się winda. W zależności od ustawień systemu, może to wpłynąć na kolejność odwiedzania mieszkań w tym budynku (od góry/od dołu).
+                </p>
+            </div>
+            <div>
+                <label asp-for="HasElevator" class="w-full">
+                    <input asp-for="HasElevator" class="checkbox checkbox-primary checkbox-lg mr-2" />
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.HasElevator)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Dodatkowe ustawienia === -->
+        <div class="collapse collapse-arrow w-full">
+            <input type="checkbox" />
+            <div class="collapse-title w-full bg-base-200 rounded-sm">
+                Więcej ustawień
+            </div>
+            <div class="collapse-content grid grid-cols-1 md:grid-cols-2 gap-8 bg-base-200/50 items-center">
+                <div class="mt-5">
+                    <h2 class="text-xl font-semibold mb-1">Liczba pięter</h2>
+                    <p class="text-sm opacity-40">
+                        Określ ogólną liczbę pięter w budynku. Jeśli nie masz takich danych, pozostaw wartość -1.
+                    </p>
+                </div>
+                <div>
+                    <label asp-for="FloorCount" class="w-full">
+                        <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.FloorCount)</span>
+                        <input asp-for="FloorCount" class="input input-lg w-full" min=-1 max=100 />
+                    </label>
+                </div>
+            
+                <div>
+                    <h2 class="text-xl font-semibold mb-1">Liczba mieszkań</h2>
+                    <p class="text-sm opacity-40">
+                        Określ ogólną liczbę mieszkań w budynku. Jeśli nie masz takich danych, pozostaw wartość -1.
+                    </p>
+                </div>
+                <div>
+                    <label asp-for="ApartmentCount" class="w-full">
+                        <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.ApartmentCount)</span>
+                        <input asp-for="ApartmentCount" class="input input-lg w-full" min=-1 max=400 />
+                    </label>
+                </div>
+                
+                <div>
+                    <h2 class="text-xl font-semibold mb-1">Najwyższy numer mieszkania</h2>
+                    <p class="text-sm opacity-40">
+                        Określ numer ostatniego mieszkania w budynku. Jeśli nie masz takich danych, pozostaw wartość -1.
+                    </p>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="HighestApartmentNumber" class="w-full">
+                        <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.HighestApartmentNumber)</span>
+                        <input asp-for="HighestApartmentNumber" class="input input-lg w-full" min=-1 max=299 />
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <div asp-validation-summary="All" class="text-sm text-error"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="Streets" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+            <button type="submit" class="btn btn-primary">Utwórz budynek</button>
+            <a asp-action="Streets" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

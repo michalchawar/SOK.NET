@@ -173,9 +173,6 @@ namespace SOK.Infrastructure.Migrations.Central
                         .HasMaxLength(1024)
                         .HasColumnType("nvarchar(1024)");
 
-                    b.Property<string>("MigrationVersion")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ParishName")
                         .IsRequired()
                         .HasMaxLength(256)

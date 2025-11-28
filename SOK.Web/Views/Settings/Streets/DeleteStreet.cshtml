@@ -1,0 +1,46 @@
+@using SOK.Domain.Entities.Parish
+@model Street
+@{
+    ViewData["Title"] = "Usuń ulicę";
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="DeleteStreetConfirmed" asp-route-id="@Model.Id" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <!-- === Sekcja 1: Potwierdzenie usunięcia === -->
+        <div class="flex flex-col gap-4 items-center justify-center text-center">
+            <h2 class="text-2xl font-semibold">Potwierdź usunięcie</h2>
+            <div>
+                <p class="text-sm opacity-40">
+                    Czy na pewno chcesz usunąć ulicę:
+                </p>
+                <h4 class="text-xl font-semibold">@Model.Type.Abbreviation @Model.Name</h4>
+            </div>
+            <p class="text-sm opacity-40">
+                Operacja ta jest nieodwracalna.
+            </p>
+            @if (Model.Buildings.Any())
+            {
+                <p class="text-md opacity-80 text-error">
+                    <i class="bi bi-exclamation-triangle"></i> Ulica posiada powiązane budynki (w liczbie <span
+                        class="font-semibold">@Model.Buildings.Count()</span>). Jeśli chcesz usunąć tę
+                    ulicę, najpierw usuń budynki.
+                </p>
+            }
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="EditStreet" asp-route-id="@Model.Id" type="button"
+                class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do edycji
+            </a>
+            <button type="submit" disabled="@Model.Buildings.Any()" class="btn btn-error btn-lg">Usuń ulicę</button>
+            <a asp-action="EditStreet" asp-route-id="@Model.Id" type="button"
+                class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Wróć do edycji
+            </a>
+        </div>
+    </form>
+</div>

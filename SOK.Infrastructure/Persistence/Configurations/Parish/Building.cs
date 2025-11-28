@@ -8,15 +8,16 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Building> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(b => new { b.StreetId, b.Number, b.Letter })
-                   .IsUnique();
+                   .IsUnique()
+                   .HasFilter(null);
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            // (brak automatycznie generowanych pÃ³l)
 
             // Relacje
             builder.HasOne(b => b.Street)
@@ -24,9 +25,12 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .HasForeignKey(b => b.StreetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(b => b.Agendas)
+            builder.HasMany(b => b.Days)
                 .WithMany(a => a.BuildingsAssigned)
                 .UsingEntity<BuildingAssignment>();
+
+            // Wyzwalacze
+            builder.ToTable(t => t.HasTrigger("TR_Building_Update_AddressCache"));
         }
     }
 }

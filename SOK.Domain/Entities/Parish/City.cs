@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje miasto, w którym znajduj¹ siê ulice i budynki.
-    /// Miasto nale¿y do jednej diecezji.
+    /// Reprezentuje miasto, w ktÃ³rym znajdujÄ… siÄ™ ulice i budynki.
+    /// Miasto naleÅ¼y do jednej diecezji.
     /// </summary>
     public class City
     {
         /// <summary>
-        /// Unikalny identyfikator miasta (klucz g³ówny).
+        /// Unikalny identyfikator miasta (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
@@ -18,17 +18,17 @@ namespace SOK.Domain.Entities.Parish
         /// Nazwa miasta.
         /// </summary>
         [MaxLength(128)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nazwa wyœwietlana miasta (opcjonalna, np. z dodatkowymi informacjami lub skrótami).
-        /// Jeœli nie jest ustawiona, u¿ywana jest nazwa miasta (Name).
+        /// Nazwa wyÅ›wietlana miasta (opcjonalna, np. z dodatkowymi informacjami lub skrÃ³tami).
+        /// JeÅ›li nie jest ustawiona, uÅ¼ywana jest nazwa miasta (Name).
         /// </summary>
         [MaxLength(128)]
-        public string? DisplayName { get; set; }
+        public string? DisplayName { get; set; } = null;
 
         /// <summary>
-        /// Lista ulic znajduj¹cych siê w mieœcie.
+        /// Lista ulic znajdujÄ…cych siÄ™ w mieÅ›cie.
         /// </summary>
         public ICollection<Street> Streets { get; set; } = new List<Street>();
     }

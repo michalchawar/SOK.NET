@@ -1,0 +1,50 @@
+@using SOK.Domain.Entities.Parish
+@model Building
+@{
+    ViewData["Title"] = "Usuń budynek";
+
+    int assignedCount = ViewData["assignedSubmissionsCount"] is int count ? count : 0;
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="DeleteBuildingConfirmed" asp-route-id="@Model.Id" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <!-- === Sekcja 1: Potwierdzenie usunięcia === -->
+        <div class="flex flex-col gap-4 items-center justify-center text-center">
+            <h2 class="text-2xl font-semibold">Potwierdź usunięcie</h2>
+            <div>
+                <p class="text-sm opacity-40">
+                    Czy na pewno chcesz usunąć budynek:
+                </p>
+                <h4 class="text-xl font-semibold">@Model.Number@Model.Letter</h4>
+                <p class="text-sm opacity-40">
+                    (@ViewData["streetName"])
+                </p>
+            </div>
+            <p class="text-sm opacity-40">
+                Operacja ta jest nieodwracalna.
+            </p>
+            @if (assignedCount > 0)
+            {
+                <p class="text-md opacity-80 text-error">
+                    <i class="bi bi-exclamation-triangle"></i> Budynek posiada przypisane zgłoszenia (w liczbie <span
+                        class="font-semibold">@assignedCount</span>). Jeśli chcesz usunąć ten budynek, najpierw usuń zgłoszenia.
+                </p>
+            }
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="EditBuilding" asp-route-id="@Model.Id" type="button"
+                class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do edycji
+            </a>
+            <button type="submit" disabled="@(assignedCount > 0)" class="btn btn-error btn-lg">Usuń budynek</button>
+            <a asp-action="EditBuilding" asp-route-id="@Model.Id" type="button"
+                class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Wróć do edycji
+            </a>
+        </div>
+    </form>
+</div>

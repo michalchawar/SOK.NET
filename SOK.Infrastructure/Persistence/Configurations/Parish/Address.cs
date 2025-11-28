@@ -8,15 +8,31 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Address> builder)
         {
-            // Klucz g��wny
+            // Klucz główny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalno��
+            // Indeksy i unikalność
             builder.HasIndex(a => new { a.BuildingId, a.ApartmentNumber, a.ApartmentLetter })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter(null);
+            builder.HasIndex(a => a.FilterableString);
 
             // Generowane pola
-            // (brak automatycznie generowanych p�l)
+            builder.Property(a => a.FilterableString)
+                .HasComputedColumnSql(
+                    // łączymy dane w różnych kolejnościach i małymi literami
+                    "LOWER(CONCAT_WS(' ', " +
+                        "COALESCE(StreetType, ''), " +
+                        "COALESCE(StreetName, ''), " +
+                        "CONCAT(" +
+                            "COALESCE(BuildingNumber, ''), " +
+                            "COALESCE(BuildingLetter, '')), " +
+                        "CONCAT(" +
+                            "COALESCE(ApartmentNumber, ''), " +
+                            "COALESCE(ApartmentLetter, '')), " +
+                        "COALESCE(CityName, '')" +
+                    "))",
+                    stored: true);
 
             // Relacje
             builder.HasOne(a => a.Building)
@@ -24,15 +40,8 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .HasForeignKey(a => a.BuildingId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(a => a.Street)
-                .WithMany()
-                .HasForeignKey(a => a.StreetId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasOne(a => a.City)
-                .WithMany()
-                .HasForeignKey(a => a.CityId)
-                .OnDelete(DeleteBehavior.NoAction);
+            // Wyzwalacze
+            builder.ToTable(t => t.HasTrigger("TR_Address_InsertOrUpdate_Cache"));
         }
     }
 }

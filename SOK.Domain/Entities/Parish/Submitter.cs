@@ -1,56 +1,84 @@
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje osobÍ zg≥aszajπcπ.
-    /// Przechowuje podstawowe dane kontaktowe oraz powiπzania ze zg≥oszeniami i historiπ zmian.
+    /// Reprezentuje osobƒô zg≈ÇaszajƒÖcƒÖ.
+    /// Przechowuje podstawowe dane kontaktowe oraz powiƒÖzania ze zg≈Çoszeniami i historiƒÖ zmian.
     /// </summary>
     public class Submitter
     {
         /// <summary>
-        /// Unikalny identyfikator osoby zg≥aszajπcej (klucz g≥Ûwny).
+        /// Unikalny identyfikator osoby zg≈ÇaszajƒÖcej (klucz g≈Ç√≥wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Publiczny unikalny identyfikator osoby zg≥aszajπcej (GUID).
+        /// Publiczny unikalny identyfikator osoby zg≈ÇaszajƒÖcej (GUID).
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// ImiÍ osoby zg≥aszajπcej.
-        /// </summary>
-        [MaxLength(64)]
-        public string Name { get; set; } = default!;
-
-        /// <summary>
-        /// Nazwisko osoby zg≥aszajπcej.
+        /// Imiƒô osoby zg≈ÇaszajƒÖcej.
         /// </summary>
         [MaxLength(64)]
-        public string Surname { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Adres e-mail osoby zg≥aszajπcej (opcjonalny).
+        /// Nazwisko osoby zg≈ÇaszajƒÖcej.
+        /// </summary>
+        [MaxLength(64)]
+        public string Surname { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Adres e-mail osoby zg≈ÇaszajƒÖcej (opcjonalny).
         /// </summary>
         [MaxLength(256)]
-        public string? Email { get; set; }
+        public string? Email { get; set; } = null;
 
         /// <summary>
-        /// Numer telefonu osoby zg≥aszajπcej (opcjonalny).
+        /// Numer telefonu osoby zg≈ÇaszajƒÖcej (opcjonalny).
         /// </summary>
         [MaxLength(15)]
-        public string? Phone { get; set; }
+        public string? Phone { get; set; } = null;
 
         /// <summary>
-        /// Lista zg≥oszeÒ powiπzanych z osobπ zg≥aszajπcπ.
+        /// Lista zg≈Çosze≈Ñ powiƒÖzanych z osobƒÖ zg≈ÇaszajƒÖcƒÖ.
         /// </summary>
         public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
         /// <summary>
-        /// Historia zmian danych osoby zg≥aszajπcej (snapshoty).
+        /// Historia zmian danych osoby zg≈ÇaszajƒÖcej (snapshoty).
         /// </summary>
         public ICollection<SubmitterSnapshot> History { get; set; } = new List<SubmitterSnapshot>();
+
+
+        /// <summary>
+        /// Reprezentacja tekstowa zg≈ÇaszajƒÖcego do cel√≥w filtrowania.
+        /// </summary>
+        /// <remarks>
+        /// ≈ÅƒÖczny tekst do wyszukiwania (imiƒô, nazwisko, e-mail, telefon w r√≥≈ºnych kolejno≈õciach),
+        /// generowany automatycznie w bazie danych.
+        /// </remarks>
+        [MaxLength(1024)]
+        public string FilterableString { get; private set; } = string.Empty;
+
+        public bool IsEqual(Submitter other)
+        {
+            return this.Name == other.Name
+                && this.Surname == other.Surname
+                && this.Email == other.Email
+                && this.Phone == other.Phone;
+        }
+
+        public static Expression<Func<Submitter, bool>> IsEqualExpression(Submitter other)
+        {
+            return s => s.Name == other.Name
+                && s.Surname == other.Surname
+                && s.Email == other.Email
+                && s.Phone == other.Phone;
+        }
     }
 }

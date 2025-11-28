@@ -4,15 +4,15 @@ namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
     /// Reprezentuje harmonogram wizyt w ramach danego planu.
-    /// Harmonogram przede wszystkim grupuje wizyty, bêd¹c kategori¹ dla nich.
-    /// Dwa podstawowe harmonogramy, tworzone domyœlnie dla ka¿dego planu to:
+    /// Harmonogram przede wszystkim grupuje wizyty, bÄ™dÄ…c kategoriÄ… dla nich.
+    /// Dwa podstawowe harmonogramy, tworzone domyÅ›lnie dla kaÅ¼dego planu to:
     /// "W terminie zasadniczym" oraz "W terminie dodatkowym".
-    /// Harmonogram okreœla równie¿ charakter powi¹zania budynków z agendami.
+    /// Harmonogram okreÅ›la rÃ³wnieÅ¼ charakter powiÄ…zania budynkÃ³w z agendami.
     /// </summary>
     public class Schedule
     {
         /// <summary>
-        /// Unikalny identyfikator harmonogramu (klucz g³ówny).
+        /// Unikalny identyfikator harmonogramu (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
@@ -21,43 +21,43 @@ namespace SOK.Domain.Entities.Parish
         /// Nazwa harmonogramu.
         /// </summary>
         [MaxLength(128)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Krótka nazwa harmonogramu. U¿ywana w wiêkszoœci miejsc.
+        /// KrÃ³tka nazwa harmonogramu. UÅ¼ywana w wiÄ™kszoÅ›ci miejsc.
         /// </summary>
         [MaxLength(24)]
-        public string ShortName { get; set; } = default!;
+        public string ShortName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Identyfikator planu, do którego nale¿y harmonogram.
+        /// Identyfikator planu, do ktÃ³rego naleÅ¼y harmonogram.
         /// </summary>
         public int PlanId { get; set; }
 
         /// <summary>
-        /// Plan, do którego nale¿y harmonogram (relacja nawigacyjna).
+        /// Plan, do ktÃ³rego naleÅ¼y harmonogram (relacja nawigacyjna).
         /// </summary>
         public Plan Plan { get; set; } = default!;
 
         /// <summary>
-        /// Lista przypisañ budynków do agend w tym harmonogramie. 
-        /// To klasa pomocnicza relacji wiele-do-wielu miêdzy agend¹ a budynkami.
+        /// Lista przypisaÅ„ budynkÃ³w do agend w tym harmonogramie. 
+        /// To klasa pomocnicza relacji wiele-do-wielu miÄ™dzy agendÄ… a budynkami.
         /// </summary>
         public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
 
         /// <summary>
-        /// Lista agend powi¹zanych z harmonogramem.
+        /// Lista agend powiÄ…zanych z harmonogramem.
         /// </summary>
         public ICollection<Agenda> Agendas { get; set; } = new List<Agenda>();
 
         /// <summary>
-        /// Lista zg³oszeñ powi¹zanych z harmonogramem.
+        /// Lista zgÅ‚oszeÅ„ powiÄ…zanych z harmonogramem.
         /// </summary>
         public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
         /// <summary>
-        /// Lista wizyt maj¹cych ustawiony ten harmonogram.
-        /// Bezpoœrednio z wizytami powi¹zane s¹ zg³oszenia.
+        /// Lista wizyt majÄ…cych ustawiony ten harmonogram.
+        /// BezpoÅ›rednio z wizytami powiÄ…zane sÄ… zgÅ‚oszenia.
         /// </summary>
         public ICollection<Visit> Visits { get; set; } = new List<Visit>();
     }

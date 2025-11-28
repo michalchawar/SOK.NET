@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SOK.Domain.Entities.Parish;
 
@@ -8,16 +9,22 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<Submission> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(s => s.UniqueId)
                 .IsUnique();
 
             // Generowane pola
-            builder.Property(s => s.UniqueId)
-                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+            builder.Property(s => s.AccessToken)
+                .HasDefaultValueSql("CONVERT(NVARCHAR(64), HASHBYTES('SHA2_256', CAST(NEWID() AS NVARCHAR(36))), 2)")
+                .ValueGeneratedOnAdd();
+
+            builder.Property(s => s.SubmitTime)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             // Relacje
             builder.HasOne(s => s.Submitter)
@@ -29,6 +36,11 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .WithOne(a => a.Submission)
                 .HasForeignKey<Submission>(s => s.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(s => s.Plan)
+                .WithMany(p => p.Submissions)
+                .HasForeignKey(s => s.PlanId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

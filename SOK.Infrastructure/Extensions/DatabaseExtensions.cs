@@ -68,7 +68,7 @@ namespace SOK.Infrastructure.Extensions
             services.AddDbContext<ParishDbContext>();
 
             // Zarejestruj seedery baz danych
-            services.AddScoped<IDbSeeder, CentralDbSeeder>();
+            services.AddScoped<IDbSeeder, DbSeeder>();
 
             return services;
         }

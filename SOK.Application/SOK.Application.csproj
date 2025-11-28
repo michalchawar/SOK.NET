@@ -10,4 +10,10 @@
     <ProjectReference Include="..\SOK.Domain\SOK.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Templates\Email\*.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

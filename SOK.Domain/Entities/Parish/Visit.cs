@@ -5,58 +5,58 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje pojedyncz¹ wizytê duszpastersk¹ w ramach agendy i harmonogramu.
-    /// Zawiera informacje o statusie, kolejnoœci, powi¹zaniach z agend¹, harmonogramem oraz historiê zmian.
+    /// Reprezentuje pojedynczÄ… wizytÄ™ duszpasterskÄ… w ramach agendy i harmonogramu.
+    /// Zawiera informacje o statusie, kolejnoÅ›ci, powiÄ…zaniach z agendÄ…, harmonogramem oraz historiÄ™ zmian.
     /// </summary>
     public class Visit
     {
         /// <summary>
-        /// Unikalny identyfikator wizyty (klucz g³ówny).
+        /// Unikalny identyfikator wizyty (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Numer porz¹dkowy wizyty w ramach agendy (planowana kolejnoœæ odwiedzin).
+        /// Numer porzÄ…dkowy wizyty w ramach agendy (planowana kolejnoÅ›Ä‡ odwiedzin).
         /// </summary>
         [Range(1, 300)]
         public int? OrdinalNumber { get; set; }
 
         /// <summary>
-        /// Status wizyty. Wizyta nieprzypisana do ¿adnej agendy ma status Unplanned.
+        /// Status wizyty. Wizyta nieprzypisana do Å¼adnej agendy ma status Unplanned.
         /// </summary>
         [DefaultValue(VisitStatus.Unplanned)]
-        public VisitStatus Status { get; set; }
+        public VisitStatus Status { get; set; } = VisitStatus.Unplanned;
 
         /// <summary>
-        /// Identyfikator agendy, do której przypisana jest wizyta (opcjonalny).
+        /// Identyfikator agendy, do ktÃ³rej przypisana jest wizyta (opcjonalny).
         /// </summary>
-        public int? AgendaId { get; set; } = default!;
+        public int? AgendaId { get; set; }
 
         /// <summary>
-        /// Agenda, do której przypisana jest wizyta (relacja opcjonalna).
+        /// Agenda, do ktÃ³rej przypisana jest wizyta (relacja opcjonalna).
         /// </summary>
         public Agenda? Agenda { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator harmonogramu, do którego nale¿y wizyta (opcjonalny).
-        /// Mo¿e byæ null, tylko gdy Status jest równy VisitStatus.Withdrawn.
+        /// Identyfikator harmonogramu, do ktÃ³rego naleÅ¼y wizyta (opcjonalny).
+        /// MoÅ¼e byÄ‡ null, tylko gdy Status jest rÃ³wny VisitStatus.Withdrawn.
         /// </summary>
         public int? ScheduleId { get; set; }
 
         /// <summary>
-        /// Harmonogram, do którego nale¿y wizyta (relacja nawigacyjna).
-        /// Mo¿e byæ null, tylko gdy Status jest równy VisitStatus.Withdrawn.
+        /// Harmonogram, do ktÃ³rego naleÅ¼y wizyta (relacja nawigacyjna).
+        /// MoÅ¼e byÄ‡ null, tylko gdy Status jest rÃ³wny VisitStatus.Withdrawn.
         /// </summary>
         public Schedule? Schedule { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator zg³oszenia, do którego nale¿y wizyta.
+        /// Identyfikator zgÅ‚oszenia, do ktÃ³rego naleÅ¼y wizyta.
         /// </summary>
         public int SubmissionId { get; set; }
 
         /// <summary>
-        /// Zg³oszenie, do którego nale¿y wizyta (relacja nawigacyjna).
+        /// ZgÅ‚oszenie, do ktÃ³rego naleÅ¼y wizyta (relacja nawigacyjna).
         /// </summary>
         public Submission Submission { get; set; } = default!;
 

@@ -1,0 +1,14 @@
+@model IntSettingVM
+
+<label asp-for="Value" class="w-full flex flex-col gap-1">
+    <h4 class="text-xl font-medium">@Model.Name</h4>
+    <p class="text-sm opacity-70 mb-2">@Model.Description</p>
+    <input asp-for="Value" name="@Model.Key" id="@Model.Key.Replace(".", "_")" type="number" min="@Model.MinValue" max="@Model.MaxValue" autocomplete="off"
+        readonly='@(Model.Readonly ? "readonly" : null)' disabled='@(Model.Readonly ? "disabled" : null)'
+        class="input input-lg w-full @(Model.Readonly ? "input-ghost" : "")" />
+    @if (!string.IsNullOrEmpty(Model.Hint))
+    {
+        <span class="text-sm opacity-70"><i>@Model.Hint</i></span>
+    }
+    <span asp-validation-for="Value" class="text-error text-sm"></span>
+</label>

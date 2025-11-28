@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje ulicê w mieœcie.
-    /// Ulica mo¿e mieæ wiele budynków i jest powi¹zana z okreœlonym typem (np. ul., al., pl.).
+    /// Reprezentuje ulicÄ™ w mieÅ›cie.
+    /// Ulica moÅ¼e mieÄ‡ wiele budynkÃ³w i jest powiÄ…zana z okreÅ›lonym typem (np. ul., al., pl.).
     /// </summary>
     public class Street
     {
         /// <summary>
-        /// Unikalny identyfikator ulicy (klucz g³ówny).
+        /// Unikalny identyfikator ulicy (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
@@ -18,13 +18,13 @@ namespace SOK.Domain.Entities.Parish
         /// Nazwa ulicy.
         /// </summary>
         [MaxLength(128)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Kod pocztowy przypisany do ulicy (opcjonalny).
         /// </summary>
         [MaxLength(16)]
-        public string? PostalCode { get; set; }
+        public string? PostalCode { get; set; } = null;
 
         /// <summary>
         /// Identyfikator typu ulicy.
@@ -37,17 +37,17 @@ namespace SOK.Domain.Entities.Parish
         public StreetSpecifier Type { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator miasta, w którym znajduje siê ulica.
+        /// Identyfikator miasta, w ktÃ³rym znajduje siÄ™ ulica.
         /// </summary>
         public int CityId { get; set; }
 
         /// <summary>
-        /// Miasto, w którym znajduje siê ulica (relacja nawigacyjna).
+        /// Miasto, w ktÃ³rym znajduje siÄ™ ulica (relacja nawigacyjna).
         /// </summary>
         public City City { get; set; } = default!;
 
         /// <summary>
-        /// Lista budynków znajduj¹cych siê przy tej ulicy.
+        /// Lista budynkÃ³w znajdujÄ…cych siÄ™ przy tej ulicy.
         /// </summary>
         public ICollection<Building> Buildings { get; set; } = new List<Building>();
     }

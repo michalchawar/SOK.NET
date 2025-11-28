@@ -8,57 +8,94 @@ namespace SOK.Domain.Entities.Parish
     public class Address
     {
         /// <summary>
-        /// Unikalny identyfikator adresu (klucz g³ówny).
+        /// Unikalny identyfikator adresu (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Numer apartamentu/mieszkania (jeœli w budynku jest wiele).
+        /// Numer apartamentu/mieszkania (jeÅ›li w budynku jest wiele).
         /// Krotka (Building, ApartmentNumber, ApartmentLetter) jest unikalna.
         /// </summary>
         [Range(1, 300)]
-        public int? ApartmentNumber { get; set; }
+        public int? ApartmentNumber { get; set; } = null;
 
         /// <summary>
         /// Litera apartamentu/mieszkania (opcjonalna).
         /// </summary>
         [MaxLength(3)]
-        public string? ApartmentLetter { get; set; }
+        public string? ApartmentLetter { get; set; } = null;
 
         /// <summary>
-        /// Identyfikator budynku, w którym znajduje siê adres.
+        /// Identyfikator budynku, w ktÃ³rym znajduje siÄ™ adres.
         /// </summary>
         public int BuildingId { get; set; }
 
         /// <summary>
-        /// Budynek, w którym znajduje siê adres (relacja nawigacyjna).
+        /// Budynek, w ktÃ³rym znajduje siÄ™ adres (relacja nawigacyjna).
         /// </summary>
         public Building Building { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator ulicy, na której znajduje siê adres.
-        /// </summary>
-        public int StreetId { get; set; }
-
-        /// <summary>
-        /// Ulica, na której znajduje siê adres (relacja nawigacyjna).
-        /// </summary>
-        public Street Street { get; set; } = default!;
-
-        /// <summary>
-        /// Identyfikator miasta, w którym znajduje siê adres.
-        /// </summary>
-        public int CityId { get; set; }
-
-        /// <summary>
-        /// Miasto, w którym znajduje siê adres (relacja nawigacyjna).
-        /// </summary>
-        public City City { get; set; } = default!;
-
-        /// <summary>
-        /// Zg³oszenie powi¹zane z adresem (relacja opcjonalna).
+        /// ZgÅ‚oszenie powiÄ…zane z adresem (relacja opcjonalna).
         /// </summary>
         public Submission? Submission { get; set; } = default!;
+
+
+        /// <summary>
+        /// Numer budynku (cache).
+        /// </summary>
+        /// <remarks>
+        /// Aktualizowany jest przez wyzwalacz bazy danych przy kaÅ¼dej zmianie powiÄ…zanego budynku.
+        /// </remarks>
+        [Range(1, 300)]
+        public int? BuildingNumber { get; private set; }
+
+        /// <summary>
+        /// Litera budynku (cache).
+        /// </summary>
+        /// <remarks>
+        /// Aktualizowany jest przez wyzwalacz bazy danych przy kaÅ¼dej zmianie powiÄ…zanego budynku.
+        /// </remarks>
+        [MaxLength(3)]
+        public string? BuildingLetter { get; private set; }
+
+        /// <summary>
+        /// Nazwa ulicy (cache).
+        /// </summary>
+        /// <remarks>
+        /// Aktualizowany jest przez wyzwalacz bazy danych przy kaÅ¼dej zmianie powiÄ…zanej ulicy.
+        /// </remarks>
+        [MaxLength(128)]
+        public string? StreetName { get; private set; }
+
+        /// <summary>
+        /// SkrÃ³t typu ulicy (cache).
+        /// </summary>
+        /// <remarks>
+        /// Aktualizowany jest przez wyzwalacz bazy danych przy kaÅ¼dej zmianie powiÄ…zanej ulicy.
+        /// </remarks>
+        [MaxLength(64)]
+        public string? StreetType { get; private set; }
+
+        /// <summary>
+        /// Nazwa miasta (cache).
+        /// </summary>
+        /// <remarks>
+        /// Aktualizowany jest przez wyzwalacz bazy danych przy kaÅ¼dej zmianie powiÄ…zanego miasta.
+        /// </remarks>
+        [MaxLength(128)]
+        public string? CityName { get; private set; }
+
+
+        /// <summary>
+        /// Reprezentacja tekstowa adresu do celÃ³w filtrowania.
+        /// </summary>
+        /// <remarks>
+        /// Aktualizowana jest przez wyzwalacz bazy danych przy kaÅ¼dej zmianie adresu, 
+        /// powiÄ…zanego budynku, ulicy lub miasta.
+        /// </remarks>
+        [MaxLength(1024)]
+        public string FilterableString { get; private set; } = string.Empty;
     }
 }

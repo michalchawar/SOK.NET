@@ -1,8 +1,10 @@
 @import "tailwindcss";
+@source "./wwwroot/**/*.js,./Views/**/*.cshtml";
 @plugin "daisyui";
 
+@custom-variant aria-invalid (&[aria-invalid="true"]);
 
-:root {
+@theme {
     --color-primary: var(--color-sky-600);
     --color-secondary: var(--color-amber-500);
     --color-neutral: var(--color-gray-400);
@@ -12,24 +14,75 @@
     --color-error: var(--color-rose-600);
 }
 
+@theme {
+    --font-nunito-sans: "Nunito Sans", ui-sans-serif, system-ui;
+    --font-noto-sans: "Noto Sans", ui-sans-serif, system-ui;
+    --font-outfit: "Outfit", ui-sans-serif, system-ui;
+}
+
+body {
+    @apply font-outfit;
+}
+
+@layer utilities {
+    .navbar {
+        @apply py-1;
+        min-height: 2rem;
+    }
+
+    .btn {
+        --btn-border: var(--btn-bg);
+        @apply shadow-none;
+    }
+
+    .collapse-arrow > .collapse-title {
+        @apply after:top-1/2;
+    }
+
+    .label {
+        @apply text-wrap;
+    }
+
+    .input, .select, .textarea {
+        transition: border-color 0.2s, box-shadow 0.2s, outline 0.05s, outline-offset 0.05s;
+    }
+
+    .btn:focus {
+        box-shadow: 0 0 0 .1rem #e1e1e1,0 0 0 .25rem var(--color-primary) !important;
+    }
+
+    [id$="-app"]:not([data-is-loaded="true"]) {
+        @apply relative;
+
+        &::after {
+            content: "Loading...";
+            @apply loading loading-spinner loading-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+        }
+
+        & * {
+            @apply hidden;
+        }
+
+    }
+}
 
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 17px;
-  }
+    html {
+        font-size: 17px;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  height: 100%;
+    position: relative;
+    height: 100%;
 }
 
 body {
@@ -37,5 +90,9 @@ body {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+}
+
+.collapse-title.p-0::after {
+    top: 0;
 }

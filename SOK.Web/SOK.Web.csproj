@@ -21,8 +21,4 @@
     <ProjectReference Include="..\SOK.Infrastructure\SOK.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ViewModels\Parish\" />
-  </ItemGroup>
-
 </Project>

@@ -1,0 +1,18 @@
+﻿services:
+  app:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: web-dev
+    build: !reset null
+    # Nadpisujemy build output — montujemy kod źródłowy
+    volumes:
+      - .:/src
+      - /src/SOK.Web/bin
+      - /src/SOK.Web/obj
+    # command: dotnet watch run --urls=http://0.0.0.0:8080
+    entrypoint: ["dotnet", "watch", "run", "--urls=http://0.0.0.0:8080", "--non-interactive", "--project", "/src/SOK.Web/SOK.Web.csproj"]
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"
+  
+  db:
+    container_name: db-dev

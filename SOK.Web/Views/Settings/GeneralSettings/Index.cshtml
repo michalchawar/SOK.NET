@@ -1,0 +1,245 @@
+@model SettingsListVM
+@{
+    ViewData["Title"] = "Ustawienia ogólne";
+    var settingsData = Model.Sections.SelectMany(s => s.Settings).Select(setting => new {
+        key = setting.Key,
+        value = setting is StringSettingVM str ? str.Value : 
+                setting is IntSettingVM i ? i.Value.ToString() :
+                setting is CheckSettingVM c ? c.Value.ToString().ToLower() : "",
+        defaultValue = setting is StringSettingVM str2 ? str2.DefaultValue : 
+                       setting is IntSettingVM i2 ? i2.DefaultValue.ToString() :
+                       setting is CheckSettingVM c2 ? c2.DefaultValue.ToString().ToLower() : "",
+        isReadonly = setting.Readonly
+    }).ToList();
+    var settingsJson = System.Text.Json.JsonSerializer.Serialize(settingsData);
+}
+
+<div id="general-settings-app" class="min-h-full w-full flex flex-col gap-3 items-center justify-start">
+    <div class="sticky -top-4 z-10 shadow-md flex justify-between items-center w-11/12 text-3xl font-bold font-nunito-sans bg-base-300 rounded-sm p-5">
+        <h2 class="">Ustawienia</h2>
+
+        <!-- Przycisk zapisu (pokazuje się tylko gdy są zmiany) -->
+        <div class="min-h-11 flex justify-end items-center">
+            <div v-if="hasChanges" class="flex justify-end gap-x-2">
+                <button @@click="resetChanges"
+                        class="btn btn-outline btn-warning"
+                        :disabled="isSaving">
+                    <span v-if="!isSaving">Cofnij zmiany</span>
+                </button>
+                <button @@click="saveChanges"
+                        class="btn btn-primary"
+                        :disabled="isSaving">
+                    <span v-if="!isSaving">Zapisz zmiany ({{ modifiedCount }})</span>
+                    <span v-else class="loading loading-spinner"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <!-- Alert dla statusu zapisu -->
+        <div v-if="saveStatus.show" 
+             :class="['alert', saveStatus.type === 'success' ? 'alert-success' : 'alert-error', 'shadow-lg']"
+             role="alert">
+            <span>{{ saveStatus.message }}</span>
+        </div>
+
+        @foreach (var section in Model.Sections)
+        {
+            <div class="flex flex-col gap-3 items-start w-full justify-start">
+                <div class="w-full text-3xl font-bold font-nunito-sans bg-base-300 rounded-sm p-4">
+                    <h2 class="">@(section.Name)</h2>
+                    <p class="text-lg opacity-50">
+                        @(section.Description)
+                    </p>
+                </div>
+
+                <div class="w-full px-2 my-2 flex flex-col gap-3">
+                    @foreach (var setting in section.Settings)
+                    {
+                        <div v-bind:data-key="'@setting.Key'" v-bind:data-modified="isModified('@setting.Key')" class="px-4">
+                            @Html.EditorFor(m => setting, setting.GetType().Name)
+                        </div>
+                        <div class="divider my-0 opacity-50"></div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_VueScript" />
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    settings: @Html.Raw(settingsJson),
+                    modifiedSettings: new Set(),
+                    isSaving: false,
+                    saveStatus: {
+                        show: false,
+                        type: 'success',
+                        message: ''
+                    }
+                }
+            },
+            mounted() {
+                // Nasłuchuj zmian w inputach
+                document.querySelectorAll('input[id], input[type="checkbox"]').forEach(input => {
+                    const key = input.id ? input.id.replace(/_/g, '.') : input.name;
+                    
+                    if (input.type === 'checkbox') {
+                        input.addEventListener('change', (e) => {
+                            this.handleInputChange(key, e.target.checked.toString());
+                        });
+                    } else {
+                        input.addEventListener('input', (e) => {
+                            this.handleInputChange(key, e.target.value);
+                        });
+                    }
+                });
+                
+                registerVueApp('general-settings-app');
+            },
+            computed: {
+                hasChanges() {
+                    return this.modifiedSettings.size > 0;
+                },
+                modifiedCount() {
+                    return this.modifiedSettings.size;
+                }
+            },
+            methods: {
+                handleInputChange(key, newValue) {
+                    const setting = this.settings.find(s => s.key === key);
+                    if (!setting) return;
+
+                    // Sprawdź czy wartość się zmieniła względem defaultValue
+                    if (newValue !== setting.defaultValue) {
+                        this.modifiedSettings.add(key);
+                        setting.value = newValue;
+                    } else {
+                        this.modifiedSettings.delete(key);
+                        setting.value = setting.defaultValue;
+                    }
+
+                    // Aktualizuj data-modified dla wizualnej informacji
+                    const element = document.querySelector(`[data-key="${key}"]`);
+                    if (element) {
+                        element.setAttribute('data-modified', this.modifiedSettings.has(key));
+                    }
+                },
+                isModified(key) {
+                    return this.modifiedSettings.has(key);
+                },
+                async saveChanges() {
+                    if (this.isSaving || this.modifiedSettings.size === 0) return;
+
+                    this.isSaving = true;
+                    this.saveStatus.show = false;
+
+                    try {
+                        const settingsToUpdate = Array.from(this.modifiedSettings).map(key => {
+                            const setting = this.settings.find(s => s.key === key);
+                            return {
+                                key: key,
+                                value: setting.value
+                            };
+                        });
+
+                        const response = await fetch('/api/settings/update-batch', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ settings: settingsToUpdate })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            // Aktualizuj defaultValue dla zapisanych ustawień
+                            this.modifiedSettings.forEach(key => {
+                                const setting = this.settings.find(s => s.key === key);
+                                if (setting) {
+                                    setting.defaultValue = setting.value;
+                                }
+                            });
+
+                            this.modifiedSettings.clear();
+                            
+                            // Usuń data-modified z elementów
+                            document.querySelectorAll('[data-modified="true"]').forEach(el => {
+                                el.setAttribute('data-modified', 'false');
+                            });
+
+                            this.showStatus('success', result.message || 'Ustawienia zostały zapisane.');
+                        } else {
+                            this.showStatus('error', result.message || 'Wystąpił błąd podczas zapisu.');
+                        }
+                    } catch (error) {
+                        console.error('Error saving settings:', error);
+                        this.showStatus('error', 'Wystąpił błąd połączenia. Spróbuj ponownie.');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                resetChanges() {
+                    // Przywróć wartości domyślne w inputach
+                    this.modifiedSettings.forEach(key => {
+                        const setting = this.settings.find(s => s.key === key);
+                        if (!setting) return;
+
+                        const inputId = key.replace(/\./g, '_');
+                        const input = document.getElementById(inputId) || document.querySelector(`[name="${key}"]`);
+                        
+                        if (input) {
+                            if (input.type === 'checkbox') {
+                                input.checked = setting.defaultValue === 'true';
+                            } else {
+                                input.value = setting.defaultValue;
+                            }
+                        }
+
+                        setting.value = setting.defaultValue;
+                        
+                        // Usuń data-modified
+                        const element = document.querySelector(`[data-key="${key}"]`);
+                        if (element) {
+                            element.setAttribute('data-modified', 'false');
+                        }
+                    });
+
+                    this.modifiedSettings.clear();
+                    this.showStatus('success', 'Zmiany zostały cofnięte.');
+                },
+                showStatus(type, message) {
+                    @* this.saveStatus = {
+                        show: true,
+                        type: type,
+                        message: message
+                    };
+
+                    setTimeout(() => {
+                        this.saveStatus.show = false;
+                    }, 5000); *@
+
+                    notifications.resolveType(type, message);
+                }
+            }
+        }).mount("#general-settings-app");
+    </script>
+
+    <style>
+        [data-modified="true"] {
+            border-left: 4px solid #f59e0b;
+            margin-left: -4px;
+            background-color: rgba(245, 158, 11, 0.05);
+        }
+    </style>
+}

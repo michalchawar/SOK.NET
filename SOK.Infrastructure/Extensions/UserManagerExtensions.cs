@@ -110,5 +110,20 @@ namespace SOK.Infrastructure.Extensions
         {
             return await userManager.IsInRoleAsync(user, role.ToString());
         }
+
+        /// <summary>
+        /// Zwraca listę użytkowników, którzy są w podanej roli.
+        /// </summary>
+        /// <param name="role">Rola, do której mają należeć użytkownicy.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/> reprezentujący asynchroniczną operację, 
+        /// zawierający listę obiektów <see cref="User"/>, którzy są w podanej roli.
+        /// </returns>
+        public static async Task<IList<User>> GetUsersInRoleAsync(
+            this UserManager<User> userManager,
+            Role role)
+        {
+            return await userManager.GetUsersInRoleAsync(role.ToString());
+        }
     }
 }

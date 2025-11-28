@@ -5,87 +5,128 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje zg≥oszenie z≥oøone przez prywatnπ osobÍ zg≥aszajπcπ 
-    /// lub zalogowanego uøytkownika w jej imieniu. Zawiera dane powiπzane z formularzem, 
-    /// adres, wszelakie uwagi i ich status, powiπzania z planem, wizytπ i historiπ zmian.
+    /// Reprezentuje zg≈Çoszenie z≈Ço≈ºone przez prywatnƒÖ osobƒô zg≈ÇaszajƒÖcƒÖ 
+    /// lub zalogowanego u≈ºytkownika w jej imieniu. Zawiera dane powiƒÖzane z formularzem, 
+    /// adres, wszelakie uwagi i ich status, powiƒÖzania z planem, wizytƒÖ i historiƒÖ zmian.
     /// </summary>
     public class Submission
     {
         /// <summary>
-        /// Unikalny identyfikator zg≥oszenia (klucz g≥Ûwny).
+        /// Unikalny identyfikator zg≈Çoszenia (klucz g≈Ç√≥wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Publiczny unikalny identyfikator zg≥oszenia (GUID), wykorzystywany g≥Ûwnie do udostÍpniania lub autoryzacji (w po≥πczeniu z AccessToken).
+        /// Publiczny unikalny identyfikator zg≈Çoszenia (GUID), wykorzystywany g≈Ç√≥wnie do udostƒôpniania lub autoryzacji (w po≈ÇƒÖczeniu z AccessToken).
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// Token dostÍpu do zg≥oszenia, uøywany do autoryzacji w po≥πczeniu z UniqueId.
+        /// Token dostƒôpu do zg≈Çoszenia, u≈ºywany do autoryzacji w po≈ÇƒÖczeniu z UniqueId.
         /// </summary>
         [MaxLength(64)]
-        public string AccessToken { get; set; } = default!;
+        public string AccessToken { get; set; } = null!;
 
         /// <summary>
-        /// Uwagi zg≥aszajπcego (opcjonalne).
+        /// Uwagi zg≈ÇaszajƒÖcego (opcjonalne).
         /// </summary>
         [MaxLength(512)]
-        public string? SubmitterNotes { get; set; }
+        public string? SubmitterNotes { get; set; } = null;
 
         /// <summary>
-        /// WiadomoúÊ administracyjna skierowana do zg≥aszajπcego (opcjonalna).
+        /// Wiadomo≈õƒá administracyjna skierowana do zg≈ÇaszajƒÖcego (opcjonalna).
         /// </summary>
         [MaxLength(512)]
-        public string? AdminMessage { get; set; }
+        public string? AdminMessage { get; set; } = null;
 
         /// <summary>
-        /// Systemowe notatki administratora dotyczπce zg≥oszenia (opcjonalne).
+        /// Systemowe notatki administratora dotyczƒÖce zg≈Çoszenia (opcjonalne).
         /// </summary>
         [MaxLength(512)]
-        public string? AdminNotes { get; set; }
+        public string? AdminNotes { get; set; } = null;
 
         /// <summary>
-        /// Status realizacji uwag od uøytkownika.
-        /// Status jest rÛwny NotesFulfillmentStatus.NA, jeúli zg≥oszenie nie zawiera uwag od uøytkownika.
+        /// Status realizacji uwag od u≈ºytkownika.
+        /// Status jest r√≥wny NotesFulfillmentStatus.NA, je≈õli zg≈Çoszenie nie zawiera uwag od u≈ºytkownika.
         /// </summary>
         [DefaultValue(NotesFulfillmentStatus.NA)]
-        public NotesFulfillmentStatus NotesStatus { get; set; }
+        public NotesFulfillmentStatus NotesStatus { get; set; } = NotesFulfillmentStatus.NA;
 
         /// <summary>
-        /// Identyfikator osoby zg≥aszajπcej (Submitter).
+        /// Data i godzina rejestracji zg≈Çoszenia.
         /// </summary>
-        public int SubmitterId { get; set; } = default!;
+        public DateTime SubmitTime { get; private set; }
 
         /// <summary>
-        /// Osoba zg≥aszajπca (relacja nawigacyjna).
+        /// Identyfikator osoby zg≈ÇaszajƒÖcej (Submitter).
+        /// </summary>
+        public int SubmitterId { get; set; }
+
+        /// <summary>
+        /// Osoba zg≈ÇaszajƒÖca (relacja nawigacyjna).
         /// </summary>
         public Submitter Submitter { get; set; } = default!;
 
         /// <summary>
-        /// Identyfikator adresu powiπzanego ze zg≥oszeniem.
+        /// Identyfikator adresu powiƒÖzanego ze zg≈Çoszeniem.
         /// </summary>
-        public int AddressId { get; set; } = default!;
+        public int AddressId { get; set; }
 
         /// <summary>
-        /// Adres powiπzany ze zg≥oszeniem (relacja nawigacyjna).
+        /// Adres powiƒÖzany ze zg≈Çoszeniem (relacja nawigacyjna).
         /// </summary>
         public Address Address { get; set; } = default!;
 
         /// <summary>
-        /// Powiπzane archiwalne dane formularza zg≥oszeniowego.
+        /// PowiƒÖzane archiwalne dane formularza zg≈Çoszeniowego.
         /// </summary>
         public FormSubmission FormSubmission { get; set; } = default!;
 
         /// <summary>
-        /// Wizyta powiπzana ze zg≥oszeniem (relacja nawigacyjna).
+        /// Wizyta powiƒÖzana ze zg≈Çoszeniem (relacja nawigacyjna).
         /// </summary>
         public Visit Visit { get; set; } = default!;
 
         /// <summary>
-        /// Historia zmian zg≥oszenia (snapshoty).
+        /// Identyfikator planu, do kt√≥rego nale≈ºy zg≈Çoszenie.
+        /// </summary>
+        /// <remarks>
+        /// Ta w≈Ça≈õciwo≈õƒá jest ustawiana podczas tworzenia zg≈Çoszenia i nie mo≈ºe byƒá modyfikowana p√≥≈∫niej.
+        /// </remarks>
+        public int PlanId { get; private set; }
+        
+        /// <summary>
+        /// Plan, do kt√≥rego nale≈ºy zg≈Çoszenie (relacja nawigacyjna).
+        /// </summary>
+        /// <remarks>
+        /// Ta w≈Ça≈õciwo≈õƒá jest ustawiana podczas tworzenia zg≈Çoszenia i nie mo≈ºe byƒá modyfikowana p√≥≈∫niej.
+        /// </remarks>
+        public Plan Plan { get; private set; } = default!;
+
+        /// <summary>
+        /// Historia zmian zg≈Çoszenia (snapshoty).
         /// </summary>
         public ICollection<SubmissionSnapshot> History { get; set; } = new List<SubmissionSnapshot>();
+        
+        /// <summary>
+        /// Wys≈Çane (bƒÖd≈∫ zakolejkowane) maile.
+        /// </summary>
+        public ICollection<EmailLog> EmailLogs { get; set; } = new List<EmailLog>();
+
+        /// <summary>
+        /// Konstruktor bezparametrowy.
+        /// </summary>
+        public Submission() {}
+
+        /// <summary>
+        /// Konstruktor tworzƒÖcy zg≈Çoszenie powiƒÖzane z okre≈õlonym planem.
+        /// </summary>
+        /// <param name="plan">Plan, do kt√≥rego nale≈ºy zg≈Çoszenie.</param>
+        public Submission(Plan plan)
+        {
+            PlanId = plan.Id;
+            Plan = plan;
+        }
     }
 }

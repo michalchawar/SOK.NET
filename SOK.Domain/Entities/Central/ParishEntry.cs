@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Central
 {
     /// <summary>
-    /// Reprezentuje parafiê w systemie.
-    /// Przechowuje podstawowe dane dla ka¿dej parafii.
+    /// Reprezentuje parafiÄ™ w systemie.
+    /// Przechowuje podstawowe dane dla kaÅ¼dej parafii.
     /// </summary>
     public class ParishEntry
     {
         /// <summary>
-        /// Unikalny identyfikator parafii (klucz g³ówny).
+        /// Unikalny identyfikator parafii (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
@@ -17,19 +17,19 @@ namespace SOK.Domain.Entities.Central
         /// <summary>
         /// Publiczny unikalny identyfikator parafii (unikalny w systemie).
         /// </summary>
-        public Guid UniqueId { get; set; } = default!;
+        public Guid UniqueId { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Nazwa parafii, widoczna dla administratora.
         /// </summary>
         [MaxLength(256)]
-        public string ParishName { get; set; } = default!;
+        public string ParishName { get; set; } = string.Empty;
 
         /// <summary>
         /// Zaszyfrowany ConnectionString dla bazy indywidualnej.
         /// </summary>
         [MaxLength(1024)]
-        public string EncryptedConnectionString { get; set; } = default!;
+        public string EncryptedConnectionString { get; set; } = string.Empty;
 
         /// <summary>
         /// Data i godzina utworzenia parafii w systemie.
@@ -37,12 +37,7 @@ namespace SOK.Domain.Entities.Central
         public DateTime CreationTime { get; private set; }
 
         /// <summary>
-        /// Nazwa ostatniej zastosowanej migracji.
-        /// </summary>
-        public string? MigrationVersion { get; set; }
-
-        /// <summary>
-        /// Lista u¿ytkowników, którzy s¹ przypisani do tej parafii.
+        /// Lista uÅ¼ytkownikÃ³w, ktÃ³rzy sÄ… przypisani do tej parafii.
         /// </summary>
         public ICollection<User> Users { get; set; } = new List<User>();
     }

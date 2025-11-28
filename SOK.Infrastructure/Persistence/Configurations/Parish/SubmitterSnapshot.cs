@@ -8,11 +8,11 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<SubmitterSnapshot> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
-            // (nie ma potrzeby dodatkowych indeksów poza kluczem g³ównym)
+            // Indeksy i unikalnoÅ›Ä‡
+            // (nie ma potrzeby dodatkowych indeksÃ³w poza kluczem gÅ‚Ã³wnym)
 
             // Generowane pola
             builder.Property(ss => ss.ChangeTime)

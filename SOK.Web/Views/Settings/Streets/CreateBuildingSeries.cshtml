@@ -1,0 +1,231 @@
+@model BuildingSeriesVM
+@{
+    ViewData["Title"] = "Utwórz wiele budynków";
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="CreateBuildingSeries" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <a asp-action="CreateBuilding" asp-route-streetId="@Model.StreetId" class="w-full btn btn-primary btn-outline px-12 py-6 rounded-sm flex gap-3 justify-center items-center text-center">
+            <i class="bi bi-chevron-left text-3xl"></i>
+            <h4 class="flex-1 text-lg font-semibold">
+                Dodaj pojedynczy budynek
+            </h4>
+        </a>
+
+        <!-- === Sekcja 1: Ulica === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Ulica</h2>
+                <p class="text-sm opacity-40">
+                    Nazwa ulicy, do której przypisane będą budynki.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-2xl">
+                    @Model.StreetName
+                </h4>
+                <input type="hidden" asp-for="StreetName" />
+                <input type="hidden" asp-for="StreetId" />
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 2: Bramy === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Zakres numerów</h2>
+                <p class="text-sm opacity-40">
+                    Podaj pierwszy i ostatni numer w serii. System utworzy wszystkie budynki z tego zakresu, włącznie z podanymi.
+                    Jeśli w systemie znajdują się już budynki z niektórymi numerami, nie zostaną one nadpisane.
+                </p>
+            </div>
+            <div>
+                <div class="flex gap-2 justify-center items-center">
+                    <label asp-for="From" class="flex-1">
+                        <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.From)</span>
+                        <input asp-for="From" class="input input-lg w-full" placeholder="Np. 1" min=1 max=299 />
+                    </label>
+                    <span class="font-semibold text-lg opacity-70 pt-5">
+                        -
+                    </span>
+                    <label asp-for="To" class="flex-1">
+                        <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.To)</span>
+                        <input asp-for="To" class="input input-lg w-full" placeholder="Np. 12" min=2 max=299 />
+                    </label>
+                </div>
+                <span asp-validation-for="From" class="text-error text-sm w-full"></span>
+                <span asp-validation-for="To" class="text-error text-sm w-full"></span>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Naprzemienność === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Naprzemienność</h2>
+                <p class="text-sm opacity-40">
+                    Wybierz, czy chcesz stworzyć tylko parzyste budynki, tylko nieparzyste, czy wszystkie po kolei.
+                </p>
+            </div>
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <input asp-for="InsertMode" type="hidden" min=0 max=2>
+
+                    <button type="button" id="alternateAll" class="p-3 btn h-auto flex flex-col gap-1 focus:shadow-none! col-span-full btn-active btn-primary">
+                        <h4 class="font-medium text-center text-lg">Wszystkie</h4>
+                        <p class="opacity-60">
+                            Budynki: 
+                            <span class="font-semibold">1, 2, 3, 4, 5, 6, 7, 8, 9, 10</span>
+                        </p>
+                    </button>
+
+                    <button type="button" id="alternateEven" class="p-3 btn h-auto flex flex-col gap-1 focus:shadow-none!">
+                        <h4 class="font-medium text-center text-lg">Parzyste</h4>
+                        <p class="opacity-60">
+                            Budynki: 
+                            <span class="font-semibold">2, 4, 6, 8, 10</span>
+                        </p>
+                    </button>
+
+                    <button type="button" id="alternateOdd" class="p-3 btn h-auto flex flex-col gap-1 focus:shadow-none!">
+                        <h4 class="font-medium text-center text-lg">Nieparzyste</h4>
+                        <p class="opacity-60">
+                            Budynki: 
+                            <span class="font-semibold">1, 3, 5, 7, 9</span>
+                        </p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Dodatkowe ustawienia === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Dostępność windy</h2>
+                <p class="text-sm opacity-40">
+                    Określ, czy w tych budynkach znajduje się winda. Będziesz mógł później edytować tę właściwość dla poszczególnych budynków.
+                </p>
+            </div>
+            <div>
+                <label asp-for="HasElevator" class="w-full">
+                    <input asp-for="HasElevator" class="checkbox checkbox-primary checkbox-lg mr-2" />
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(b => b.HasElevator)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <div asp-validation-summary="All" class="text-sm text-error"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="Streets" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+            <button type="submit" class="btn btn-primary">Utwórz budynki</button>
+            <a asp-action="Streets" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radios = {
+                all: document.getElementById('alternateAll'),
+                even: document.getElementById('alternateEven'),
+                odd: document.getElementById('alternateOdd')
+            };
+
+            const insertModeInput = document.getElementById('InsertMode');
+
+            Object.values(radios).forEach(r => r.addEventListener('click', function(evt) {
+                Object.values(radios).forEach(btn => btn.classList.remove('btn-active', 'btn-primary'));
+                this.classList.add('btn-active', 'btn-primary');
+
+                if (this.id === 'alternateAll')
+                    insertModeInput.value = 0;
+                else if (this.id === 'alternateEven')
+                    insertModeInput.value = 1;
+                else if (this.id === 'alternateOdd')
+                    insertModeInput.value = 2;
+            }));
+
+            const rangeInputs = {
+                from: document.getElementById('From'),
+                to: document.getElementById('To')
+            };
+
+            function parseNumbersToTexts(numbers) {
+                if (numbers.length == 0)
+                    return '(brak)';
+                if (numbers.length > 5)
+                    return numbers.slice(0, 2).join(', ') + ', ..., ' + numbers.slice(-2).join(', ');
+                
+                return numbers.join(', ');
+            }
+
+            Object.values(rangeInputs).forEach(i => i.addEventListener('change', function() {
+                let from = parseInt(rangeInputs.from.value) || 0;
+                let to = parseInt(rangeInputs.to.value) || 0;
+
+                if (from < rangeInputs.from.min)
+                    from = rangeInputs.from.min;
+                if (from > rangeInputs.from.max)
+                    from = rangeInputs.from.max;
+                if (to < rangeInputs.to.min)
+                    to = rangeInputs.to.min;
+                if (to > rangeInputs.to.max)
+                    to = rangeInputs.to.max;
+                if (from > to)
+                    to = from;
+
+                rangeInputs.from.value = from;
+                rangeInputs.to.value = to;
+
+                let buildingNumbers = {
+                    all: [],
+                    even: [],
+                    odd: []
+                };
+                
+                for (let i = from; i <= to; i++) {
+                    buildingNumbers.all.push(i);
+                    if (i % 2 === 0) {
+                        buildingNumbers.even.push(i);
+                    } else {
+                        buildingNumbers.odd.push(i);
+                    }
+                }
+
+                document.querySelector('#alternateAll p span').textContent = parseNumbersToTexts(buildingNumbers.all);
+                document.querySelector('#alternateEven p span').textContent = parseNumbersToTexts(buildingNumbers.even);
+                document.querySelector('#alternateOdd p span').textContent = parseNumbersToTexts(buildingNumbers.odd);
+
+                if (buildingNumbers.even.length === 0) {
+                    radios.even.disabled = true;
+                    if (insertModeInput.value == 1)
+                        radios.all.click();
+                }
+                else
+                    radios.even.disabled = false;
+                if (buildingNumbers.odd.length === 0) {
+                    radios.odd.disabled = true;
+                    if (insertModeInput.value == 2)
+                        radios.all.click();
+                }
+                else
+                    radios.odd.disabled = false;
+            }));
+        });
+    </script>
+}

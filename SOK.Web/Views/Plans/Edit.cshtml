@@ -1,0 +1,275 @@
+@model PlanVM
+@{
+    ViewData["Title"] = "Edytuj plan";
+
+    string currentSeason = DateTime.Now.ToString("yyyy") + "/" + DateTime.Now.AddYears(1).ToString("yy");
+}
+
+<div id="edit-plan-app" class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="Edit" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <!-- === Sekcja 1: Nazwa planu === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Nazwij plan</h2>
+                <p class="text-sm opacity-40">
+                    Wpisz nazwę planu kolędy. Powinna być krótka i jednoznaczna.
+                </p>
+            </div>
+            <div>
+                <label class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.Name)</span>
+                    <input asp-for="Name" class="input input-lg w-full" placeholder="Np. Kolęda @currentSeason" />
+                    <span asp-validation-for="Name" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 2: Harmonogramy === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Dodaj harmonogramy</h2>
+                <p class="text-sm opacity-40">
+                    Każdy plan może zawierać kilka harmonogramów. Możesz wybrać, który z nich będzie domyślny. Publiczny
+                    formularz zgłoszeniowy przyjmuje zgłoszenia na domyślny harmonogram.
+                </p>
+                <p class="text-sm text-warning mt-2" v-if="!form.schedules.some(s => s.isDefault)">
+                    <i class="bi bi-exclamation-triangle mr-1"></i> Jeśli nie wybierzesz domyślnego harmonogramu, publiczny
+                    formularz zgłoszeniowy nie będzie przyjmował zgłoszeń.
+                </p>
+            </div>
+            <div>
+                <div class="space-y-3">
+                    <div v-for="(schedule, index) in form.schedules" :key="index" class="flex items-center gap-3">
+                        <button type="button" @@click="toggleDefault(index)"
+                            class="flex-1 text-start p-3 btn h-auto justify-start focus:shadow-none! wrap-anywhere"
+                            :class="{'btn-primary': schedule.isDefault, 'btn-soft': !schedule.isDefault}">
+                            <input type="number" class="hidden" :id="`Schedules_${index}__Id`"
+                                :name="`Schedules[${index}].Id`" v-model="schedule.id" readonly>
+                            <input type="text" class="hidden" :id="`Schedules_${index}__Name`"
+                                :name="`Schedules[${index}].Name`" v-model="schedule.name" readonly>
+                            <input type="text" class="hidden" :id="`Schedules_${index}__ShortName`"
+                                :name="`Schedules[${index}].ShortName`" v-model="schedule.shortName" readonly>
+                            <input type="checkbox" class="hidden" :id="`Schedules_${index}__IsDefault`"
+                                :name="`Schedules[${index}].IsDefault`" v-model="schedule.isDefault" value="true" readonly>
+                            <p class="text-xl opacity-40">{{ schedule.shortName }}</p>
+                            <p class="text-md font-medium flex-1">{{ schedule.name }}</p>
+                            <p class="text-xs opacity-50 font-normal" v-if="schedule.isDefault">DOMYŚLNY</p>
+                        </button>
+                        <button type="button" class="btn btn-soft py-5" @@click="editSchedule(index)">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button" class="btn btn-soft py-5 text-error" @@click="removeSchedule(index)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <div class="opacity-70" v-if="form.schedules.length == 0">
+                        <h2 class="text-md font-semibold mb-1">Brak harmonogramów</h2>
+                        <p class="text-sm opacity-50">
+                            Dodaj harmonogramy, aby móc przyjmować zgłoszenia.
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-primary w-full" @@click="openScheduleModal">
+                        <i class="bi bi-plus-lg"></i> Dodaj harmonogram
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Przypisani księża === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Przypisz księży</h2>
+                <p class="text-sm opacity-40">
+                    Wybierz księży, którzy będą dostępni w tym planie.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div v-for="(priest, index) in form.priests" :key="priest.id" class="flex gap-1.5 items-center">
+                    <button type="button" @@click="toggleActive(index)"
+                        class="flex-1 text-start p-3 btn h-auto justify-start focus:shadow-none! wrap-anywhere"
+                        :class="{'btn-primary': priest.isActive, 'btn-soft': !priest.isActive}">
+                        <input type="number" class="hidden" :id="`Priests_${index}__Id`"
+                            :name="`Priests[${index}].Id`" v-model="priest.id" v-if="priest.id != null" readonly>
+                        <input type="text" class="hidden" :id="`Priests_${index}__DisplayName`"
+                            :name="`Priests[${index}].DisplayName`" v-model="priest.displayName" readonly>
+                        <input type="checkbox" class="hidden" :id="`Priests_${index}__IsActive`"
+                            :name="`Priests[${index}].IsActive`" v-model="priest.isActive" value="true" readonly>
+                        <p class="text-md font-medium flex-1">{{ priest.displayName }}</p>
+                        <p class="text-xs opacity-50 font-normal" v-if="priest.isActive">AKTYWNY</p>
+                    </button>
+                    <button type="button" class="btn btn-soft py-5 text-error" v-if="priest.id == null" @@click="removePriest(index)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <div class="col-span-full opacity-70" v-if="form.priests.length == 0">
+                    <h2 class="text-md font-semibold mb-1">Brak księży w systemie</h2>
+                    <p class="text-sm opacity-50">
+                        W systemie nie dodano jeszcze żadnych użytkowników z rolą księdza. Kliknij poniżej, aby utworzyć nowego księdza.
+                    </p>
+                </div>
+                <button type="button" class="btn btn-outline btn-primary w-full col-span-full" @@click="openPriestModal">
+                    <i class="bi bi-plus-lg"></i> Dodaj księdza
+                </button>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20">
+            <div asp-validation-summary="All" class="text-sm text-error"></div>
+        </div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center gap-3">
+            <a asp-action="Index" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+            <button type="submit" class="btn btn-primary">Zaktualizuj plan</button>
+            <a asp-action="Index" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+        </div>
+    </form>
+
+    <!-- === Modal: Nowy harmonogram === -->
+    <dialog id="schedule-modal" class="modal" :class="{ 'modal-open': showScheduleModal }">
+        <div class="modal-box">
+            <form id="schedule-modal-form">
+                <h3 class="font-bold text-lg mb-4">
+                    {{ newSchedule.index != null ? 'Edytuj harmonogram' : 'Dodaj nowy harmonogram' }}
+                </h3>
+                <div class="mb-3">
+                    <label class="label-text mb-1">Nazwa</label>
+                    <input v-model="newSchedule.name" type="text" class="input w-full" required maxlength="128"
+                        placeholder="Np. @(Model.Schedules.FirstOrDefault()?.Name ?? "Kolęda dodatkowa")" />
+                </div>
+                <div class="mb-3">
+                    <label class="label-text mb-1">Krótka nazwa</label>
+                    <input v-model="newSchedule.shortName" type="text" class="input w-full" required maxlength="24"
+                        placeholder="Np. @(Model.Schedules.FirstOrDefault()?.ShortName ?? "D")" />
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn" @@click="closeScheduleModal">Anuluj</button>
+                    <button type="submit" class="btn btn-primary" @@click.stop.prevent="addOrUpdateSchedule">{{ newSchedule.index !=
+                        null ? 'Zapisz' : 'Dodaj' }}</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- === Modal: Nowy ksiądz === -->
+    <dialog id="priest-modal" class="modal" :class="{ 'modal-open': showPriestModal }">
+        <div class="modal-box">
+            <form id="priest-modal-form">
+                <h3 class="font-bold text-lg mb-4">Dodaj nowego księdza</h3>
+                <div class="mb-3">
+                    <label class="label-text mb-1">Wyświetlana nazwa</label>
+                    <input v-model="newPriest.displayName" type="text" class="input w-full" required minlength="3" maxlength="64"
+                        placeholder="ks. Jan Kowalski" />
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn" @@click="closePriestModal">Anuluj</button>
+                    <button type="submit" class="btn btn-primary" @@click.stop.prevent="addPriest">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+</div>
+
+@section Scripts {
+    <partial name="_VueScript" />
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    form: {
+                        name: '',
+                        schedules: @Html.Raw(Json.Serialize(Model.Schedules)),
+                        priests: @Html.Raw(Json.Serialize(Model.Priests))
+                    },
+                    showScheduleModal: false,
+                    showPriestModal: false,
+                    newSchedule: { index: null, name: '', shortName: '', isDefault: false },
+                    newPriest: { displayName: '' }
+                };
+            },
+            methods: {
+                openScheduleModal() { this.showScheduleModal = true; },
+                closeScheduleModal() { 
+                    this.showScheduleModal = false; 
+                    setTimeout(() => 
+                        this.newSchedule = { index: null, name: '', shortName: '', isDefault: false }
+                    , 500);
+                },
+                addOrUpdateSchedule() {
+                    if (document.getElementById("schedule-modal-form").checkValidity()) {
+                        let index = this.newSchedule.index;
+
+                        if (index != null && this.form.schedules[index] !== undefined) {
+                            this.form.schedules[index].name = this.newSchedule.name;
+                            this.form.schedules[index].shortName = this.newSchedule.shortName;
+                        } else {
+                            this.form.schedules.push({ ...this.newSchedule });
+                        }
+
+                        this.closeScheduleModal();
+                        return;
+                    }
+
+                    document.getElementById("schedule-modal-form").reportValidity();
+                },
+                editSchedule(index) {
+                    this.newSchedule.index = index;
+                    this.newSchedule.name = this.form.schedules[index].name;
+                    this.newSchedule.shortName = this.form.schedules[index].shortName;
+                    this.newSchedule.isDefault = this.form.schedules[index].isDefault;
+
+                    this.openScheduleModal();
+                },
+                removeSchedule(index) { this.form.schedules.splice(index, 1); },
+                toggleDefault(index) {
+                    checked = this.form.schedules[index].isDefault;
+
+                    this.form.schedules.forEach(s => {
+                        s.isDefault = false;
+                    })
+                    this.form.schedules[index].isDefault = !checked;
+                },
+
+                openPriestModal() { this.showPriestModal = true; },
+                closePriestModal() { 
+                    this.showPriestModal = false;
+
+                    setTimeout(() => 
+                        this.newPriest = { displayName: '' }
+                    , 500);
+                },
+                addPriest() {
+                    if (document.getElementById("priest-modal-form").checkValidity()) {
+                        this.form.priests.push({ id: null, displayName: this.newPriest.displayName, isActive: true });
+                        this.closePriestModal();
+                        return;
+                    }
+
+                    document.getElementById("priest-modal-form").reportValidity();
+                },
+                toggleActive(index) {
+                    if (this.form.priests[index].id == null)
+                        return;
+
+                    checked = this.form.priests[index].isActive;
+                    this.form.priests[index].isActive = !checked;
+                },
+                removePriest(index) { this.form.priests.splice(index, 1); },
+            },
+            mounted() {
+                registerVueApp('edit-plan-app');
+            }
+        }).mount('#edit-plan-app');
+    </script>
+}

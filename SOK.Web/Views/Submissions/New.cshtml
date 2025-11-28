@@ -1,0 +1,156 @@
+﻿@model NewSubmissionVM
+
+@{
+    ViewData["Title"] = "Wprowadź zgłoszenie";
+}
+
+<div class="my-auto flex flex-col items-center align-middle">
+    <h2 class="mb-5 text-lg font-semibold">Utwórz nowe zgłoszenie:</h2>
+
+    <form asp-action="New" method="post" class="w-2/3">
+        <div class="grid grid-cols-2 justify-center gap-x-4 gap-y-5">
+            <div class="">
+                <label asp-for="Name" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.Name)</span>
+                    <input asp-for="Name" placeholder="@Html.DisplayNameFor(m => m.Name)" class="input w-full input-lg focus:input-primary" />
+                </label>
+                <span asp-validation-for="Name" class="text-error"></span>
+            </div>
+
+            <div class="">
+                <label asp-for="Surname" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.Surname)</span>
+                    <input asp-for="Surname" placeholder="@Html.DisplayNameFor(m => m.Surname)" class="input w-full input-lg focus:input-primary" />
+                </label>
+                <span asp-validation-for="Surname" class="text-error"></span>
+            </div>
+
+            <div class="col-span-full">
+                <label asp-for="Email" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.Email)</span>
+                    <input asp-for="Email" placeholder="@Html.DisplayNameFor(m => m.Email)" class="input w-full input-lg focus:input-primary" />
+                </label>
+                <span asp-validation-for="Email" class="text-error"></span>
+            </div>
+
+            <div class="hidden">
+                <label asp-for="Phone" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.Phone)</span>
+                    <input asp-for="Phone" placeholder="@Html.DisplayNameFor(m => m.Phone)" class="input w-full input-lg focus:input-primary" />
+                </label>
+                <span asp-validation-for="Phone" class="text-error"></span>
+            </div>
+
+            <div class="divider divider-end col-span-full my-2">
+                <label asp-for="ScheduleId" class="floating-label min-w-1/6">
+                    <span>@Html.DisplayNameFor(m => m.ScheduleId)</span>
+                    <select asp-for="ScheduleId" asp-items="@Model.ScheduleList" class="select select-sm w-full focus:select-primary">
+                    </select>
+                </label>
+            </div>
+
+            <div class="">
+                <label asp-for="StreetId" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.StreetId)</span>
+                    <select asp-for="StreetId" asp-items="@Model.StreetList" class="select select-lg w-full focus:select-primary">
+                        <option disabled selected class="">--Wybierz--</option>
+                    </select>
+                </label>
+                <span asp-validation-for="StreetId" class="text-error"></span>
+            </div>
+
+            <div class="flex gap-x-4">
+                <div class="w-1/2">
+                    <label asp-for="BuildingId" class="floating-label">
+                        <span>@Html.DisplayNameFor(m => m.BuildingId)</span>
+                        <select asp-for="BuildingId"
+                                asp-items="@(Model.BuildingList.ContainsKey(Model.StreetId) ? Model.BuildingList[Model.StreetId] : new List<SelectListItem>())" 
+                           class="select select-lg w-full focus:select-primary">
+                            <option disabled selected class="">--Wybierz--</option>
+                        </select>
+                    </label>
+                    <span asp-validation-for="BuildingId" class="text-error"></span>
+                </div>
+
+                <div class="w-1/2">
+                    <label asp-for="Apartment" class="floating-label">
+                        <span>@Html.DisplayNameFor(m => m.Apartment)</span>
+                        <input asp-for="Apartment" placeholder="@Html.DisplayNameFor(m => m.Apartment)" class="input input-lg w-full focus:input-primary" />
+                    </label>
+                    <span asp-validation-for="Apartment" class="text-error"></span>
+                </div>
+            </div>
+
+            <div class="hidden">
+                <label asp-for="SubmitterNotes" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.SubmitterNotes)</span>
+                    <textarea asp-for="SubmitterNotes" placeholder="@Html.DisplayNameFor(m => m.SubmitterNotes)" class="textarea w-full textarea-lg focus:textarea-primary">
+                            </textarea>
+                </label>
+                <span asp-validation-for="SubmitterNotes" class="text-error"></span>
+            </div>
+
+            <div class="hidden">
+                <label asp-for="AdminNotes" class="floating-label">
+                    <span>@Html.DisplayNameFor(m => m.AdminNotes)</span>
+                    <textarea asp-for="AdminNotes" placeholder="@Html.DisplayNameFor(m => m.AdminNotes)" class="textarea w-full textarea-lg focus:textarea-primary">
+                            </textarea>
+                </label>
+                <span asp-validation-for="AdminNotes" class="text-error"></span>
+            </div>
+
+            <div class="divider col-span-full mt-5">
+                <button type="submit" class="btn btn-primary w-1/3">Dodaj</button>
+                <label class="btn btn-soft swap w-1/6">
+                    <input type="checkbox" id="form-extender" />
+                    <div class="swap-on">-&nbsp;&nbsp;Mniej</div>
+                    <div class="swap-off">+&nbsp;&nbsp;Więcej</div>
+                </label>
+            </div>
+
+            <div asp-validation-summary="ModelOnly" class="col-span-full text-center text-error"></div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/address-utilities.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const streetSelect = document.getElementById("StreetId");
+            const buildingSelect = document.getElementById("BuildingId");
+
+            const buildingOptions = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BuildingList));
+
+            registerBuildingPicker(streetSelect, buildingSelect, buildingOptions);
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const formExtender = document.getElementById("form-extender");
+
+            const emailInput = document.getElementById("Email").parentElement.parentElement;
+            const phoneInput = document.getElementById("Phone").parentElement.parentElement;
+            const submitterNotes = document.getElementById("SubmitterNotes").parentElement.parentElement;
+            const adminNotes = document.getElementById("AdminNotes").parentElement.parentElement;
+
+            formExtender.addEventListener("change", function () {
+                const extended = this.checked;
+
+                if (extended) {
+                    emailInput.classList.remove("col-span-full");
+                    phoneInput.classList.remove("hidden");
+                    submitterNotes.classList.remove("hidden");
+                    adminNotes.classList.remove("hidden");
+                } else {
+                    emailInput.classList.add("col-span-full");
+                    phoneInput.classList.add("hidden");
+                    submitterNotes.classList.add("hidden");
+                    adminNotes.classList.add("hidden");
+                }
+            });
+        });
+    </script>
+}

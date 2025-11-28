@@ -1,0 +1,18 @@
+@model CheckSettingVM
+
+<label class="w-full flex flex-col gap-1">
+    <div class="flex items-center gap-3">
+        <input asp-for="Value" name="@Model.Key" id="@Model.Key.Replace(".", "_")" type="checkbox" 
+            readonly='@(Model.Readonly ? "readonly" : null)'
+            class="checkbox checkbox-lg checkbox-primary -mt-2" />
+        <div class="flex flex-col">
+            <h4 class="text-xl font-medium">@Model.Name</h4>
+            <p class="text-sm opacity-70 mb-2">@Model.Description</p>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(Model.Hint))
+    {
+        <span class="text-sm opacity-70"><i>@Model.Hint</i></span>
+    }
+    <span asp-validation-for="Value" class="text-error text-sm"></span>
+</label>

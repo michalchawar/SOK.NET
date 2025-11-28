@@ -8,18 +8,18 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
     {
         public void Configure(EntityTypeBuilder<StreetSpecifier> builder)
         {
-            // Klucz g³ówny
+            // Klucz gÅ‚Ã³wny
             // (zdefiniowany przez atrybut [Key] w modelu)
 
-            // Indeksy i unikalnoœæ
+            // Indeksy i unikalnoÅ›Ä‡
             builder.HasIndex(s => s.FullName)
                 .IsUnique();
 
             // Generowane pola
-            // (brak automatycznie generowanych pól)
+            // (brak automatycznie generowanych pÃ³l)
 
             // Relacje
-            // (StreetSpecifier nie jest podrzêdne wzglêdem ¿adnej encji, nie konfigurujemy relacji)
+            // (StreetSpecifier nie jest podrzÄ™dne wzglÄ™dem Å¼adnej encji, nie konfigurujemy relacji)
         }
     }
 }

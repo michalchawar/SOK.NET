@@ -3,41 +3,51 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Domain.Entities.Parish
 {
     /// <summary>
-    /// Reprezentuje pojedynczy dzieñ w planie wizyt.
-    /// Okreœla datê oraz domyœlne godziny rozpoczêcia i zakoñczenia wizyt.
+    /// Reprezentuje pojedynczy dzieÅ„ w planie wizyt.
+    /// OkreÅ›la datÄ™ oraz domyÅ›lne godziny rozpoczÄ™cia i zakoÅ„czenia wizyt.
     /// </summary>
     public class Day
     {
         /// <summary>
-        /// Unikalny identyfikator dnia (klucz g³ówny).
+        /// Unikalny identyfikator dnia (klucz gÅ‚Ã³wny).
         /// </summary>
         [Key]
         public int Id { get; set; }
 
         /// <summary>
-        /// Data, której dotyczy dzieñ.
+        /// Data, ktÃ³rej dotyczy dzieÅ„.
         /// </summary>
         public DateOnly Date { get; set; }
 
         /// <summary>
-        /// Domyœlna godzina rozpoczêcia wizyt w tym dniu. Mo¿e byæ nadpisywana przez agendy.
+        /// DomyÅ›lna godzina rozpoczÄ™cia wizyt w tym dniu. MoÅ¼e byÄ‡ nadpisywana przez agendy.
         /// </summary>
         public TimeOnly StartHour { get; set; }
 
         /// <summary>
-        /// Domyœlna godzina zakoñczenia wizyt w tym dniu. Mo¿e byæ nadpisywana przez agendy.
+        /// DomyÅ›lna godzina zakoÅ„czenia wizyt w tym dniu. MoÅ¼e byÄ‡ nadpisywana przez agendy.
         /// </summary>
         public TimeOnly EndHour { get; set; }
 
         /// <summary>
-        /// Identyfikator planu, do którego nale¿y ten dzieñ.
+        /// Identyfikator planu, do ktÃ³rego naleÅ¼y ten dzieÅ„.
         /// </summary>
         public int PlanId { get; set; }
 
         /// <summary>
-        /// Plan, do którego nale¿y ten dzieñ (relacja nawigacyjna).
+        /// Plan, do ktÃ³rego naleÅ¼y ten dzieÅ„ (relacja nawigacyjna).
         /// </summary>
         public Plan Plan { get; set; } = default!;
+
+        /// <summary>
+        /// Lista przypisaÅ„ budynkÃ³w powiÄ…zanych z dniem. To klasa pomocnicza relacji wiele-do-wielu miÄ™dzy dniem a budynkami.
+        /// </summary>
+        public ICollection<BuildingAssignment> BuildingAssignments { get; set; } = new List<BuildingAssignment>();
+
+        /// <summary>
+        /// Lista budynkÃ³w przypisanych do dnia. KaÅ¼dy budynek moÅ¼e byÄ‡ przypisany do wielu dni w rÃ³Å¼nych harmonogramach.
+        /// </summary>
+        public ICollection<Building> BuildingsAssigned { get; set; } = new List<Building>();
 
         /// <summary>
         /// Lista agend przypisanych do tego dnia.
