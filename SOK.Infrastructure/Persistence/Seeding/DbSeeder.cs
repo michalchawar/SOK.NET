@@ -153,6 +153,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 bool shouldSeedParishData = _configuration.GetValue<bool>("Admin:SeedExampleData", false);
                 if (!shouldSeedParishData)
                 {
+                    context.Add(new ParishInfo { Name = InfoKeys.Parish.UniqueId, Value = parishUid });
+                    await context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return;
                 }
