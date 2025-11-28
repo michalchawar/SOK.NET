@@ -55,6 +55,16 @@ builder.Services.AddTransient<ParishResolver>();
 // Dodanie usług do kontenera
 builder.Services.AddControllersWithViews();
 
+// Konfiguracja WebOptimizer
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    // Bundle i minifikuj CSS
+    pipeline.AddCssBundle("/css/bundle.min.css", "css/site.min.css");
+    
+    // Bundle i minifikuj JavaScript
+    pipeline.AddJavaScriptBundle("/js/bundle.min.js", "js/site.js", "js/address-utilities.js");
+});
+
 var app = builder.Build();
 
 // Migracja indywidualnych baz danych przy starcie aplikacji
@@ -74,6 +84,10 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
+
+// WebOptimizer musi być przed UseStaticFiles
+app.UseWebOptimizer();
+
 app.UseStaticFiles();
 
 app.UseRouting();
