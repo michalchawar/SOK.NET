@@ -14,8 +14,8 @@ WORKDIR /app
 # Kopiuj pliki package.json i package-lock.json
 COPY ["SOK.Web/package*.json", "./"]
 
-# Instaluj zależności Node.js
-RUN npm ci --only=production
+# Instaluj zależności Node.js (łącznie z devDependencies dla buildu)
+RUN npm ci
 
 # Kopiuj pliki potrzebne do budowania CSS
 COPY ["SOK.Web/tailwind.config.js", "./"]
