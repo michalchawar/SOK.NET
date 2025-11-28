@@ -2,9 +2,34 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
 # Ustawienia
-USER $APP_UID
 WORKDIR /app
+
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 EXPOSE 8080
+
+# Etap budowania CSS z Tailwind
+FROM node:20-alpine AS node-build
+WORKDIR /app
+
+# Kopiuj pliki package.json i package-lock.json
+COPY ["SOK.Web/package*.json", "./"]
+
+# Instaluj zależności Node.js
+RUN npm ci --only=production
+
+# Kopiuj pliki potrzebne do budowania CSS
+COPY ["SOK.Web/tailwind.config.js", "./"]
+COPY ["SOK.Web/tailwind.extension.json", "./"]
+COPY ["SOK.Web/wwwroot/css/site.css", "./wwwroot/css/"]
+COPY ["SOK.Web/Views/", "./Views/"]
+COPY ["SOK.Web/wwwroot/", "./wwwroot/"]
+
+# Buduj CSS
+RUN npx @tailwindcss/cli -i wwwroot/css/site.css -o wwwroot/css/site.min.css -m
+
+# Minifikuj JavaScript
+RUN npx terser wwwroot/js/site.js -c -m -o wwwroot/js/site.min.js && \
+    npx terser wwwroot/js/address-utilities.js -c -m -o wwwroot/js/address-utilities.min.js
 
 # Ten etap służy do kompilowania projektu usługi
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
@@ -13,6 +38,11 @@ WORKDIR /src
 COPY ["SOK.Web/SOK.Web.csproj", "SOK.Web/SOK.Web.csproj"]
 RUN dotnet restore "./SOK.Web/SOK.Web.csproj"
 COPY . .
+
+# Skopiuj zbudowany CSS i zminifikowane JS z etapu node-build
+COPY --from=node-build /app/wwwroot/css/site.min.css /src/SOK.Web/wwwroot/css/
+COPY --from=node-build /app/wwwroot/js/*.min.js /src/SOK.Web/wwwroot/js/
+
 WORKDIR /src/SOK.Web
 RUN dotnet build "./SOK.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

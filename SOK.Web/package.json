@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "watch:css": "npx @tailwindcss/cli -i wwwroot/css/site.css -o wwwroot/css/site.min.css -m --watch",
-    "watch:bs": "browser-sync start --proxy \"http://localhost:8060\" --files \"wwwroot/js/*.js, wwwroot/css/*.css, Views/**/*.cshtml\" --no-ui --reload-delay 500"
+    "watch:bs": "browser-sync start --proxy \"http://localhost:8060\" --files \"wwwroot/js/*.js, wwwroot/css/*.css, Views/**/*.cshtml\" --no-ui --reload-delay 500",
+    "build:js": "terser wwwroot/js/*.js --compress --mangle --output wwwroot/js/bundle.min.js",
+    "build:prod": "npm run build:js"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +16,8 @@
     "@tailwindcss/cli": "^4.1.13",
     "daisyui": "^5.1.7",
     "eslint": "^9.35.0",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "terser": "^5.36.0"
   },
   "dependencies": {
     "browser-sync": "^3.0.4",
