@@ -53,9 +53,12 @@ services:
       Admin__SeedExampleData: "${ADMIN_SEED_EXAMPLE_DATA:-false}"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=web"
       - "traefik.http.routers.sok.rule=Host(`${DOMAIN_NAME}`)"
       - "traefik.http.routers.sok.entrypoints=websecure"
       - "traefik.http.routers.sok.tls.certresolver=letsencrypt"
+      - "traefik.http.services.sok-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.sok.service=sok-service"
     networks:
       - web
       - internal
