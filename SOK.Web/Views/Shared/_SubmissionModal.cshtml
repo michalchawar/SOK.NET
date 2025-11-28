@@ -1,4 +1,5 @@
 @using SOK.Application.Common.DTO
+@using SOK.Application.Common.Helpers
 @model PatchSubmissionDto
 <!-- Modal zgłoszenia - reużywalny partial -->
 <div id="submission-modal-app" v-cloak>
@@ -30,10 +31,17 @@
                         <div tabindex="0" role="button" class="btn btn-ghost size-10"><i class="bi bi-three-dots-vertical text-lg "></i></div>
                         <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
                             <li>
-                                <button disabled
-                                        class="">
+                                <button @@click="openEmailModal"
+                                        :disabled="data === null">
                                     <i class="bi bi-envelope-arrow-up"></i> Wyślij maila
                                 </button>
+                            </li>
+                            <li>
+                                <a :href="`${parishUid}/submissions/panel/${data?.uniqueId}?accessToken=${data?.accessToken}`"
+                                    target="_blank"
+                                    :disabled="data === null">
+                                    <i class="bi bi-file-person"></i> Panel zgłoszenia
+                                </a>
                             </li>
                             <li>
                                 <button :disabled="data === null || !data.hasFormSubmission"
@@ -197,6 +205,143 @@
         <div class="modal-backdrop" @@click="close"></div>
     </div>
     
+    <!-- Email Modal -->
+    <div :class="['modal', emailModalOpen && 'modal-open']">
+        <div class="modal-box max-w-4xl">
+            <h3 class="text-lg font-bold mb-4">
+                <span v-if="emailStep === 'select'">Wybierz typ emaila do wysłania</span>
+                <span v-else-if="emailStep === 'preview'">Podgląd emaila</span>
+            </h3>
+            
+            <!-- Step 1: Wybór typu emaila -->
+            <div v-if="emailStep === 'select'" class="space-y-4">
+                <!-- Confirmation Email -->
+                <div @@click="selectEmailType('confirmation')" 
+                     class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors border-2 border-transparent hover:border-primary">
+                    <div class="card-body">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-lg mb-2">Email potwierdzający zgłoszenie</h4>
+                                <p class="text-sm opacity-70">
+                                    Wyśle email z potwierdzeniem przyjęcia zgłoszenia, zawierający:
+                                </p>
+                                <ul class="text-sm opacity-70 list-disc list-inside mt-2 space-y-1">
+                                    <li>Dane zgłaszającego (imię, nazwisko)</li>
+                                    <li>Adres zgłoszenia</li>
+                                    <li>Link do panelu kontrolnego zgłoszenia</li>
+                                    <li>Unikalny identyfikator i token dostępu</li>
+                                </ul>
+                                <div class="mt-3 text-xs opacity-50">
+                                    Odbiorca: <span class="font-mono">{{ data?.submitter?.email || 'brak adresu email' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invalid Email Notification -->
+                <div class="card bg-base-200 border-2 border-transparent">
+                    <div class="card-body">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-lg mb-2">Powiadomienie o nieprawidłowym emailu</h4>
+                                <p class="text-sm opacity-70 mb-3">
+                                    Wyśle email informujący, że podany adres email jest nieprawidłowy i prosi o potwierdzenie nowego adresu.
+                                </p>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Nowy adres email odbiorcy:</span>
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input 
+                                            v-model="invalidEmailTo" 
+                                            type="email" 
+                                            placeholder="nowy.email@example.com"
+                                            class="input input-bordered flex-1"
+                                            @@keyup.enter="selectEmailType('invalid')" />
+                                        <button 
+                                            @@click="selectEmailType('invalid')"
+                                            :disabled="!invalidEmailTo || !isValidEmail(invalidEmailTo)"
+                                            class="btn btn-primary">
+                                            Dalej <i class="bi bi-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
+                                    <label class="label" v-if="invalidEmailTo && !isValidEmail(invalidEmailTo)">
+                                        <span class="label-text-alt text-error">Nieprawidłowy format adresu email</span>
+                                    </label>
+                                </div>
+                                <div class="mt-3 text-xs opacity-50">
+                                    Stary email w systemie: <span class="font-mono">{{ data?.submitter?.email || 'brak' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2: Podgląd emaila -->
+            <div v-else-if="emailStep === 'preview'">
+                <div v-if="emailPreviewLoading" class="flex justify-center py-12">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+                
+                <div v-else-if="emailPreviewError" class="alert alert-error mb-4">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>{{ emailPreviewError }}</span>
+                </div>
+                
+                <div v-else class="space-y-4">
+                    <!-- Informacje o emailu -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <div class="flex-1">
+                            <div class="font-bold">
+                                {{ emailTypeLabels[selectedEmailType] }}
+                            </div>
+                            <div class="text-sm opacity-80">
+                                Odbiorca: <span class="font-mono">{{ emailRecipient }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Podgląd HTML -->
+                    <div class="border rounded-lg overflow-hidden bg-white">
+                        <div class="bg-base-200 px-4 py-2 text-sm font-semibold border-b">
+                            Podgląd treści emaila:
+                        </div>
+                        <div class="p-4 max-h-96 overflow-y-auto" v-html="emailPreviewHtml"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-action">
+                <button v-if="emailStep === 'select'" @@click="closeEmailModal" class="btn">Anuluj</button>
+                
+                <template v-if="emailStep === 'preview'">
+                    <button @@click="backToEmailSelect" class="btn">
+                        <i class="bi bi-arrow-left"></i> Wstecz
+                    </button>
+                    <button 
+                        @@click="sendEmail" 
+                        :disabled="emailSending || emailPreviewError"
+                        class="btn btn-success">
+                        <span v-if="!emailSending">
+                            <i class="bi bi-send"></i> Wyślij email
+                        </span>
+                        <span v-else class="loading loading-spinner"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+        <div class="modal-backdrop" @@click="closeEmailModal"></div>
+    </div>
+    
     <!-- FormSubmission Data Modal -->
     <div :class="['modal', formDataOpen && 'modal-open']">
         <div class="modal-box max-w-3xl">
@@ -318,10 +463,23 @@
                 edit: {},
                 buildingOptions: {},
                 streets: [],
+                parishUid: '',
                 saveMsg: null,
                 formDataOpen: false,
                 formData: null,
-                formDataLoading: false
+                formDataLoading: false,
+                emailModalOpen: false,
+                emailStep: 'select', // 'select' | 'preview'
+                selectedEmailType: null, // 'confirmation' | 'invalid'
+                invalidEmailTo: '',
+                emailPreviewLoading: false,
+                emailPreviewHtml: '',
+                emailPreviewError: null,
+                emailSending: false,
+                emailTypeLabels: {
+                    confirmation: 'Email potwierdzający zgłoszenie',
+                    invalid: 'Powiadomienie o nieprawidłowym emailu'
+                }
             }),
             async mounted() {
                 registerVueApp('submission-modal-app');
@@ -331,6 +489,16 @@
                 } catch (e) {
                     console.error('Nie udało się załadować ulic i budynków:', e);
                     notifications.error('Nie udało się załadować ulic i budynków w panelu edycji zgłoszeń.');
+                }
+
+                try {
+                    const parishRes = await fetch('/api/settings/get/uid');
+                    if (parishRes.ok) {
+                        const parishData = await parishRes.json();
+                        this.parishUid = parishData.parishUid;
+                    }
+                } catch (e) {
+                    console.error('Nie udało się pobrać informacji o parafii:', e);
                 }
             },
             methods: {
@@ -440,19 +608,27 @@
                         const payload = {};
                         const d = this.data;
                         
+                        Object.values(this.edit).forEach(v => {
+                            if (typeof v === 'string') {
+                                v = v.trim();
+                            }
+                        });
                         if (this.edit.name !== d.submitter.name) payload.name = this.edit.name;
                         if (this.edit.surname !== d.submitter.surname) payload.surname = this.edit.surname;
-                        if (this.edit.email !== (d.submitter.email || '')) payload.email = this.edit.email || null;
-                        if (this.edit.phone !== (d.submitter.phone || '')) payload.phone = this.edit.phone || null;
+                        if (this.edit.email !== (d.submitter.email || '')) payload.email = this.edit.email || '';
+                        if (this.edit.phone !== (d.submitter.phone || '')) payload.phone = this.edit.phone || '';
                         
                         const newBuildingId = parseInt(document.getElementById('edit-building-select').value);
                         if (newBuildingId !== d.address.buildingId) payload.buildingId = newBuildingId;
                         
-                        if (this.edit.apartment !== d.address.apartment) payload.apartment = this.edit.apartment || null;
+                        if (this.edit.apartment !== d.address.apartment) payload.apartment = this.edit.apartment || '';
                         
-                        if (this.edit.submitterNotes !== (d.submitterNotes || '')) payload.submitterNotes = this.edit.submitterNotes || null;
-                        if (this.edit.adminMessage !== (d.adminMessage || '')) payload.adminMessage = this.edit.adminMessage || null;
-                        if (this.edit.adminNotes !== (d.adminNotes || '')) payload.adminNotes = this.edit.adminNotes || null;
+                        this.edit.submitterNotes = this.edit.submitterNotes.trim();
+                        this.edit.adminMessage = this.edit.adminMessage.trim();
+                        this.edit.adminNotes = this.edit.adminNotes.trim();
+                        if (this.edit.submitterNotes !== (d.submitterNotes || '')) payload.submitterNotes = this.edit.submitterNotes || '';
+                        if (this.edit.adminMessage !== (d.adminMessage || '')) payload.adminMessage = this.edit.adminMessage || '';
+                        if (this.edit.adminNotes !== (d.adminNotes || '')) payload.adminNotes = this.edit.adminNotes || '';
                         
                         if (this.edit.notesStatus !== d.notesStatus) payload.notesStatus = parseInt(this.edit.notesStatus);
                         if (this.edit.submitMethod !== d.submitMethod) payload.submitMethod = parseInt(this.edit.submitMethod);
@@ -500,6 +676,124 @@
                 closeFormData() {
                     this.formDataOpen = false;
                     this.formData = null;
+                },
+                openEmailModal() {
+                    this.emailModalOpen = true;
+                    this.emailStep = 'select';
+                    this.selectedEmailType = null;
+                    this.invalidEmailTo = '';
+                    this.emailPreviewHtml = '';
+                    this.emailPreviewError = null;
+                },
+                closeEmailModal() {
+                    this.emailModalOpen = false;
+                    this.emailStep = 'select';
+                    this.selectedEmailType = null;
+                    this.invalidEmailTo = '';
+                    this.emailPreviewHtml = '';
+                    this.emailPreviewError = null;
+                    this.emailSending = false;
+                },
+                backToEmailSelect() {
+                    this.emailStep = 'select';
+                    this.emailPreviewHtml = '';
+                    this.emailPreviewError = null;
+                },
+                isValidEmail(email) {
+                    const re = /@Html.Raw(RegExpressions.EmailPattern)/;
+                    return re.test(email);
+                },
+                async selectEmailType(type) {
+                    if (type === 'invalid' && (!this.invalidEmailTo || !this.isValidEmail(this.invalidEmailTo))) {
+                        return;
+                    }
+                    
+                    this.selectedEmailType = type;
+                    this.emailStep = 'preview';
+                    this.emailPreviewLoading = true;
+                    this.emailPreviewError = null;
+                    
+                    try {
+                        let endpoint, payload;
+                        
+                        if (type === 'confirmation') {
+                            endpoint = '/api/email/preview/confirmation';
+                            payload = {
+                                submissionId: this.data.id
+                            };
+                        } else if (type === 'invalid') {
+                            endpoint = '/api/email/preview/invalid_email';
+                            payload = {
+                                submissionId: this.data.id,
+                                to: this.invalidEmailTo
+                            };
+                        }
+                        
+                        const res = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (!res.ok) {
+                            const error = await res.json();
+                            throw new Error(error.message || 'Nie udało się wygenerować podglądu');
+                        }
+                        
+                        const result = await res.json();
+                        this.emailPreviewHtml = result.html;
+                    } catch (e) {
+                        this.emailPreviewError = e.message;
+                    } finally {
+                        this.emailPreviewLoading = false;
+                    }
+                },
+                async sendEmail() {
+                    this.emailSending = true;
+                    
+                    try {
+                        let endpoint, payload;
+                        
+                        if (this.selectedEmailType === 'confirmation') {
+                            endpoint = '/api/email/queue/confirmation';
+                            payload = {
+                                submissionId: this.data.id
+                            };
+                        } else if (this.selectedEmailType === 'invalid') {
+                            endpoint = '/api/email/queue/invalid_email';
+                            payload = {
+                                submissionId: this.data.id,
+                                to: this.invalidEmailTo
+                            };
+                        }
+                        
+                        const res = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (!res.ok) {
+                            const error = await res.json();
+                            throw new Error(error.message || 'Nie udało się wysłać emaila');
+                        }
+                        
+                        const result = await res.json();
+                        notifications.success('Email został wysłany pomyślnie!');
+                        this.closeEmailModal();
+                    } catch (e) {
+                        notifications.error(`Błąd: ${e.message}`);
+                    } finally {
+                        this.emailSending = false;
+                    }
+                },
+                get emailRecipient() {
+                    if (this.selectedEmailType === 'confirmation') {
+                        return this.data?.submitter?.email || 'brak adresu';
+                    } else if (this.selectedEmailType === 'invalid') {
+                        return this.invalidEmailTo;
+                    }
+                    return '';
                 },
                 close() {
                     if (this.isEditing && !confirm('Masz niezapisane zmiany. Zamknąć?')) return;

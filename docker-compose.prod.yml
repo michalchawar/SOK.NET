@@ -1,0 +1,73 @@
+﻿networks:
+  web:    # sieć publiczna dla Traefika
+    external: false
+  internal: # sieć prywatna między app a db
+    internal: true
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # Redirect HTTP -> HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      # Let's Encrypt
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=michalchawar+acme@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - web
+
+  app:
+    image: sok-web:latest
+    build:
+      context: .
+      dockerfile: SOK.Web/Dockerfile
+    container_name: sok-web
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      Admin__SqlServer: "Server=db,1433;Database=master;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
+      ConnectionStrings__CentralDb: "Server=db,1433;Database=CentralDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
+      Crypto__Key: "${CRYPTO_KEY}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sok.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.sok.entrypoints=websecure"
+      - "traefik.http.routers.sok.tls.certresolver=letsencrypt"
+    networks:
+      - web
+      - internal
+    depends_on:
+      - db
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-CU20-ubuntu-22.04
+    container_name: sok-db
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      - internal
+
+volumes:
+  mssql_data:

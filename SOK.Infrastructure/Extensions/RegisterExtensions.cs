@@ -7,6 +7,7 @@ using SOK.Application.Services.Interface;
 using SOK.Infrastructure.Persistence.Context;
 using SOK.Infrastructure.Persistence.Seeding;
 using SOK.Infrastructure.Repositories;
+using SOK.Infrastructure.Services;
 
 namespace SOK.Infrastructure.Extensions
 {
@@ -59,6 +60,10 @@ namespace SOK.Infrastructure.Extensions
             services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IStreetService, StreetService>();
             services.AddScoped<ICityService, CityService>();
+            services.AddScoped<IEmailService, EmailService>();
+
+            // Rejestracja serwisu w tle do wysyłania emaili
+            services.AddHostedService<EmailSenderBackgroundService>();
 
             return services;
         }

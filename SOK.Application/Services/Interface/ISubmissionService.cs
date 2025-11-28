@@ -62,7 +62,9 @@ namespace SOK.Application.Services.Interface
         /// </summary>
         /// <param name="submissionDto">Obiekt <see cref="SubmissionCreationRequestDto"/> z danymi zgłoszenia, które ma zostać zapisane.</param>
         /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest identyfikator nowo utworzonego zgłoszenia lub <see cref="null"/>,
+        /// jeśli zgłoszenie nie zostało utworzone.
         /// </returns>
         /// <exception cref="ArgumentException">
         /// Jeśli budynek lub harmonogram podane w zgłoszeniu nie istnieją w bazie danych.
@@ -70,7 +72,7 @@ namespace SOK.Application.Services.Interface
         /// <exception cref="InvalidOperationException">
         /// Jeśli z podanym adresem powiązane jest już jakieś zgłoszenie.
         /// </exception>
-        Task CreateSubmissionAsync(SubmissionCreationRequestDto submissionDto);
+        Task<int?> CreateSubmissionAsync(SubmissionCreationRequestDto submissionDto);
 
         /// <summary>
         /// Usuwa zgłoszenie o podanym identyfikatorze.
@@ -102,5 +104,85 @@ namespace SOK.Application.Services.Interface
         /// Jeśli w bazie nie ma żadnego zgłoszenia, zwracane jest <see cref="null"/>.
         /// </remarks>
         Task<Submission?> GetRandomSubmissionAsync();
+
+        /// <summary>
+        /// Wysyła email potwierdzający zgłoszenie.
+        /// </summary>
+        /// <param name="submissionId">ID zgłoszenia</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego wartością jest wartość logiczna określająca, czy email został pomyślnie wysłany.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłoszenie o podanym ID nie istnieje.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłaszający nie ma przypisanego adresu email.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
+        /// </exception>
+        Task<bool> SendConfirmationEmailAsync(int submissionId);
+        
+
+        /// <summary>
+        /// Tworzy podgląd emaila potwierdzającego zgłoszenie.
+        /// </summary>
+        /// <param name="submissionId">ID zgłoszenia</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego wartością jest treść HTML maila.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłoszenie o podanym ID nie istnieje.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłaszający nie ma przypisanego adresu email.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
+        /// </exception>
+        Task<string> PreviewConfirmationEmailAsync(int submissionId);
+        
+
+        /// <summary>
+        /// Wysyła email z zapytaniem o błąd we wprowadzaniu adresu mailowego.
+        /// </summary>
+        /// <param name="submissionId">ID zgłoszenia</param>
+        /// <param name="to">Adres email nowego odbiorcy</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego wartością jest wartość logiczna określająca, czy email został pomyślnie wysłany.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłoszenie o podanym ID nie istnieje.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłaszający nie ma przypisanego adresu email.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
+        /// </exception>
+        Task<bool> SendInvalidEmailAsync(int submissionId, string to = "");
+
+        /// <summary>
+        /// Tworzy podgląd emaila z zapytaniem o błąd we wprowadzaniu adresu mailowego.
+        /// </summary>
+        /// <param name="submissionId">ID zgłoszenia</param>
+        /// <param name="to">Adres email nowego odbiorcy</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego wartością jest treść HTML maila.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłoszenie o podanym ID nie istnieje.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłaszający nie ma przypisanego adresu email.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
+        /// </exception>
+        Task<string> PreviewInvalidEmailAsync(int submissionId, string to = "");
     }
 }

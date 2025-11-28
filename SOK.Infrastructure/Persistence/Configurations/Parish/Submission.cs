@@ -18,7 +18,8 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
 
             // Generowane pola
             builder.Property(s => s.AccessToken)
-                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+                .HasDefaultValueSql("CONVERT(NVARCHAR(64), HASHBYTES('SHA2_256', CAST(NEWID() AS NVARCHAR(36))), 2)")
+                .ValueGeneratedOnAdd();
 
             builder.Property(s => s.SubmitTime)
                 .HasDefaultValueSql("GETUTCDATE()")

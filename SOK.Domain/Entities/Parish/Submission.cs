@@ -26,7 +26,7 @@ namespace SOK.Domain.Entities.Parish
         /// Token dostępu do zgłoszenia, używany do autoryzacji w połączeniu z UniqueId.
         /// </summary>
         [MaxLength(64)]
-        public string AccessToken { get; set; } = string.Empty;
+        public string AccessToken { get; set; } = null!;
 
         /// <summary>
         /// Uwagi zgłaszającego (opcjonalne).
@@ -108,6 +108,11 @@ namespace SOK.Domain.Entities.Parish
         /// Historia zmian zgłoszenia (snapshoty).
         /// </summary>
         public ICollection<SubmissionSnapshot> History { get; set; } = new List<SubmissionSnapshot>();
+        
+        /// <summary>
+        /// Wysłane (bądź zakolejkowane) maile.
+        /// </summary>
+        public ICollection<EmailLog> EmailLogs { get; set; } = new List<EmailLog>();
 
         /// <summary>
         /// Konstruktor bezparametrowy.

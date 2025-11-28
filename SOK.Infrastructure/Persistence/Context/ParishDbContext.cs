@@ -45,6 +45,7 @@ namespace SOK.Infrastructure.Persistence.Context
         public DbSet<SubmitterSnapshot> SubmitterSnapshots { get; set; } = default!;
         public DbSet<Visit> Visits { get; set; } = default!;
         public DbSet<VisitSnapshot> VisitSnapshots { get; set; } = default!;
+        public DbSet<EmailLog> EmailLogs { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -68,6 +69,7 @@ namespace SOK.Infrastructure.Persistence.Context
             modelBuilder.ApplyConfiguration(new ParishMemberEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new VisitSnapshotEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new EmailLogEntityTypeConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

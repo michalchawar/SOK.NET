@@ -145,6 +145,23 @@ namespace SOK.Web.Controllers
                             },
                         ]
                     },
+                    new()
+                    {
+                        Name = "Ustawienia udostępniania",
+                        Settings =
+                        [
+                            new StringSettingVM(InfoKeys.EmbededApplication.FormUrl, settingsDict) {
+                                Name = "Adres URL formularza zgłoszeniowego",
+                                Description = "Pełny adres podstrony na stronie parafii, na której znajduje się formularz zgłoszeniowy.",
+                                Hint = "Np. https://www.parafia-sw-mikolaja.pl/koleda",
+                            },
+                            new StringSettingVM(InfoKeys.EmbededApplication.ControlPanelBaseUrl, settingsDict) {
+                                Name = "Adres URL panelu zgłoszenia",
+                                Description = "Pełny adres podstrony na stronie parafii, na której znajduje się panel do zarządzania zgłoszeniami.",
+                                Hint = "Np. https://www.parafia-sw-mikolaja.pl/koleda/panel",
+                            },
+                        ]
+                    },
                     new() 
                     {
                         Name = "Poczta e-mail",
@@ -179,6 +196,21 @@ namespace SOK.Web.Controllers
                                 Description = "Hasło do konta użytkownika na serwerze SMTP.",
                                 Hint = "Wprowadź hasło do konta.",
                                 Type = InputType.Password,
+                            },
+                            new CheckSettingVM(InfoKeys.Email.SmtpEnableSsl, settingsDict) {
+                                Name = "Używaj szyfrowania SSL/TLS",
+                                Description = "Czy połączenie SMTP powinno używać szyfrowania SSL/TLS?",
+                            },
+                            new StringSettingVM(InfoKeys.Email.SenderEmail, settingsDict) {
+                                Name = "Adres email nadawcy",
+                                Description = "Adres email, który będzie wyświetlany jako nadawca wiadomości.",
+                                Hint = "Np. koleda@parafia-sw-mikolaja.pl",
+                                Type = InputType.Email,
+                            },
+                            new StringSettingVM(InfoKeys.Email.SenderName, settingsDict) {
+                                Name = "Nazwa nadawcy",
+                                Description = "Nazwa wyświetlana jako nadawca wiadomości.",
+                                Hint = "Np. Parafia pw. św. Mikołaja - Kolęda",
                             },
                         ]
                     }

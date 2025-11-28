@@ -17,7 +17,8 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
 
             // Generowane pola
             builder.Property(a => a.AccessToken)
-                .HasDefaultValueSql("CONVERT(varchar(64), HASHBYTES('SHA2_256', CAST(NEWID() AS varchar(36))), 2)");
+                .HasDefaultValueSql("CONVERT(NVARCHAR(64), HASHBYTES('SHA2_256', CAST(NEWID() AS NVARCHAR(36))), 2)")
+                .ValueGeneratedOnAdd();
 
             // Relacje
             builder.HasOne(a => a.Day)

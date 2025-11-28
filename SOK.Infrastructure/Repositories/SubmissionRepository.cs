@@ -64,6 +64,9 @@ namespace SOK.Infrastructure.Repositories
 
             if (formSubmission)
                 query = query.Include(s => s.FormSubmission);
+            
+            if (plan)
+                query = query.Include(s => s.Plan);
 
             return await query.ToListAsync();
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 
 namespace SOK.Web.Controllers.Api
@@ -17,6 +18,13 @@ namespace SOK.Web.Controllers.Api
         public SettingsApiController(IParishInfoService parishInfoService)
         {
             _parishInfoService = parishInfoService;
+        }
+
+        [HttpGet("get/uid")]
+        public async Task<IActionResult> GetParishUid()
+        {
+            var parishUid = await _parishInfoService.GetValueAsync(InfoKeys.Parish.UniqueId);
+            return Ok(new { parishUid });
         }
 
         [HttpPut("update")]

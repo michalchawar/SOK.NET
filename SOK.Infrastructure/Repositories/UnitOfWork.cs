@@ -80,6 +80,7 @@ namespace SOK.Infrastructure.Repositories
         public IPlanRepository Plan { get; private set; }
         public IDayRepository Day { get; private set; }
         public IParishMemberRepository ParishMember { get; private set; }
+        public IEmailLogRepository EmailLog { get; private set; }
 
         public UnitOfWorkParish(ParishDbContext db, UserManager<User> userManager) : base(db)
         {
@@ -97,6 +98,7 @@ namespace SOK.Infrastructure.Repositories
             Plan = new PlanRepository(db);
             Day = new DayRepository(db);
             ParishMember = new ParishMemberRepository(db, userManager);
+            EmailLog = new EmailLogRepository(db);
         }
     }
 }

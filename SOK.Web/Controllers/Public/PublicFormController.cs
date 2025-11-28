@@ -143,11 +143,13 @@ namespace SOK.Web.Controllers
 
                 try
                 {
-                    await _submissionService.CreateSubmissionAsync(request);
+                    int? submissionId = await _submissionService.CreateSubmissionAsync(request);
                     TempData["success"] = "Twoje zgłoszenie zostało pomyślnie utworzone.";
+
+                    Submission submission = (await _submissionService.GetSubmissionAsync(submissionId.Value))!;
                     
                     // Przekierowanie z parishUid
-                    return RedirectToAction(nameof(Success), new { parishUid });
+                    return RedirectToAction(nameof(Success), new { parishUid, submissionUid = submission.UniqueId, submissionAccessToken = submission.AccessToken });
                 }
                 catch (InvalidOperationException)
                 {
@@ -166,16 +168,99 @@ namespace SOK.Web.Controllers
 
         [HttpGet]
         [Route("success")]
-        public IActionResult Success(string parishUid)
+        public IActionResult Success(string parishUid, string submissionUid = "", string submissionAccessToken = "")
         {
             ViewData["ParishUid"] = parishUid;
+            ViewData["SubmissionUid"] = submissionUid;
+            ViewData["SubmissionAccessToken"] = submissionAccessToken;
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        [HttpGet]
+        [Route("panel/{submissionUid}")]
+        public async Task<IActionResult> SubmissionPanel(string submissionUid, [FromQuery] string accessToken)
         {
-            return View("Error!");
+            Submission? submission = await _submissionService.GetSubmissionAsync(submissionUid);
+            if (submission is null || submission.AccessToken != accessToken)
+            {
+                return NotFound("Nie znaleziono zgłoszenia. Jeśli uważasz, że to błąd, skontaktuj się z administratorem.");
+            }
+
+            // Stwórz ViewModel i przekaż do widoku
+            var viewModel = new SubmissionPanelVM();
+            await PopulateSubmissionPanelVM(viewModel, submission);
+
+            return View(viewModel);
+        }
+
+        protected async Task PopulateSubmissionPanelVM(SubmissionPanelVM vm, Submission submission)
+        {
+            // Dane zgłoszenia
+            vm.Submission = new SubmissionInfoVM
+            {
+                SubmitterName = submission.Submitter.Name,
+                SubmitterSurname = submission.Submitter.Surname,
+                SubmitterEmail = submission.Submitter.Email,
+                SubmitterPhone = submission.Submitter.Phone,
+                Address = FormatAddress(submission.Address),
+                SubmitterNotes = submission.SubmitterNotes,
+                AdminMessage = submission.AdminMessage,
+                NotesStatus = string.IsNullOrWhiteSpace(submission.SubmitterNotes) ? null : submission.NotesStatus,
+                SubmitMethod = submission.FormSubmission?.Method ?? SubmitMethod.NotRegistered,
+                SubmitTime = submission.SubmitTime,
+                UniqueId = submission.UniqueId.ToString()
+            };
+
+            // Dane wizyty
+            vm.Visit = new VisitInfoVM
+            {
+                Status = submission.Visit.Status,
+                OrdinalNumber = submission.Visit.OrdinalNumber,
+                PlannedDate = submission.Visit.Agenda?.Day?.Date,
+                EstimatedTime = null, // TODO: Oblicz przewidywaną godzinę na podstawie OrdinalNumber i StartHourOverride
+                Agenda = null // Agenda jest obiektem, nie stringiem - można dodać jej nazwę/opis jeśli potrzeba
+            };
+
+            // Plan i harmonogram
+            vm.PlanSchedule = new PlanScheduleInfoVM
+            {
+                PlanName = submission.Plan?.Name ?? "N/A",
+                ScheduleName = submission.Visit.Schedule?.Name ?? "N/A",
+                ScheduleShortName = submission.Visit.Schedule?.ShortName
+            };
+
+            // Dane parafii
+            var parishInfo = await _parishInfoService.GetValuesAsync([
+                InfoKeys.Parish.ShortName,
+                InfoKeys.Contact.StreetAndBuilding,
+                InfoKeys.Contact.CityName,
+                InfoKeys.Contact.PostalCode,
+                InfoKeys.Contact.Email,
+                InfoKeys.Contact.MainPhone,
+                InfoKeys.Contact.SecondaryPhone,
+            ]);
+
+            vm.Parish = new ParishVM
+            {
+                Name = parishInfo.GetValueOrDefault(InfoKeys.Parish.ShortName) ?? string.Empty,
+                StreetAndBuilding = parishInfo.GetValueOrDefault(InfoKeys.Contact.StreetAndBuilding) ?? string.Empty,
+                CityName = parishInfo.GetValueOrDefault(InfoKeys.Contact.CityName) ?? string.Empty,
+                PostalCode = parishInfo.GetValueOrDefault(InfoKeys.Contact.PostalCode) ?? string.Empty,
+                Email = parishInfo.GetValueOrDefault(InfoKeys.Contact.Email) ?? string.Empty,
+                Phone = parishInfo.GetValueOrDefault(InfoKeys.Contact.MainPhone) ?? string.Empty,
+                SecondaryPhone = parishInfo.GetValueOrDefault(InfoKeys.Contact.SecondaryPhone) ?? string.Empty,
+            };
+        }
+
+        private string FormatAddress(Address address)
+        {
+            var street = address.Building.Street;
+            var streetType = street.Type?.Abbreviation ?? street.Type?.FullName ?? "";
+            var streetName = street.Name;
+            var buildingNumber = address.Building.Number + (address.Building.Letter ?? "");
+            var apartment = address.ApartmentNumber + (address.ApartmentLetter ?? "");
+
+            return $"{streetType} {streetName} {buildingNumber}/{apartment}";
         }
 
         protected async Task PopulateNewSubmissionWebFormVM(NewSubmissionWebFormVM vm)

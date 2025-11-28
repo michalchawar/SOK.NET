@@ -30,9 +30,9 @@
         </div>
 
         <div class="flex justify-center items-center gap-4 mt-6">
-            <a asp-action="Submission" asp-controller="PublicForm" asp-route-parishUid="@ViewData["ParishUid"]" 
+            <a asp-action="SubmissionPanel" asp-controller="PublicForm" asp-route-parishUid="@ViewData["ParishUid"]" 
                 asp-route-submissionUid="@ViewData["SubmissionUid"]"
-                asp-route-submissionAccessToken="@ViewData["SubmissionAccessToken"]"
+                asp-route-accessToken="@ViewData["SubmissionAccessToken"]"
                 class="btn btn-primary">
                 Panel zgłoszenia
             </a>

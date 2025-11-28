@@ -1,16 +1,5 @@
-# Zobacz https://aka.ms/customizecontainer, aby dowiedzieć się, jak dostosować kontener debugowania i jak program Visual Studio używa tego pliku Dockerfile do kompilowania obrazów w celu szybszego debugowania.
-
 # Ten etap jest używany podczas uruchamiania z programu VS w trybie szybkim (domyślnie dla konfiguracji debugowania)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-
-# Install node
-#RUN apt-get update && \
-#    apt-get upgrade -y && \
-#    apt-get install -y curl && \
-#    curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh && \
-#    bash nodesource_setup.sh && \
-#    rm -r nodesource_setup.sh && \
-#    apt-get install -y nodejs
 
 # Ustawienia
 USER $APP_UID

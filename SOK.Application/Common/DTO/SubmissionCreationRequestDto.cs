@@ -19,5 +19,7 @@ namespace SOK.Application.Common.DTO
         public ParishMember? Author { get; set; } = null;
         public SubmitMethod Method { get; set; } = SubmitMethod.NotRegistered;
         public string? IPAddress { get; set; } = null;
+
+        public bool SendConfirmationEmail { get; set; } = false;
     }
 }

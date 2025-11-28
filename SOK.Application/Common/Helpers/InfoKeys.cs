@@ -15,6 +15,7 @@ namespace SOK.Application.Common.Helpers
             public const string Email = "Contact.Email";
             public const string MainPhone = "Contact.MainPhone";
             public const string SecondaryPhone = "Contact.SecondaryPhone";
+            public const string Website = "Contact.Website";
             public const string StreetAndBuilding = "Contact.StreetAndBuilding";
             public const string CityName = "Contact.CityName";
             public const string PostalCode = "Contact.PostalCode";
@@ -29,6 +30,15 @@ namespace SOK.Application.Common.Helpers
             public const string SmtpPort = "Email.SmtpPort";
             public const string SmtpUserName = "Email.SmtpUserName";
             public const string SmtpPassword = "Email.SmtpPassword";
+            public const string SmtpEnableSsl = "Email.SmtpEnableSsl";
+            public const string SenderEmail = "Email.SenderEmail";
+            public const string SenderName = "Email.SenderName";
+        }
+
+        public static class EmbededApplication
+        {
+            public const string FormUrl = "Application.FormUrl";
+            public const string ControlPanelBaseUrl = "Application.ControlPanelBaseUrl";
         }
     }
 }

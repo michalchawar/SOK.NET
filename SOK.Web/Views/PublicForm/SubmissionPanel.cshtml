@@ -1,0 +1,275 @@
+@model SOK.Web.ViewModels.Parish.SubmissionPanelVM
+
+@{
+    ViewData["Title"] = "Panel zgłoszenia";
+    Layout = "_LayoutPublic";
+}
+<div class="w-full max-w-5xl">
+    <!-- Nagłówek z informacjami o planie i harmonogramie -->
+    <div class="bg-base-300 rounded-lg p-6 mb-6 shadow-md text-center">
+        <h3 class="opacity-70 text-lg">Panel zgłoszenia</h3>
+        <h1 class="text-4xl font-extrabold font-nunito-sans mb-2">@Model.PlanSchedule.PlanName</h1>
+        <h2 class="text-2xl opacity-80">@Model.PlanSchedule.ScheduleName</h2>
+        <h3 class="opacity-70 mt-4">@Model.Parish.Name</h3>
+    </div>
+
+    <!-- Główna zawartość - dwa kafelki obok siebie -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Lewy kafelek - Dane zgłoszenia -->
+        <div class="bg-base-200 rounded-lg p-6 shadow-md">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="bi bi-person-circle"></i>
+                Dane zgłoszenia
+            </h2>
+            
+            <div class="space-y-4">
+                <!-- Zgłaszający -->
+                <div>
+                    <h3 class="text-sm font-semibold opacity-70 mb-1">Zgłaszający:</h3>
+                    <p class="text-lg">
+                        <span class="font-bold">@Model.Submission.SubmitterSurname</span> @Model.Submission.SubmitterName
+                    </p>
+                </div>
+
+                <!-- Adres -->
+                <div>
+                    <h3 class="text-sm font-semibold opacity-70 mb-1">Adres wizyty:</h3>
+                    <p class="text-lg font-semibold">@Model.Submission.Address</p>
+                </div>
+
+                <div class="divider my-2"></div>
+
+                <!-- Email (jeśli podano) -->
+                @if (!string.IsNullOrEmpty(Model.Submission.SubmitterEmail))
+                {
+                    <div>
+                        <h3 class="text-sm font-semibold opacity-70 mb-1">Email:</h3>
+                        <p class="text-lg">
+                            <a href="mailto:@Model.Submission.SubmitterEmail" class="link link-primary">
+                                <i class="bi bi-envelope"></i> @Model.Submission.SubmitterEmail
+                            </a>
+                        </p>
+                    </div>
+                }
+
+                <!-- Telefon (jeśli podano) -->
+                @if (!string.IsNullOrEmpty(Model.Submission.SubmitterPhone))
+                {
+                    <div>
+                        <h3 class="text-sm font-semibold opacity-70 mb-1">Telefon:</h3>
+                        <p class="text-lg">
+                            <a href="tel:@Model.Submission.SubmitterPhone" class="link link-primary">
+                                <i class="bi bi-telephone"></i> @Model.Submission.SubmitterPhone
+                            </a>
+                        </p>
+                    </div>
+                }
+
+                <!-- Uwagi zgłaszającego -->
+                @if (!string.IsNullOrEmpty(Model.Submission.SubmitterNotes))
+                {
+                    <div class="divider my-2"></div>
+                    <div>
+                        <h3 class="text-sm font-semibold opacity-70 mb-1">Twoje uwagi:</h3>
+                        <p class="text-base whitespace-pre-wrap bg-base-300 p-3 rounded">@Model.Submission.SubmitterNotes</p>
+                        
+                        @if (Model.Submission.NotesStatus.HasValue)
+                        {
+                            <div class="mt-2">
+                                <span class="text-sm font-semibold opacity-70">Status realizacji: </span>
+                                <span class="badge badge-lg @GetNotesStatusBadgeClass(Model.Submission.NotesStatus.Value)">
+                                    @GetNotesStatusLabel(Model.Submission.NotesStatus.Value)
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Wiadomość od administratora -->
+                @if (!string.IsNullOrEmpty(Model.Submission.AdminMessage))
+                {
+                    <div>
+                        <h3 class="text-sm font-semibold opacity-70 mb-1">Wiadomość od administratora:</h3>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <p class="whitespace-pre-wrap">@Model.Submission.AdminMessage</p>
+                        </div>
+                    </div>
+                }
+
+                <div class="divider my-2"></div>
+
+                <!-- Informacje techniczne -->
+                <div class="text-sm opacity-70 space-y-1">
+                    <p>
+                        <span class="font-semibold">Data zgłoszenia:</span> 
+                        @Model.Submission.SubmitTime.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+                    <p>
+                        <span class="font-semibold">Sposób zgłoszenia:</span> 
+                        @GetSubmitMethodLabel(Model.Submission.SubmitMethod)
+                    </p>
+                    <p class="font-mono text-xs">
+                        <span class="font-semibold">ID zgłoszenia:</span> @Model.Submission.UniqueId
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prawy kafelek - Dane wizyty -->
+        <div class="bg-base-200 rounded-lg p-6 shadow-md">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="bi bi-calendar-check"></i>
+                Status wizyty
+            </h2>
+            
+            <div class="space-y-4">
+                <!-- Status wizyty -->
+                <div class="text-center py-6">
+                    @if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Unplanned)
+                    {
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="bi bi-clock-history text-6xl opacity-50"></i>
+                            <h3 class="text-xl font-semibold">Wizyta niezaplanowana</h3>
+                            <p class="opacity-70">
+                                Twoje zgłoszenie zostało przyjęte.<br/>
+                                Wizyta zostanie wkrótce zaplanowana przez administratora.
+                            </p>
+                        </div>
+                    }
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Planned)
+                    {
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="bi bi-calendar-check-fill text-6xl text-success"></i>
+                            <h3 class="text-xl font-semibold text-success">Wizyta zaplanowana</h3>
+                            
+                            @if (Model.Visit.PlannedDate.HasValue)
+                            {
+                                <div class="stats shadow">
+                                    <div class="stat place-items-center">
+                                        <div class="stat-title">Data wizyty</div>
+                                        <div class="stat-value text-3xl">@Model.Visit.PlannedDate.Value.ToString("dd.MM.yyyy")</div>
+                                        
+                                        @if (Model.Visit.EstimatedTime.HasValue)
+                                        {
+                                            <div class="stat-desc">Przewidywana godzina: @Model.Visit.EstimatedTime.Value.ToString("HH:mm")</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (Model.Visit.OrdinalNumber.HasValue)
+                            {
+                                <p class="opacity-70">
+                                    Numer porządkowy: <span class="font-bold">@Model.Visit.OrdinalNumber</span>
+                                </p>
+                            }
+                        </div>
+                    }
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Pending)
+                    {
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="bi bi-person-walking text-6xl text-info"></i>
+                            <h3 class="text-xl font-semibold text-info">Wizyta w trakcie realizacji</h3>
+                            <p class="opacity-70">Księża są obecnie w drodze do Ciebie.</p>
+                        </div>
+                    }
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Visited)
+                    {
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="bi bi-check-circle-fill text-6xl text-success"></i>
+                            <h3 class="text-xl font-semibold text-success">Wizyta zrealizowana</h3>
+                            <p class="opacity-70">Dziękujemy za gościnność!</p>
+                        </div>
+                    }
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Rejected || Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Withdrawn)
+                    {
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="bi bi-x-circle-fill text-6xl text-error"></i>
+                            <h3 class="text-xl font-semibold text-error">@(Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Rejected ? "Wizyta odrzucona" : "Wizyta wycofana")</h3>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Visit.Agenda) && Model.Visit.Status != SOK.Domain.Enums.VisitStatus.Rejected && Model.Visit.Status != SOK.Domain.Enums.VisitStatus.Withdrawn)
+                    {
+                        <div class="divider my-2"></div>
+                        <div>
+                            <h3 class="text-sm font-semibold opacity-70 mb-1">Szczegóły:</h3>
+                            <p class="text-base bg-base-300 p-3 rounded whitespace-pre-wrap">@Model.Visit.Agenda</p>
+                        </div>
+                    }
+
+                    <div class="divider my-2"></div>
+
+                    <!-- Informacja o harmonogramie -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <div>
+                            <h4 class="font-semibold">Harmonogram</h4>
+                            <p class="text-sm">@Model.PlanSchedule.ScheduleName</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stopka z kontaktem -->
+    <div class="mt-6 col-span-full text-center text-sm opacity-70">
+        <p class="font-medium mb-2">W razie pytań skontaktuj się z nami:</p>
+        <p>
+            @if (!string.IsNullOrEmpty(Model.Parish.Email))
+            {
+                <a href="mailto:@Model.Parish.Email" class="hover:underline hover:text-primary transition-colors">
+                    <i class="bi bi-envelope-at-fill mr-1"></i> @Model.Parish.Email
+                </a>
+            }
+            @if (!string.IsNullOrEmpty(Model.Parish.Phone))
+            {
+                <a href="tel:@Model.Parish.Phone" class="hover:underline hover:text-primary transition-colors ml-4">
+                    <i class="bi bi-telephone-fill mr-1"></i> @Model.Parish.Phone
+                </a>
+            }
+        </p>
+        <p class="mt-2">@Model.Parish.StreetAndBuilding, @Model.Parish.PostalCode @Model.Parish.CityName</p>
+    </div>
+</div>
+
+@functions {
+    private string GetNotesStatusLabel(SOK.Domain.Enums.NotesFulfillmentStatus status)
+    {
+        return status switch
+        {
+            SOK.Domain.Enums.NotesFulfillmentStatus.NA => "N/A",
+            SOK.Domain.Enums.NotesFulfillmentStatus.Pending => "Oczekuje",
+            SOK.Domain.Enums.NotesFulfillmentStatus.Accepted => "Zaakceptowane",
+            SOK.Domain.Enums.NotesFulfillmentStatus.Rejected => "Odrzucone",
+            _ => "Nieznany"
+        };
+    }
+
+    private string GetNotesStatusBadgeClass(SOK.Domain.Enums.NotesFulfillmentStatus status)
+    {
+        return status switch
+        {
+            SOK.Domain.Enums.NotesFulfillmentStatus.NA => "badge-ghost",
+            SOK.Domain.Enums.NotesFulfillmentStatus.Pending => "badge-warning",
+            SOK.Domain.Enums.NotesFulfillmentStatus.Accepted => "badge-success",
+            SOK.Domain.Enums.NotesFulfillmentStatus.Rejected => "badge-error",
+            _ => "badge-ghost"
+        };
+    }
+
+    private string GetSubmitMethodLabel(SOK.Domain.Enums.SubmitMethod method)
+    {
+        return method switch
+        {
+            SOK.Domain.Enums.SubmitMethod.NotRegistered => "Nie zarejestrowano",
+            SOK.Domain.Enums.SubmitMethod.PaperForm => "Formularz papierowy",
+            SOK.Domain.Enums.SubmitMethod.WebForm => "Formularz internetowy",
+            SOK.Domain.Enums.SubmitMethod.Phone => "Telefon",
+            SOK.Domain.Enums.SubmitMethod.Stationary => "Osobiście",
+            _ => "Nieznany"
+        };
+    }
+}

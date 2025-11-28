@@ -130,5 +130,10 @@
         /// Repozytorium członków parafii.
         /// </summary>
         IParishMemberRepository ParishMember { get; }
+
+        /// <summary>
+        /// Repozytorium logów emaili.
+        /// </summary>
+        IEmailLogRepository EmailLog { get; }
     }
 }

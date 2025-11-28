@@ -25,7 +25,7 @@ namespace SOK.Domain.Entities.Parish
         /// Token dostępu do agendy, używany do autoryzacji w połączeniu z UniqueId.
         /// </summary>
         [MaxLength(64)]
-        public string AccessToken { get; set; } = string.Empty;
+        public string AccessToken { get; set; } = null!;
 
         /// <summary>
         /// Czas rozpoczęcia agendy (jeśli inny niż domyślny dla danego dnia).
