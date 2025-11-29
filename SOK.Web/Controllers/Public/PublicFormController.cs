@@ -79,7 +79,7 @@ namespace SOK.Web.Controllers
         [HttpPost]
         [Route("")]
         [Route("new")]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> New(string parishUid, NewSubmissionWebFormVM model)
         {
             // Sprawdź czy parafia została poprawnie ustawiona

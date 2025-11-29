@@ -52,13 +52,6 @@ builder.Services.AddTransient<IParishProvisioningService, ParishProvisioningServ
 // Rejestracja middleware do rozpoznawania parafii (tenant'a)
 builder.Services.AddTransient<ParishResolver>();
 
-// Konfiguracja Antiforgery dla iframe
-builder.Services.AddAntiforgery(options =>
-{
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-});
-
 // Dodanie usług do kontenera
 builder.Services.AddControllersWithViews();
 
