@@ -43,8 +43,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
                 ["submitter_name"] = _submission.Submitter.Name,
                 ["submitter_surname"] = _submission.Submitter.Surname,
                 ["submission_uid"] = _submission.UniqueId.ToString(),
-                ["access_token"] = _submission.AccessToken,
-                ["control_link"] = $"{_controlLinkBase}/submission/{_submission.UniqueId}?token={_submission.AccessToken}",
+                ["control_link"] = $"{_controlLinkBase}?submissionUid={_submission.UniqueId}&accessToken={_submission.AccessToken}",
                 ["address"] = FormatAddress(),
                 ["schedule_name"] = _submission.Visit?.Schedule?.Name ?? "N/A"
             };

@@ -379,7 +379,7 @@ namespace SOK.Application.Services.Implementation
 
                 // Dodaj podstawowe dane parafii, jeśli nie są już w danych
                 if (!enriched.ContainsKey("parish_name"))
-                    enriched["parish_name"] = parishInfo.GetValueOrDefault(InfoKeys.Parish.FullName) ?? "";
+                    enriched["parish_name"] = parishInfo.GetValueOrDefault(InfoKeys.Parish.ShortName) ?? "";
 
                 if (!enriched.ContainsKey("parish_address"))
                 {
@@ -388,6 +388,9 @@ namespace SOK.Application.Services.Implementation
                     enriched["parish_address"] = address;
                 }
 
+                if (!enriched.ContainsKey("parish_email"))
+                    enriched["parish_email"] = parishInfo.GetValueOrDefault(InfoKeys.Contact.Email) ?? "";
+                
                 if (!enriched.ContainsKey("parish_phone"))
                     enriched["parish_phone"] = parishInfo.GetValueOrDefault(InfoKeys.Contact.MainPhone) ?? "";
                 
