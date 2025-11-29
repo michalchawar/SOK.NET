@@ -154,6 +154,13 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 if (!shouldSeedParishData)
                 {
                     context.Add(new ParishInfo { Name = InfoKeys.Parish.UniqueId, Value = parishUid });
+
+                    StreetSpecifier 
+                        sp_1 = new StreetSpecifier { FullName = "aleja", Abbreviation = "al." },
+                        sp_2 = new StreetSpecifier { FullName = "bulwar", Abbreviation = "bulwar" },
+                        sp_3 = new StreetSpecifier { FullName = "plac", Abbreviation = "pl." },
+                        sp_4 = new StreetSpecifier { FullName = "ulica", Abbreviation = "ul." };
+                    context.AddRange([sp_1, sp_2, sp_3, sp_4]);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return;
