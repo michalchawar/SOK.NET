@@ -33,6 +33,7 @@ namespace SOK.Application.Common.Helpers
             public const string SmtpEnableSsl = "Email.SmtpEnableSsl";
             public const string SenderEmail = "Email.SenderEmail";
             public const string SenderName = "Email.SenderName";
+            public const string BccRecipients = "Email.BccRecipients";
         }
 
         public static class EmbededApplication

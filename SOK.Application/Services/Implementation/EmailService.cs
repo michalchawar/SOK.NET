@@ -124,10 +124,26 @@ namespace SOK.Application.Services.Implementation
                     return null;
                 }
 
+                // Pobierz globalnych odbiorców BCC z ustawień
+                var globalBccString = await _parishInfoService.GetValueAsync(InfoKeys.Email.BccRecipients);
+                var globalBccList = new List<string>();
+                if (!string.IsNullOrWhiteSpace(globalBccString))
+                {
+                    // Rozdziel po średniku i oczyść białe znaki
+                    globalBccList = globalBccString
+                        .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(email => email.Trim())
+                        .Where(email => IsValidEmail(email))
+                        .ToList();
+                }
+
+                // Połącz przekazane BCC z globalnymi BCC
+                var allBcc = (bcc ?? new List<string>()).Concat(globalBccList).Distinct().ToList();
+
                 // Przygotuj listy odbiorców w formacie JSON
                 var receiverList = new List<EmailRecipient> { new EmailRecipient { Email = to, Name = "" } };
                 var ccList = cc?.Select(email => new EmailRecipient { Email = email, Name = "" }).ToList() ?? new List<EmailRecipient>();
-                var bccList = bcc?.Select(email => new EmailRecipient { Email = email, Name = "" }).ToList() ?? new List<EmailRecipient>();
+                var bccList = allBcc.Select(email => new EmailRecipient { Email = email, Name = "" }).ToList();
 
                 // Utwórz EmailLog
                 var emailLog = new EmailLog
@@ -142,7 +158,7 @@ namespace SOK.Application.Services.Implementation
                     Type = templateName,
                     Priority = priority,
                     Sent = false,
-                    Submission = submission,
+                    SubmissionId = submission.Id,
                 };
 
                 _uow.EmailLog.Add(emailLog);

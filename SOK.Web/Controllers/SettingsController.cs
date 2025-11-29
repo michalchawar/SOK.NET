@@ -104,6 +104,12 @@ namespace SOK.Web.Controllers
                                 Hint = "Np. koleda@parafia-sw-mikolaja.pl",
                                 Type = InputType.Email,
                             },
+                            new StringSettingVM(InfoKeys.Contact.Website, settingsDict) {
+                                Name = "Adres strony internetowej",
+                                Description = "Oficjalna strona internetowa parafii.",
+                                Hint = "Np. https://www.parafia-sw-mikolaja.pl",
+                                Type = InputType.Url,
+                            },
                             new StringSettingVM(InfoKeys.Contact.MainPhone, settingsDict) {
                                 Name = "Numer telefonu",
                                 Description = "Główny parafialny numer telefonu. Wyświetlany w wielu miejscach.",
@@ -211,6 +217,11 @@ namespace SOK.Web.Controllers
                                 Name = "Nazwa nadawcy",
                                 Description = "Nazwa wyświetlana jako nadawca wiadomości.",
                                 Hint = "Np. Parafia pw. św. Mikołaja - Kolęda",
+                            },
+                            new StringSettingVM(InfoKeys.Email.BccRecipients, settingsDict) {
+                                Name = "Adresy email do ukrytego DW (BCC)",
+                                Description = "Adresy email, które będą otrzymywać kopie wiadomości w ukrytej kopii (BCC), rozdzielone średnikiem.",
+                                Hint = "Np. sekretariat@parafia-sw-mikolaja.pl; koleda@parafia-sw-mikolaja.pl",
                             },
                         ]
                     }
