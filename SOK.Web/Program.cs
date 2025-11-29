@@ -52,24 +52,11 @@ builder.Services.AddTransient<IParishProvisioningService, ParishProvisioningServ
 // Rejestracja middleware do rozpoznawania parafii (tenant'a)
 builder.Services.AddTransient<ParishResolver>();
 
-// Konfiguracja cookies dla iframe (SameSite=None)
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.MinimumSameSitePolicy = SameSiteMode.None;
-    // W produkcji MUSI być Always, w dev można Unspecified dla testów HTTP
-    options.Secure = builder.Environment.IsDevelopment() 
-        ? CookieSecurePolicy.SameAsRequest 
-        : CookieSecurePolicy.Always;
-});
-
 // Konfiguracja Antiforgery dla iframe
 builder.Services.AddAntiforgery(options =>
 {
     options.Cookie.SameSite = SameSiteMode.None;
-    // W produkcji MUSI być Always, w dev można testować bez
-    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() 
-        ? CookieSecurePolicy.SameAsRequest 
-        : CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // Dodanie usług do kontenera
@@ -109,9 +96,6 @@ if (!app.Environment.IsDevelopment())
 app.UseWebOptimizer();
 
 app.UseStaticFiles();
-
-// Cookie policy dla iframe
-app.UseCookiePolicy();
 
 app.UseRouting();
 

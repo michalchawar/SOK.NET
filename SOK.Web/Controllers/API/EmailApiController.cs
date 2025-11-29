@@ -77,11 +77,11 @@ namespace SOK.Web.Controllers.Api
 
                 if (sent)
                 {
-                    return Ok(new { success = true, message = "Email został dodany do kolejki." });
+                    return Ok(new { success = true, message = "Email został wysłany." });
                 }
                 else
                 {
-                    return BadRequest(new { success = false, message = "Nie udało się dodać emaila do kolejki." });
+                    return BadRequest(new { success = false, message = "Nie udało się wysłać maila, został dodany do kolejki." });
                 }
             } catch (Exception ex)
             {
