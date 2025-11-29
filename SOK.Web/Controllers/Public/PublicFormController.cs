@@ -170,11 +170,14 @@ namespace SOK.Web.Controllers
 
         [HttpGet]
         [Route("success")]
-        public IActionResult Success(string parishUid, string submissionUid = "", string submissionAccessToken = "")
+        public async Task<IActionResult> Success(string parishUid, string submissionUid = "", string submissionAccessToken = "")
         {
             ViewData["ParishUid"] = parishUid;
             ViewData["SubmissionUid"] = submissionUid;
             ViewData["SubmissionAccessToken"] = submissionAccessToken;
+    
+            string? coreUrl = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            ViewData["SubmissionPanelUrl"] = $"{coreUrl}?submissionUid={submissionUid}&accessToken={submissionAccessToken}";
             return View();
         }
 

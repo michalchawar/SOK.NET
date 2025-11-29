@@ -30,12 +30,19 @@
         </div>
 
         <div class="flex justify-center items-center gap-4 mt-6">
-            <a asp-action="SubmissionPanel" asp-controller="PublicForm" asp-route-parishUid="@ViewData["ParishUid"]" 
-                asp-route-submissionUid="@ViewData["SubmissionUid"]"
-                asp-route-accessToken="@ViewData["SubmissionAccessToken"]"
-                class="btn btn-primary">
-                Panel zgłoszenia
-            </a>
+            @if (ViewData["SubmissionPanelUrl"] != null) {
+                <a href="@ViewData["SubmissionPanelUrl"]"
+                    class="btn btn-primary">
+                    Panel zgłoszenia
+                </a>
+            } else {
+                <a asp-action="SubmissionPanel" asp-controller="PublicForm" asp-route-parishUid="@ViewData["ParishUid"]" 
+                    asp-route-submissionUid="@ViewData["SubmissionUid"]"
+                    asp-route-accessToken="@ViewData["SubmissionAccessToken"]"
+                    class="btn btn-primary">
+                    Panel zgłoszenia
+                </a>
+            }
             <a asp-action="New" asp-controller="PublicForm" asp-route-parishUid="@ViewData["ParishUid"]"
                 class="btn btn-neutral">
                 Dodaj nowe zgłoszenie
