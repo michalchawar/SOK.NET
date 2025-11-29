@@ -88,5 +88,7 @@ namespace SOK.Application.Services.Interface
         /// </remarks>
         Task<IEnumerable<StreetSpecifier>> GetAllStreetSpecifiersAsync(
             Expression<Func<StreetSpecifier, bool>>? filter = null);
+
+        Task CreateCityAsync(string name);
     }
 }

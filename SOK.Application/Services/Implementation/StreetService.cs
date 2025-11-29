@@ -100,5 +100,17 @@ namespace SOK.Application.Services.Implementation
                 filter,
                 orderBy: s => s.FullName);
         }
+
+        public async Task CreateCityAsync(string name)
+        {
+            var city = new City
+            {
+                Name = name,
+                DisplayName = name,
+            };
+
+            _uow.City.Add(city);
+            await _uow.SaveAsync();
+        }
     }
 }

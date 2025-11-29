@@ -78,5 +78,13 @@ namespace SOK.Web.Controllers.API
 
             return Ok(result);
         }
+
+        // POST: api/streets/city?name=...
+        [HttpPost("city")]
+        public async Task<IActionResult> CreateCity(string name)
+        {
+            await _streetService.CreateCityAsync(name);
+            return Ok();
+        }
     }
 }
