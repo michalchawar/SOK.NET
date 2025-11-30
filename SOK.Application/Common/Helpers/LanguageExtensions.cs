@@ -42,7 +42,7 @@ namespace SOK.Application.Common.Helpers
                 "" => throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input)),
                 _ => string.Join(" ", 
                         input.Split([' '], StringSplitOptions.RemoveEmptyEntries)
-                             .Select(word => word.Length > 1 ? string.Concat(word[0].ToString().ToUpper(), word.AsSpan(1)) : word.ToLower()))
+                             .Select(word => word.Length > 1 ? string.Concat(word[0].ToString().ToUpper(), word.ToLower().AsSpan(1)) : word.ToLower()))
             };
     }
 }

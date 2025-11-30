@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Common.Interface;
@@ -271,16 +274,46 @@ namespace SOK.Application.Services.Implementation
                     return false;
                 }
 
-                // Wyślij email
-                using var smtpClient = new SmtpClient(smtpSettings.Host, smtpSettings.Port)
-                {
-                    Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password),
-                    EnableSsl = smtpSettings.EnableSsl,
-                    Timeout = this._timeoutMs
-                };
+                // Konwertuj MailMessage na MimeMessage
+                var mimeMessage = MimeMessage.CreateFromMailMessage(mailMessage);
+
+                // Wyślij email używając MailKit
+                using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
+                smtpClient.Timeout = this._timeoutMs;
 
                 _logger.LogInformation($"Connecting to SMTP server {smtpSettings.Host}:{smtpSettings.Port} to send email with logId {emailLogId}...");
-                await smtpClient.SendMailAsync(mailMessage);
+                try
+                {
+                    // Określ typ połączenia SSL na podstawie portu
+                    var secureSocketOptions = smtpSettings.Port == 465 
+                        ? SecureSocketOptions.SslOnConnect  // Implicit SSL dla portu 465
+                        : (smtpSettings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+
+                    await smtpClient.ConnectAsync(smtpSettings.Host, smtpSettings.Port, secureSocketOptions);
+                    
+                    _logger.LogInformation($"Connected to SMTP. Server capabilities: {string.Join(", ", smtpClient.Capabilities)}");
+                    _logger.LogInformation($"Authentication mechanisms: {string.Join(", ", smtpClient.AuthenticationMechanisms)}");
+
+                    // Uwierzytelnienie jeśli podano dane logowania
+                    if (!string.IsNullOrEmpty(smtpSettings.Username))
+                    {
+                        _logger.LogInformation($"Attempting authentication with username: {smtpSettings.Username}");
+                        await smtpClient.AuthenticateAsync(smtpSettings.Username, smtpSettings.Password);
+                        _logger.LogInformation($"Authentication successful");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"No username provided, skipping authentication");
+                    }
+
+                    await smtpClient.SendAsync(mimeMessage);
+                    await smtpClient.DisconnectAsync(true);
+                } 
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error during SendMailAsync for emailLogId {emailLogId}. SMTP Details - Host: {smtpSettings?.Host}, Port: {smtpSettings?.Port}, EnableSsl: {smtpSettings?.EnableSsl}");
+                    return false;
+                }
 
                 // Zaktualizuj status
                 emailLog.Sent = true;
