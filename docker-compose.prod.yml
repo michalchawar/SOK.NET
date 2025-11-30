@@ -76,7 +76,7 @@ services:
       ACCEPT_EULA: Y
       MSSQL_SA_PASSWORD: ${SA_PASSWORD}
     ports:
-      - "1433:1433"  # Expose SQL Server port
+      - "127.0.0.1:1433:1433"  # Expose SQL Server port only on localhost
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
