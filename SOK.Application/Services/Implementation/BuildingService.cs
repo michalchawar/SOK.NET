@@ -36,6 +36,9 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task CreateBuildingAsync(Building building)
         {
+            if (building.Letter != null)
+                building.Letter = building.Letter.ToUpper();
+
             _uow.Building.Add(building);
 
             try
@@ -75,6 +78,9 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task UpdateBuildingAsync(Building building)
         {
+            if (building.Letter != null)
+                building.Letter = building.Letter.ToUpper();
+                
             _uow.Building.Update(building);
 
             try
