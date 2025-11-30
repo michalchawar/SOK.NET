@@ -174,10 +174,12 @@ namespace SOK.Application.Services.Implementation
 
                 if (createdEmail != null)
                 {
-                    // Jeśli forceSend, próbuj wysłać od razu
+                    // Jeśli forceSend, próbuj wysłać od razu w tle
                     if (forceSend)
                     {
-                        await SendEmailAsync(createdEmail.Id);
+                        // Uruchom wysyłanie w tle, nie czekając na rezultat,
+                        // aby uniknąć blokowania w przypadku problemów z serwerem SMTP.
+                        _ = SendEmailAsync(createdEmail.Id);
                     }
 
                     return createdEmail.Id;

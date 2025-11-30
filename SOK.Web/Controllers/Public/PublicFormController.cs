@@ -141,6 +141,7 @@ namespace SOK.Web.Controllers
                     Author = null, // Anonimowe zgłoszenie
                     Method = SubmitMethod.WebForm,
                     IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    SendConfirmationEmail = model.WantsEmailNotification,
                 };
 
                 try
