@@ -11,7 +11,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
         private readonly string _controlLinkBase;
 
         public override string TemplateName => "confirmation";
-        public override string DefaultSubject => "Potwierdzenie przyjęcia zgłoszenia";
+        public override string DefaultSubject => "Przyjęliśmy Twoje zgłoszenie!";
         public override string To => _submission.Submitter.Email!;
         public override int Priority => 7;
 
@@ -40,6 +40,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
 
             return new Dictionary<string, string>
             {
+                ["subject"] = GetSubject(),
                 ["submitter_name"] = _submission.Submitter.Name,
                 ["submitter_surname"] = _submission.Submitter.Surname,
                 ["submission_uid"] = _submission.UniqueId.ToString(),

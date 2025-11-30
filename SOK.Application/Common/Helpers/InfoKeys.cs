@@ -6,6 +6,7 @@ namespace SOK.Application.Common.Helpers
         {
             public const string FullName = "Parish.FullName";
             public const string ShortName = "Parish.ShortName";
+            public const string ShortNameAppendix = "Parish.ShortNameAppendix";
             public const string UniqueId = "Parish.UniqueId";
             public const string Diocese = "Parish.Diocese";
         }
@@ -36,7 +37,7 @@ namespace SOK.Application.Common.Helpers
             public const string BccRecipients = "Email.BccRecipients";
         }
 
-        public static class EmbededApplication
+        public static class EmbeddedApplication
         {
             public const string FormUrl = "Application.FormUrl";
             public const string ControlPanelBaseUrl = "Application.ControlPanelBaseUrl";

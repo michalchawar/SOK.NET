@@ -177,7 +177,7 @@ namespace SOK.Web.Controllers
             ViewData["SubmissionUid"] = submissionUid;
             ViewData["SubmissionAccessToken"] = submissionAccessToken;
     
-            string? coreUrl = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            string? coreUrl = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
             ViewData["SubmissionPanelUrl"] = $"{coreUrl}?submissionUid={submissionUid}&accessToken={submissionAccessToken}";
             return View();
         }

@@ -11,7 +11,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
         private readonly string _controlLinkBase;
 
         public override string TemplateName => "submission_control";
-        public override string DefaultSubject => "Link do zarządzania zgłoszeniem";
+        public override string DefaultSubject => "Panel zgłoszenia";
         public override string To => _submission.Submitter.Email!;
         public override int Priority => 5;
 
@@ -33,6 +33,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
 
             return new Dictionary<string, string>
             {
+                ["subject"] = GetSubject(),
                 ["submitter_name"] = _submission.Submitter.Name,
                 ["submitter_surname"] = _submission.Submitter.Surname,
                 ["control_link"] = $"{_controlLinkBase}/submission/{_submission.UniqueId}?token={_submission.AccessToken}",

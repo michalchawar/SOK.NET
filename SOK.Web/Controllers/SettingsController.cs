@@ -77,9 +77,14 @@ namespace SOK.Web.Controllers
                                 Hint = "Np. Parafia Rzymskokatolicka pw. św. Anny w Brzegu",
                             },
                             new StringSettingVM(InfoKeys.Parish.ShortName, settingsDict) {
-                                Name = "Nazwa parafii",
+                                Name = "Nazwa parafii (krótka)",
                                 Description = "Nazwa parafii wyświetlana w nagłówkach i krótszych formatach.",
                                 Hint = "Np. Parafia pw. św. Anny",
+                            },
+                            new StringSettingVM(InfoKeys.Parish.ShortNameAppendix, settingsDict) {
+                                Name = "Nazwa parafii (dodatek)",
+                                Description = "Krótkie dookreślenie parafii, wyświetlane np. w mailu pod krótką nazwą.",
+                                Hint = "Np. Mokotów, Warszawa",
                             },
                             new StringSettingVM(InfoKeys.Parish.UniqueId, settingsDict) {
                                 Name = "UID parafii",
@@ -156,12 +161,12 @@ namespace SOK.Web.Controllers
                         Name = "Ustawienia udostępniania",
                         Settings =
                         [
-                            new StringSettingVM(InfoKeys.EmbededApplication.FormUrl, settingsDict) {
+                            new StringSettingVM(InfoKeys.EmbeddedApplication.FormUrl, settingsDict) {
                                 Name = "Adres URL formularza zgłoszeniowego",
                                 Description = "Pełny adres podstrony na stronie parafii, na której znajduje się formularz zgłoszeniowy.",
                                 Hint = "Np. https://www.parafia-sw-mikolaja.pl/koleda",
                             },
-                            new StringSettingVM(InfoKeys.EmbededApplication.ControlPanelBaseUrl, settingsDict) {
+                            new StringSettingVM(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl, settingsDict) {
                                 Name = "Adres URL panelu zgłoszenia",
                                 Description = "Pełny adres podstrony na stronie parafii, na której znajduje się panel do zarządzania zgłoszeniami.",
                                 Hint = "Np. https://www.parafia-sw-mikolaja.pl/koleda/panel",

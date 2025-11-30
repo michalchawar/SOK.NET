@@ -455,6 +455,8 @@ namespace SOK.Application.Services.Implementation
                 // Dodaj podstawowe dane parafii, jeśli nie są już w danych
                 if (!enriched.ContainsKey("parish_name"))
                     enriched["parish_name"] = parishInfo.GetValueOrDefault(InfoKeys.Parish.ShortName) ?? "";
+                if (!enriched.ContainsKey("parish_name_appendix"))
+                    enriched["parish_name_appendix"] = parishInfo.GetValueOrDefault(InfoKeys.Parish.ShortNameAppendix) ?? "";
 
                 if (!enriched.ContainsKey("parish_address"))
                 {

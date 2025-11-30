@@ -215,7 +215,7 @@ namespace SOK.Application.Services.Implementation
                     var emailEnabled = await _parishInfoService.GetValueAsync(InfoKeys.Email.EnableEmailSending);
                     if (emailEnabled == "true" || emailEnabled == "True")
                     {
-                        var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+                        var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
 
                         // Utwórz typ emaila confirmation
                         var confirmationEmail = new ConfirmationEmail(
@@ -293,7 +293,7 @@ namespace SOK.Application.Services.Implementation
                 throw new ArgumentException("Zgłaszający nie posiada adresu email.");
             }
 
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
             if (string.IsNullOrWhiteSpace(controlLinkBase))
             {
                 throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
@@ -346,7 +346,7 @@ namespace SOK.Application.Services.Implementation
                 throw new ArgumentException("Zgłaszający nie posiada adresu email.");
             }
 
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
             if (string.IsNullOrWhiteSpace(controlLinkBase))
             {
                 throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
@@ -396,7 +396,7 @@ namespace SOK.Application.Services.Implementation
                 throw new ArgumentException("Nie podano nowego adresu email.");
             }
 
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
             if (string.IsNullOrWhiteSpace(controlLinkBase))
             {
                 throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
@@ -452,7 +452,7 @@ namespace SOK.Application.Services.Implementation
                 throw new ArgumentException("Nie podano nowego adresu email.");
             }
 
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
             if (string.IsNullOrWhiteSpace(controlLinkBase))
             {
                 throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
