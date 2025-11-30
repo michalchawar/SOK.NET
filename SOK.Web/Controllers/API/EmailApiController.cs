@@ -22,6 +22,8 @@ namespace SOK.Web.Controllers.Api
             _emailService = emailService;
             _submissionService = submissionService;
             _parishInfoService = parishInfoService;
+
+            _emailService.SetSMTPTimeout(5000);
         }
 
         [HttpPost("queue/confirmation")]

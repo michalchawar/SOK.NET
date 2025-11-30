@@ -19,6 +19,7 @@ namespace SOK.Application.Services.Implementation
         private readonly IParishInfoService _parishInfoService;
         private readonly EmailTemplateService _templateService;
         private readonly ILogger<EmailService> _logger;
+        private int _timeoutMs = 30000; // Domyślny timeout SMTP w milisekundach
 
         public EmailService(
             IUnitOfWorkParish uow,
@@ -29,6 +30,14 @@ namespace SOK.Application.Services.Implementation
             _parishInfoService = parishInfoService;
             _templateService = new EmailTemplateService();
             _logger = logger;
+        }
+
+        public void SetSMTPTimeout(int timeoutMs)
+        {
+            if (timeoutMs <= 0)
+                throw new ArgumentOutOfRangeException(nameof(timeoutMs), "Timeout musi być większy niż 0 ms.");
+
+            _timeoutMs = timeoutMs;
         }
 
         /// <inheritdoc />
@@ -174,10 +183,12 @@ namespace SOK.Application.Services.Implementation
 
                 if (createdEmail != null)
                 {
-                    // Jeśli forceSend, próbuj wysłać od razu
+                    // Jeśli forceSend, próbuj wysłać od razu w tle
                     if (forceSend)
                     {
-                        await SendEmailAsync(createdEmail.Id);
+                        // Uruchom wysyłanie w tle, nie czekając na rezultat,
+                        // aby uniknąć blokowania w przypadku problemów z serwerem SMTP.
+                        _ = await SendEmailAsync(createdEmail.Id);
                     }
 
                     return createdEmail.Id;
@@ -265,12 +276,11 @@ namespace SOK.Application.Services.Implementation
                 {
                     Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password),
                     EnableSsl = smtpSettings.EnableSsl,
-                    Timeout = 30000 // 30 sekund timeout
+                    Timeout = this._timeoutMs
                 };
 
-                _logger.LogInformation($"Connecting to SMTP server {smtpSettings.Host}:{smtpSettings.Port}...");
+                _logger.LogInformation($"Connecting to SMTP server {smtpSettings.Host}:{smtpSettings.Port} to send email with logId {emailLogId}...");
                 await smtpClient.SendMailAsync(mailMessage);
-                _logger.LogInformation($"Email {emailLogId} sent successfully via SMTP");
 
                 // Zaktualizuj status
                 emailLog.Sent = true;

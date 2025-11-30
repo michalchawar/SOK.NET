@@ -25,6 +25,8 @@ namespace SOK.Application.Services.Implementation
             _uow = uow;
             _emailService = emailService;
             _parishInfoService = parishInfoService;
+
+            _emailService.SetSMTPTimeout(3000);
         }
 
         /// <inheritdoc />
