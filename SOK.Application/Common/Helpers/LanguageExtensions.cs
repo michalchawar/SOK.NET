@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace SOK.Infrastructure.Extensions
+namespace SOK.Application.Common.Helpers
 {
     /// <summary>
     /// Klasa do rozszerzania funkcjonalności związanych z językiem programowania.
@@ -34,5 +34,15 @@ namespace SOK.Infrastructure.Extensions
         {
             return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
         }
+
+        public static string FirstCharToUpper(this string input) => 
+            input switch
+            {
+                null => throw new ArgumentNullException(nameof(input)),
+                "" => throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input)),
+                _ => string.Join(" ", 
+                        input.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+                             .Select(word => word.Length > 1 ? string.Concat(word[0].ToString().ToUpper(), word.AsSpan(1)) : word.ToLower()))
+            };
     }
 }

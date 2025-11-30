@@ -195,6 +195,7 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<bool> SendEmailAsync(int emailLogId)
         {
+            SmtpSettings? smtpSettings = null;
             try
             {
                 var emailLog = await _uow.EmailLog.GetAsync(e => e.Id == emailLogId, tracked: true);
@@ -211,12 +212,14 @@ namespace SOK.Application.Services.Implementation
                 }
 
                 // Pobierz ustawienia SMTP
-                var smtpSettings = await GetSmtpSettingsAsync();
+                smtpSettings = await GetSmtpSettingsAsync();
                 if (smtpSettings == null)
                 {
                     _logger.LogError("SMTP settings not configured");
                     return false;
                 }
+
+                _logger.LogInformation($"Attempting to send email {emailLogId} via SMTP: {smtpSettings.Host}:{smtpSettings.Port}, SSL: {smtpSettings.EnableSsl}, User: {smtpSettings.Username}");
 
                 // Deserializuj odbiorców
                 var receivers = JsonSerializer.Deserialize<List<EmailRecipient>>(emailLog.Receiver) ?? new List<EmailRecipient>();
@@ -261,22 +264,34 @@ namespace SOK.Application.Services.Implementation
                 using var smtpClient = new SmtpClient(smtpSettings.Host, smtpSettings.Port)
                 {
                     Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password),
-                    EnableSsl = smtpSettings.EnableSsl
+                    EnableSsl = smtpSettings.EnableSsl,
+                    Timeout = 30000 // 30 sekund timeout
                 };
 
+                _logger.LogInformation($"Connecting to SMTP server {smtpSettings.Host}:{smtpSettings.Port}...");
                 await smtpClient.SendMailAsync(mailMessage);
+                _logger.LogInformation($"Email {emailLogId} sent successfully via SMTP");
 
                 // Zaktualizuj status
                 emailLog.Sent = true;
                 emailLog.SentTimestamp = DateTime.UtcNow;
                 await _uow.SaveAsync();
 
-                _logger.LogInformation($"Email {emailLogId} sent successfully");
                 return true;
+            }
+            catch (SmtpException ex)
+            {
+                _logger.LogError(ex, $"SMTP error sending email {emailLogId}. StatusCode: {ex.StatusCode}, Host: {smtpSettings?.Host}:{smtpSettings?.Port}, SSL: {smtpSettings?.EnableSsl}");
+                return false;
+            }
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                _logger.LogError(ex, $"Socket error sending email {emailLogId}. ErrorCode: {ex.ErrorCode}, SocketErrorCode: {ex.SocketErrorCode}, Host: {smtpSettings?.Host}:{smtpSettings?.Port}");
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error sending email {emailLogId}");
+                _logger.LogError(ex, $"Unexpected error sending email {emailLogId}");
                 return false;
             }
         }

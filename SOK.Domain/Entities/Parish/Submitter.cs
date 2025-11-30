@@ -75,10 +75,10 @@ namespace SOK.Domain.Entities.Parish
 
         public static Expression<Func<Submitter, bool>> IsEqualExpression(Submitter other)
         {
-            return s => s.Name == other.Name
-                && s.Surname == other.Surname
-                && s.Email == other.Email
-                && s.Phone == other.Phone;
+            return s => string.Equals(s.Name, other.Name, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(s.Surname, other.Surname, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(s.Email, other.Email, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(s.Phone, other.Phone, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

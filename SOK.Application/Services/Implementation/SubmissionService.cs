@@ -108,6 +108,11 @@ namespace SOK.Application.Services.Implementation
             if (submitter == null) 
                 submitter = submissionDto.Submitter;
 
+            submissionDto.Submitter.Name = submissionDto.Submitter.Name.Trim([' ', '\n', '\r']).FirstCharToUpper();
+            submissionDto.Submitter.Surname = submissionDto.Submitter.Surname.Trim([' ', '\n', '\r']).FirstCharToUpper();
+            submissionDto.Submitter.Email = string.IsNullOrWhiteSpace(submissionDto.Submitter.Email) ? null : submissionDto.Submitter.Email.Trim([' ', '\n', '\r']).ToLower();
+            submissionDto.Submitter.Phone = string.IsNullOrWhiteSpace(submissionDto.Submitter.Phone) ? null : submissionDto.Submitter.Phone.Trim([' ', '\n', '\r']);
+
             submissionDto.SubmitterNotes = string.IsNullOrWhiteSpace(submissionDto.SubmitterNotes) ? null : submissionDto.SubmitterNotes.Trim([' ', '\n', '\r']);
             submissionDto.AdminNotes = string.IsNullOrWhiteSpace(submissionDto.AdminNotes) ? null : submissionDto.AdminNotes.Trim([' ', '\n', '\r']);
             submissionDto.ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']).ToLower();
