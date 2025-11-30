@@ -83,6 +83,29 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsPaginatedWithSorting(
+            Expression<Func<Submission, bool>>? filter = null,
+            string sortBy = "time",
+            string order = "desc",
+            int page = 1,
+            int pageSize = 1)
+        {
+            if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
+            if (page < 1) throw new ArgumentException("Page must be positive.");
+
+            var result = await _uow.Submission.GetPaginatedWithSortingAsync(
+                filter,
+                sortBy: sortBy,
+                order: order,
+                pageSize: pageSize,
+                page: page,
+                submitter: true,
+                address: true);
+
+            return result;
+        }
+
+        /// <inheritdoc />
         public async Task<int?> CreateSubmissionAsync(SubmissionCreationRequestDto submissionDto)
         {
             // Budynek musi istnieć w momencie tworzenia zgłoszenia

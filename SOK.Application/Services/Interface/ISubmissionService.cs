@@ -58,6 +58,25 @@ namespace SOK.Application.Services.Interface
             int pageSize = 1);
 
         /// <summary>
+        /// Pobiera stronę zgłoszeń z sortowaniem i zwraca również całkowitą liczbę wyników.
+        /// </summary>
+        /// <param name="filter">Filtr, który spełniać mają zgłoszenia.</param>
+        /// <param name="sortBy">Pole sortowania: time, address, submitter</param>
+        /// <param name="order">Kierunek sortowania: asc, desc</param>
+        /// <param name="page">Numer strony.</param>
+        /// <param name="pageSize">Liczba obiektów na stronie.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest krotka z listą obiektów <see cref="Submission"/> i całkowitą liczbą wyników.
+        /// </returns>
+        Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsPaginatedWithSorting(
+            Expression<Func<Submission, bool>>? filter = null,
+            string sortBy = "time",
+            string order = "desc",
+            int page = 1,
+            int pageSize = 1);
+
+        /// <summary>
         /// Zapisuje zgłoszenie w bazie danych.
         /// </summary>
         /// <param name="submissionDto">Obiekt <see cref="SubmissionCreationRequestDto"/> z danymi zgłoszenia, które ma zostać zapisane.</param>

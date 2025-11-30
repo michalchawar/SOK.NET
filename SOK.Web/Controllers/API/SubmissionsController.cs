@@ -33,20 +33,38 @@ namespace SOK.Web.Controllers.API
             [FromQuery] string? address,
             [FromQuery] string? submitter,
             [FromQuery] string? sort,
+            [FromQuery] string? order,
+            [FromQuery] string? emailFilter,
+            [FromQuery] string? notesFilter,
+            [FromQuery] string? notesStatuses,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 5)
         {
             Plan? activePlan = await _planService.GetActivePlanAsync();
 
-            List<Submission> submissions = [.. await _submissionService
-                .GetSubmissionsPaginated(
-                    CreateSubmissionFilter(address ?? string.Empty, submitter ?? string.Empty, activePlan?.Id ?? -1),
-                    page,
-                    pageSize)];
+            // Pobierz zgłoszenia z filtrowaniem i sortowaniem
+            var (submissions, totalCount) = await _submissionService.GetSubmissionsPaginatedWithSorting(
+                CreateSubmissionFilter(
+                    address ?? string.Empty,
+                    submitter ?? string.Empty,
+                    emailFilter ?? "off",
+                    notesFilter ?? "off",
+                    notesStatuses ?? "",
+                    activePlan?.Id ?? -1),
+                sortBy: sort ?? "time",
+                order: order ?? "desc",
+                page: page,
+                pageSize: pageSize);
 
             List<SubmissionDto> result = submissions.Select(s => new SubmissionDto(s)).ToList();
 
-            return Ok(result);
+            return Ok(new
+            {
+                submissions = result,
+                totalCount = totalCount,
+                page = page,
+                pageSize = pageSize
+            });
         }
 
         // GET api/<SubmissionsController>/5
@@ -195,6 +213,9 @@ namespace SOK.Web.Controllers.API
         protected Expression<Func<Submission, bool>> CreateSubmissionFilter(
             string address = "",
             string submitter = "",
+            string emailFilter = "off",
+            string notesFilter = "off",
+            string notesStatuses = "",
             int? planId = null)
         {
             // Rozbij tekst po spacji i slashu, odrzuć puste fragmenty
@@ -214,12 +235,33 @@ namespace SOK.Web.Controllers.API
             var addressPattern = BuildLikePattern(address);
             var submitterPattern = BuildLikePattern(submitter);
 
+            // Parse note statuses if notes filter is active
+            var noteStatusesList = new List<SOK.Domain.Enums.NotesFulfillmentStatus>();
+            if (!string.IsNullOrEmpty(notesStatuses))
+            {
+                var statusStrings = notesStatuses.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var statusStr in statusStrings)
+                {
+                    if (Enum.TryParse<SOK.Domain.Enums.NotesFulfillmentStatus>(statusStr, true, out var status))
+                    {
+                        noteStatusesList.Add(status);
+                    }
+                }
+            }
+
             // Generujemy dynamiczne wyrażenie do filtrowania i zwracamy je
             return s =>
                     (string.IsNullOrEmpty(addressPattern) ||
                         EF.Functions.Like(s.Address.FilterableString, addressPattern)) &&
                     (string.IsNullOrEmpty(submitterPattern) ||
                         EF.Functions.Like(s.Submitter.FilterableString, submitterPattern)) &&
+                    (emailFilter == "off" ||
+                        (emailFilter == "on" && !string.IsNullOrEmpty(s.Submitter.Email)) ||
+                        (emailFilter == "reverse" && string.IsNullOrEmpty(s.Submitter.Email))) &&
+                    (notesFilter == "off" ||
+                        (notesFilter == "on" && (!string.IsNullOrEmpty(s.SubmitterNotes) || !string.IsNullOrEmpty(s.AdminNotes) || !string.IsNullOrEmpty(s.AdminMessage))) ||
+                        (notesFilter == "reverse" && string.IsNullOrEmpty(s.SubmitterNotes) && string.IsNullOrEmpty(s.AdminNotes) && string.IsNullOrEmpty(s.AdminMessage))) &&
+                    (noteStatusesList.Count == 0 || noteStatusesList.Contains(s.NotesStatus)) &&
                     (planId == null || s.PlanId == planId);
         }
     }
