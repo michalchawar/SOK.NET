@@ -187,6 +187,7 @@ namespace SOK.Application.Services.Implementation
                 if (createdEmail != null)
                 {
                     // Jeśli forceSend, próbuj wysłać od razu w tle
+                    // Jeśli forceSend, próbuj wysłać od razu w tle
                     if (forceSend)
                     {
                         // Uruchom wysyłanie w tle, nie czekając na rezultat,
