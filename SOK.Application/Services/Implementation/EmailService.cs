@@ -319,7 +319,7 @@ namespace SOK.Application.Services.Implementation
                     }
 
                     // Krótka przerwa między wysyłkami, żeby nie przeciążać serwera
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                 }
 
                 _logger.LogInformation($"Sent {sentCount} emails, {errorCount} errors, {attemptCount} attempts");
