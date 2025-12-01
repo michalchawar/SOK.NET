@@ -58,9 +58,6 @@ builder.Services.AddControllersWithViews();
 // Konfiguracja WebOptimizer
 builder.Services.AddWebOptimizer(pipeline =>
 {
-    // Bundle i minifikuj CSS
-    pipeline.AddCssBundle("/css/bundle.min.css", "css/site.min.css");
-    
     // Bundle i minifikuj JavaScript
     pipeline.AddJavaScriptBundle("/js/bundle.min.js", "js/site.js", "js/address-utilities.js");
 });
