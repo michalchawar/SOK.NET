@@ -78,7 +78,7 @@
                         {{ saveMsg.text }}
                     </div>
                     <!-- Dane zgłoszenia -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 items-start gap-4">
                         <!-- Zgłaszający -->
                         <div class="card bg-base-200">
                             <div class="card-body">
@@ -143,23 +143,26 @@
                             </div>
                         </div>
                         <!-- Notatki i Statusy -->
-                        <div class="card bg-base-200 col-span-full">
+                        <div class="card bg-base-200">
                             <div class="card-body">
-                                <h4 class="card-title"><i class="bi bi-chat-left-text"></i> Notatki i Status</h4>
+                                <div class="flex gap-3 items-center justify-between">
+                                    <h4 class="card-title"><i class="bi bi-chat-left-text"></i> Notatki</h4>
+                                    <p v-if="!isEditing" class="grow-0 badge badge-lg" :class="notesStatusClass">{{ notesStatusLabel(data.notesStatus) }}</p>
+                                </div>
                                 <div class="space-y-3">
                                     <div>
                                         <label class="label"><span class="label-text font-semibold">Notatka zgłaszającego:</span></label>
-                                        <p v-if="!isEditing" class="p-3 bg-base-300 rounded">{{ data.submitterNotes || '—' }}</p>
+                                        <p v-if="!isEditing" class="p-3 bg-base-300 whitespace-pre-wrap rounded">{{ data.submitterNotes || '—' }}</p>
                                         <textarea v-else v-model="edit.submitterNotes" class="textarea w-full" rows="2" maxlength="500"></textarea>
                                     </div>
                                     <div>
                                         <label class="label"><span class="label-text font-semibold">Wiadomość dla zgłaszającego:</span></label>
-                                        <p v-if="!isEditing" class="p-3 bg-base-300 rounded">{{ data.adminMessage || '—' }}</p>
+                                        <p v-if="!isEditing" class="p-3 bg-base-300 whitespace-pre-wrap rounded">{{ data.adminMessage || '—' }}</p>
                                         <textarea v-else v-model="edit.adminMessage" class="textarea w-full" rows="2" maxlength="500"></textarea>
                                     </div>
                                     <div>
                                         <label class="label"><span class="label-text font-semibold">Notatka wewnętrzna:</span></label>
-                                        <p v-if="!isEditing" class="p-3 bg-base-300 rounded">{{ data.adminNotes || '—' }}</p>
+                                        <p v-if="!isEditing" class="p-3 bg-base-300 whitespace-pre-wrap rounded">{{ data.adminNotes || '—' }}</p>
                                         <textarea v-else v-model="edit.adminNotes" class="textarea w-full" rows="2" maxlength="500"></textarea>
                                     </div>
                 
@@ -168,13 +171,12 @@
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="label"><span class="label-text font-semibold">Status realizacji notatek:</span></label>
-                                            <p v-if="!isEditing" class="badge badge-lg">{{ notesStatusLabel(data.notesStatus) }}</p>
+                                            <p v-if="!isEditing" class="badge badge-lg" :class="notesStatusClass">{{ notesStatusLabel(data.notesStatus) }}</p>
                                             <select v-else v-model="edit.notesStatus" class="select w-full">
                                                 <option value="0">N/A</option>
                                                 <option value="1">Oczekuje</option>
-                                                <option value="2">W trakcie</option>
-                                                <option value="3">Zrealizowane</option>
-                                                <option value="4">Anulowane</option>
+                                                <option value="2">Odrzucone</option>
+                                                <option value="3">Zaakceptowane</option>
                                             </select>
                                         </div>
                                         <div>
@@ -184,7 +186,7 @@
                                                 <option value="0">Nie zarejestrowano</option>
                                                 <option value="1">Formularz papierowy</option>
                                                 <option value="2">Formularz internetowy</option>
-                                                <option value="3">Telefon</option>
+                                                <option value="3">Telefonicznie</option>
                                                 <option value="4">Osobiście</option>
                                             </select>
                                         </div>
@@ -366,11 +368,11 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="label"><span class="label-text font-semibold">Email:</span></label>
-                        <p class="text-sm">{{ formData.email || 'N/A' }}</p>
+                        <p class="text-sm">{{ formData.email || 'Brak' }}</p>
                     </div>
                     <div>
                         <label class="label"><span class="label-text font-semibold">Telefon:</span></label>
-                        <p class="text-sm">{{ formData.phone || 'N/A' }}</p>
+                        <p class="text-sm">{{ formData.phone || 'Brak' }}</p>
                     </div>
                 </div>
                 
@@ -499,6 +501,16 @@
                 } catch (e) {
                     console.error('Nie udało się pobrać informacji o parafii:', e);
                 }
+            },
+            computed: {
+                notesStatusClass() {
+                    switch (this.data.notesStatus) {
+                        case 1: return 'badge-warning'; // Oczekuje
+                        case 2: return 'badge-error';   // Odrzucone
+                        case 3: return 'badge-success'; // Zaakceptowane
+                        default: return ''; // N/A
+                    }
+                },
             },
             methods: {
                 async open(id) {
@@ -795,7 +807,7 @@
                     return '';
                 },
                 close() {
-                    if (this.isEditing && !confirm('Masz niezapisane zmiany. Zamknąć?')) return;
+                    if (this.isEditing && !confirm('Jesteś w trakcie edycji. Zamknąć?')) return;
                     this.isOpen = false;
                     this.data = null;
                     this.isEditing = false;
@@ -806,7 +818,7 @@
                     return new Date(d).toLocaleString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 },
                 notesStatusLabel(val) {
-                    const labels = ['N/A', 'Oczekuje', 'W trakcie', 'Zrealizowane', 'Anulowane'];
+                    const labels = ['N/A', 'Oczekuje', 'Odrzucone', 'Zaakceptowane'];
                     return labels[val] || 'N/A';
                 },
                 submitMethodLabel(val) {

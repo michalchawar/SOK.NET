@@ -14,7 +14,7 @@
     </div>
 
     <!-- Główna zawartość - dwa kafelki obok siebie -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 items-start gap-6 mb-6">
         <!-- Lewy kafelek - Dane zgłoszenia -->
         <div class="bg-base-200 rounded-lg p-6 shadow-md">
             <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -26,7 +26,7 @@
                 <!-- Zgłaszający -->
                 <div>
                     <h3 class="text-sm font-semibold opacity-70 mb-1">Zgłaszający:</h3>
-                    <p class="text-lg">
+                    <p class="text-xl">
                         <span class="font-bold">@Model.Submission.SubmitterSurname</span> @Model.Submission.SubmitterName
                     </p>
                 </div>
@@ -34,21 +34,22 @@
                 <!-- Adres -->
                 <div>
                     <h3 class="text-sm font-semibold opacity-70 mb-1">Adres wizyty:</h3>
-                    <p class="text-lg font-semibold">@Model.Submission.Address</p>
+                    <p class="text-xl font-medium">@Model.Submission.Address</p>
                 </div>
 
-                <div class="divider my-2"></div>
+                @if (!string.IsNullOrEmpty(Model.Submission.SubmitterPhone) || !string.IsNullOrEmpty(Model.Submission.SubmitterEmail))
+                {
+                    <div class="divider my-2"></div>
+                }
 
                 <!-- Email (jeśli podano) -->
                 @if (!string.IsNullOrEmpty(Model.Submission.SubmitterEmail))
                 {
                     <div>
                         <h3 class="text-sm font-semibold opacity-70 mb-1">Email:</h3>
-                        <p class="text-lg">
-                            <a href="mailto:@Model.Submission.SubmitterEmail" class="link link-primary">
-                                <i class="bi bi-envelope"></i> @Model.Submission.SubmitterEmail
-                            </a>
-                        </p>
+                        <div class="flex gap-2 items-center text-lg">
+                            <i class="bi bi-envelope text-md text-primary"></i> @Model.Submission.SubmitterEmail
+                        </div>
                     </div>
                 }
 
@@ -57,27 +58,29 @@
                 {
                     <div>
                         <h3 class="text-sm font-semibold opacity-70 mb-1">Telefon:</h3>
-                        <p class="text-lg">
-                            <a href="tel:@Model.Submission.SubmitterPhone" class="link link-primary">
-                                <i class="bi bi-telephone"></i> @Model.Submission.SubmitterPhone
-                            </a>
-                        </p>
+                        <div class="flex gap-2 items-center text-lg">
+                            <i class="bi bi-telephone text-md text-primary"></i> @Model.Submission.SubmitterPhone
+                        </div>
                     </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Submission.SubmitterNotes) || !string.IsNullOrEmpty(Model.Submission.AdminMessage))
+                {
+                    <div class="divider my-2"></div>
                 }
 
                 <!-- Uwagi zgłaszającego -->
                 @if (!string.IsNullOrEmpty(Model.Submission.SubmitterNotes))
                 {
-                    <div class="divider my-2"></div>
                     <div>
                         <h3 class="text-sm font-semibold opacity-70 mb-1">Twoje uwagi:</h3>
                         <p class="text-base whitespace-pre-wrap bg-base-300 p-3 rounded">@Model.Submission.SubmitterNotes</p>
                         
                         @if (Model.Submission.NotesStatus.HasValue)
                         {
-                            <div class="mt-2">
+                            <div class="mt-2 flex items-center gap-2">
                                 <span class="text-sm font-semibold opacity-70">Status realizacji: </span>
-                                <span class="badge badge-lg @GetNotesStatusBadgeClass(Model.Submission.NotesStatus.Value)">
+                                <span class="badge @GetNotesStatusBadgeClass(Model.Submission.NotesStatus.Value)">
                                     @GetNotesStatusLabel(Model.Submission.NotesStatus.Value)
                                 </span>
                             </div>
@@ -90,10 +93,7 @@
                 {
                     <div>
                         <h3 class="text-sm font-semibold opacity-70 mb-1">Wiadomość od administratora:</h3>
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i>
-                            <p class="whitespace-pre-wrap">@Model.Submission.AdminMessage</p>
-                        </div>
+                        <p class="text-base whitespace-pre-wrap bg-sky-600 p-3 rounded">@Model.Submission.AdminMessage</p>
                     </div>
                 }
 
@@ -252,11 +252,11 @@
     {
         return status switch
         {
-            SOK.Domain.Enums.NotesFulfillmentStatus.NA => "badge-ghost",
+            SOK.Domain.Enums.NotesFulfillmentStatus.NA => "badge-neutral",
             SOK.Domain.Enums.NotesFulfillmentStatus.Pending => "badge-warning",
             SOK.Domain.Enums.NotesFulfillmentStatus.Accepted => "badge-success",
             SOK.Domain.Enums.NotesFulfillmentStatus.Rejected => "badge-error",
-            _ => "badge-ghost"
+            _ => "badge-neutral"
         };
     }
 
