@@ -2,6 +2,7 @@
 @source "./wwwroot/**/*.js,./Views/**/*.cshtml";
 @plugin "daisyui";
 
+@custom-variant dark ([data-theme="dark"] &);
 @custom-variant aria-invalid (&[aria-invalid="true"]);
 
 @theme {
