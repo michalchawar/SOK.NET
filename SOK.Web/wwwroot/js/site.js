@@ -141,3 +141,31 @@ function registerVueApp(appElementId) {
     let appElement = $(`#${appElementId}`);
     appElement.attr("data-is-loaded", "true");
 }
+
+function initThemeToggle() {
+    const toggle = $("#theme-toggle");
+    const label = $("#theme-label");
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    
+    // Set initial state
+    if (currentTheme === "dark") {
+        toggle.prop("checked", true);
+        label.text("Tryb jasny");
+    } else {
+        toggle.prop("checked", false);
+        label.text("Tryb ciemny");
+    }
+    
+    // Handle toggle change
+    toggle.parent().parent().on("click", function() {
+        toggle.prop("checked", !toggle.prop("checked"));
+        const newTheme = toggle.prop("checked") ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.theme = newTheme;
+        label.text(toggle.prop("checked") ? "Tryb jasny" : "Tryb ciemny");
+    });
+}
+
+$(function() {
+    initThemeToggle();
+});
