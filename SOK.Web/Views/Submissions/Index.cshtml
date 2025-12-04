@@ -15,29 +15,30 @@
                 </button>
             </div>
 
-            <fieldset class="fieldset">
-                <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
-                    Szukaj po adresie:
-                </legend>
-                <label class="input input-md lg:input-lg w-full">
-                    <i class="bi bi-geo-alt-fill"></i>
-
-                    <input v-model="filters.address" v-on:input="loadSubmissions"
-                        placeholder="np. @(ViewData["SampleAddress"] ?? "Brzozowa 45/3")" class="" type="text" />
-                </label>
-            </fieldset>
-
-            <fieldset class="fieldset">
-                <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
-                    Szukaj po imieniu i nazwisku:
-                </legend>
-                <label class="input input-md lg:input-lg w-full">
-                    <i class="bi bi-person-fill"></i>
-
-                    <input v-model="filters.person" v-on:input="loadSubmissions"
-                        placeholder="np. @(ViewData["SampleSurname"] ?? "Kowalski")..." class="" type="text" />
-                </label>
-            </fieldset>
+            <div class="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
+                        <span class="inline lg:hidden">Adres:</span>
+                        <span class="hidden lg:inline">Szukaj po adresie:</span>
+                    </legend>
+                    <label class="input input-lg w-full">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <input v-model="filters.address" v-on:input="loadSubmissions"
+                            placeholder="np. @(ViewData["SampleAddress"] ?? "Brzozowa 45/3")" class="" type="text" />
+                    </label>
+                </fieldset>
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
+                        <span class="inline lg:hidden">Osoba:</span>
+                        <span class="hidden lg:inline">Szukaj po danych zgłaszającego:</span>
+                    </legend>
+                    <label class="input input-lg w-full">
+                        <i class="bi bi-person-fill"></i>
+                        <input v-model="filters.person" v-on:input="loadSubmissions"
+                            placeholder="np. @(ViewData["SampleSurname"] ?? "Kowalski")..." class="" type="text" />
+                    </label>
+                </fieldset>
+            </div>
 
             <fieldset class="fieldset">
                 <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
@@ -52,7 +53,7 @@
                             <span class="text-sm font-normal -mt-2">{{ option.label }}</span>
                         </button>
                     </div>
-                    <button @@click="toggleSortOrder" class="btn btn-secondary btn-soft btn-lg w-full lg:w-auto h-full">
+                    <button @@click="toggleSortOrder" class="btn btn-secondary btn-outline lg:btn-soft btn-sm lg:btn-lg w-full lg:w-auto lg:h-full">
                         <i class="bi text-md" :class="sorting.order === 'asc' ? 'bi-sort-up' : 'bi-sort-down'"></i>
                         <span class="lg:hidden">{{ sorting.order === 'asc' ? 'Rosnąco' : 'Malejąco' }}</span>
                     </button>
