@@ -65,6 +65,10 @@ namespace SOK.Web.ViewModels.Parish
         [Display(Name = "Harmonogram")]
         public int ScheduleId { get; set; } = default!;
 
+        [Display(Name = "Wyślij powiadomienie e-mail do zgłaszającego")]
+        [DefaultValue(true)]
+        public bool SendNotificationEmail { get; set; } = true;
+
 
         [ValidateNever]
         public IEnumerable<SelectListItem> StreetList { get; set; } = default!;

@@ -7,8 +7,8 @@
 <div class="my-auto flex flex-col items-center align-middle">
     <h2 class="mb-5 text-lg font-semibold">Utwórz nowe zgłoszenie:</h2>
 
-    <form asp-action="New" method="post" class="w-2/3">
-        <div class="grid grid-cols-2 justify-center gap-x-4 gap-y-5">
+    <form asp-action="New" method="post" class="w-full md:w-2/3">
+        <div class="grid grid-cols-1 lg:grid-cols-2 justify-center gap-x-4 gap-y-5">
             <div class="">
                 <label asp-for="Name" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.Name)</span>
@@ -42,7 +42,7 @@
             </div>
 
             <div class="divider divider-end col-span-full my-2">
-                <label asp-for="ScheduleId" class="floating-label min-w-1/6">
+                <label asp-for="ScheduleId" class="floating-label min-w-44 text-base-content">
                     <span>@Html.DisplayNameFor(m => m.ScheduleId)</span>
                     <select asp-for="ScheduleId" asp-items="@Model.ScheduleList" class="select select-sm w-full focus:select-primary">
                     </select>
@@ -99,16 +99,23 @@
                 <span asp-validation-for="AdminNotes" class="text-error"></span>
             </div>
 
+            <div asp-validation-summary="ModelOnly" class="col-span-full text-center text-error"></div>
+
             <div class="divider col-span-full mt-5">
                 <button type="submit" class="btn btn-primary w-1/3">Dodaj</button>
-                <label class="btn btn-soft swap w-1/6">
+                <label class="btn btn-soft swap w-auto lg:w-1/6">
                     <input type="checkbox" id="form-extender" />
                     <div class="swap-on">-&nbsp;&nbsp;Mniej</div>
                     <div class="swap-off">+&nbsp;&nbsp;Więcej</div>
                 </label>
             </div>
 
-            <div asp-validation-summary="ModelOnly" class="col-span-full text-center text-error"></div>
+            <div class="col-span-full text-center">
+                <label asp-for="SendNotificationEmail" class="cursor-pointer select-none">
+                    <input asp-for="SendNotificationEmail" type="checkbox" class="checkbox checkbox-primary mr-2" />
+                    <span>@Html.DisplayNameFor(m => m.SendNotificationEmail)</span>
+                </label>
+            </div>
         </div>
     </form>
 </div>

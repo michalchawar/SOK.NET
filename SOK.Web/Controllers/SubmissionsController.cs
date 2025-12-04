@@ -99,7 +99,8 @@ namespace SOK.Web.Controllers
                     ApartmentLetter = string.IsNullOrWhiteSpace(model.Apartment) ? null : new string(model.Apartment.SkipWhile(c => char.IsDigit(c)).ToArray()),
                     Author = await _parishMemberService.GetParishMemberAsync(this.User),
                     Method = model.Method,
-                    IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                    IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    SendConfirmationEmail = model.SendNotificationEmail
                 };
 
                 try
@@ -147,16 +148,10 @@ namespace SOK.Web.Controllers
             {
                 Text = s.Name,
                 Value = s.Id.ToString(),
-                Selected = s.Id == defaultSchedule?.Id
             });
-            
-            if (!vm.ScheduleList.Any(sl => sl.Selected))
-            {
-                var firstSchedule = vm.ScheduleList.FirstOrDefault();
 
-                if (firstSchedule is not null)
-                    firstSchedule.Selected = true;
-            }
+            if (defaultSchedule != null)
+                vm.ScheduleId = defaultSchedule.Id;
         }
     }
 }
