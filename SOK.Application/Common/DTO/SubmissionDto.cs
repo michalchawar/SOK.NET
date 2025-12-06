@@ -12,6 +12,7 @@ namespace SOK.Application.Common.DTO
         public SubmitterDto Submitter { get; set; }
         public AddressDto Address { get; set; }
         public VisitDto Visit { get; set; }
+        public PlanDto Plan { get; set; }
 
         public string SubmitterNotes { get; set; } = string.Empty;
         public string AdminMessage { get; set; } = string.Empty;
@@ -38,6 +39,7 @@ namespace SOK.Application.Common.DTO
             Submitter = new SubmitterDto(submission.Submitter);
             Address = new AddressDto(submission.Address);
             Visit = new VisitDto(submission.Visit);
+            Plan = new PlanDto(submission.Plan);
         }
     }
 }

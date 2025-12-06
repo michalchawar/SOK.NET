@@ -34,10 +34,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
             return new Dictionary<string, string>
             {
                 ["subject"] = GetSubject(),
-                ["submitter_name"] = _submission.Submitter.Name,
-                ["submitter_surname"] = _submission.Submitter.Surname,
-                ["control_link"] = $"{_controlLinkBase}/submission/{_submission.UniqueId}?token={_submission.AccessToken}",
-                ["access_token"] = _submission.AccessToken
+                ["control_link"] = $"{_controlLinkBase}?submissionUid={_submission.UniqueId}&accessToken={_submission.AccessToken}",
             };
         }
     }

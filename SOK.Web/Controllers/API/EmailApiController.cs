@@ -60,6 +60,12 @@ namespace SOK.Web.Controllers.Api
             return await PreviewGenericEmail(request);
         }
 
+        [HttpPost("preview/data_change")]
+        public async Task<IActionResult> PreviewDataChangeEmail([FromBody] DataChangeEmailRequest request)
+        {
+            return await PreviewGenericEmail(request);
+        }
+
         private async Task<IActionResult> QueueGenericEmail(EmailRequest request) 
         {
             try {
@@ -103,6 +109,9 @@ namespace SOK.Web.Controllers.Api
                         break;
                     case InvalidEmailRequest invalidRequest:
                         html = await _submissionService.PreviewInvalidEmailAsync(invalidRequest.SubmissionId, invalidRequest.To);
+                        break;
+                    case DataChangeEmailRequest dataChangeRequest:
+                        html = await _submissionService.PreviewDataChangeEmailAsync(dataChangeRequest.SubmissionId, dataChangeRequest.Changes);
                         break;
                     default:
                         return BadRequest(new { success = false, message = "Nieznany typ żądania email." });
@@ -163,5 +172,10 @@ namespace SOK.Web.Controllers.Api
     public class InvalidEmailRequest : EmailRequest
     {
         public string To { get; set; } = string.Empty;
+    }
+
+    public class DataChangeEmailRequest : EmailRequest
+    {
+        public Application.Common.Helpers.EmailTypes.DataChanges Changes { get; set; } = new();
     }
 }

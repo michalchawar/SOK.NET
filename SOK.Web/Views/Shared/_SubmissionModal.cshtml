@@ -18,6 +18,19 @@
                             <button v-if="!isEditing" @@click="startEdit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-pencil"></i> Edytuj
                             </button>
+                            <div v-if="isEditing && data.submitter.email" class="flex items-center gap-1.5 me-4">
+                                <span class="text-sm font-medium opacity-50">MAIL:</span>
+                                <label class="toggle">
+                                    <input type="checkbox" v-model="sendDataChangeEmail" />
+                                    <svg aria-label="disabled" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                                    </svg>
+                                    <svg aria-label="enabled" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope-arrow-up" viewBox="0 0 16 16">
+                                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4.5a.5.5 0 0 1-1 0V5.383l-7 4.2-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h5.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-1.99zm1 7.105 4.708-2.897L1 5.383zM1 4v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1"/>
+                                        <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.354-5.354 1.25 1.25a.5.5 0 0 1-.708.708L13 12.207V14a.5.5 0 0 1-1 0v-1.717l-.28.305a.5.5 0 0 1-.737-.676l1.149-1.25a.5.5 0 0 1 .722-.016"/>
+                                    </svg>  
+                                </label>
+                            </div>
                             <button v-if="isEditing" @@click="cancelEdit" class="btn btn-outline btn-sm">Anuluj</button>
                             <button v-if="isEditing" @@click="save" :disabled="isSaving" class="btn btn-success btn-sm">
                                 <span v-if="!isSaving"><i class="bi bi-check"></i> Zapisz</span>
@@ -31,6 +44,11 @@
                         <div tabindex="0" role="button" class="btn btn-ghost size-10"><i
                                 class="bi bi-three-dots-vertical text-lg "></i></div>
                         <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                            <li v-if="isEditing && sendDataChangeEmail">
+                                <button @@click="previewDataChangeEmail" class="bg-primary hover:bg-primary/70 text-white">
+                                    <i class="bi bi-arrow-left-right"></i> Zobacz podgląd
+                                </button>
+                            </li>
                             <li>
                                 <button @@click="openEmailModal" :disabled="data === null">
                                     <i class="bi bi-envelope-arrow-up"></i> Wyślij maila
@@ -78,7 +96,7 @@
                         </div>
                         <!-- Dane zgłoszenia -->
                         <div
-                            class="grid grid-cols-1 lg:grid-cols-2 lg:[grid-template-areas:'a_b''a_d''c_d''c_e'] lg:grid-rows-[min-content_1fr_min-content_min-content] items-start gap-4">
+                            class="grid grid-cols-1 lg:grid-cols-2 lg:[grid-template-areas:'a_b''a_d''c_d'] lg:grid-rows-[min-content_1fr_min-content] items-start gap-4">
                             <!-- Zgłaszający -->
                             <div class="card bg-base-200 [grid-area:a]">
                                 <div class="card-body">
@@ -199,12 +217,6 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        @* <select v-else v-model="edit.notesStatus" class="select w-full">
-                                        <option value="0">N/A</option>
-                                        <option value="1">Oczekuje</option>
-                                        <option value="2">Odrzucone</option>
-                                        <option value="3">Zaakceptowane</option>
-                                    </select> *@
                                     </div>
                                     <div class="space-y-3">
                                         <div>
@@ -213,7 +225,7 @@
                                             <p v-if="!isEditing" class="p-3 bg-base-300 whitespace-pre-wrap rounded">{{
                                                 data.submitterNotes || '—' }}</p>
                                             <textarea v-else v-model="edit.submitterNotes" class="textarea w-full"
-                                                rows="2" maxlength="500"></textarea>
+                                                rows="2" maxlength="500" @@input="onSubmitterNotesInput"></textarea>
                                         </div>
                                         <div>
                                             <label class="label"><span class="label-text font-semibold">Wiadomość dla
@@ -250,8 +262,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Wizyta -->
-                            <div class="card bg-base-200 [grid-area:d]" :class="{ 'opacity-40': isEditing }">
+                            <!-- Harmonogram i wizyta -->
+                            <div class="card bg-base-200 [grid-area:d]">
                                 <div class="card-body">
                                     <div class="flex gap-3 items-center justify-between">
                                         <h4 class="card-title"><i class="bi bi-calendar2-plus"></i> Wizyta</h4>
@@ -259,6 +271,17 @@
                                             {{ visitStatusLabel(data.visit.status) }}
                                         </p>
                                     </div>
+                                    <div class="py-3">
+                                        <label class="label"><span class="label-text font-semibold">Harmonogram:</span></label>
+                                        <p v-if="!isEditing" class="text-lg font-semibold">{{ data.visit.schedule.name || 'Nie przypisano' }}</p>
+                                        <select v-else v-model="edit.scheduleId" class="select w-full">
+                                            <option :value="null">Nie przypisano</option>
+                                            <option v-for="schedule in schedules" :key="schedule.id" :value="schedule.id">
+                                                {{ schedule.name }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="divider my-0"></div>
                                     <div class="py-5">
                                         <div v-if="data.visit.status === 0" class="flex flex-col items-center gap-1">
                                             <i class="bi bi-clock-history text-3xl opacity-50"></i>
@@ -305,14 +328,8 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-lg mb-2">Email potwierdzający zgłoszenie</h4>
                                 <p class="text-sm opacity-70">
-                                    Wyśle email z potwierdzeniem przyjęcia zgłoszenia, zawierający:
+                                    Wyśle email z potwierdzeniem przyjęcia zgłoszenia, zawierający link do panelu zgłoszenia.
                                 </p>
-                                <ul class="text-sm opacity-70 list-disc list-inside mt-2 space-y-1">
-                                    <li>Dane zgłaszającego (imię, nazwisko)</li>
-                                    <li>Adres zgłoszenia</li>
-                                    <li>Link do panelu kontrolnego zgłoszenia</li>
-                                    <li>Unikalny identyfikator i token dostępu</li>
-                                </ul>
                                 <div class="mt-3 text-xs opacity-50">
                                     Odbiorca: <span class="font-mono">{{ data?.submitter?.email || 'brak adresu email'
                                         }}</span>
@@ -332,12 +349,11 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-lg mb-2">Powiadomienie o nieprawidłowym emailu</h4>
                                 <p class="text-sm opacity-70 mb-3">
-                                    Wyśle email informujący, że podany adres email jest nieprawidłowy i prosi o
-                                    potwierdzenie nowego adresu.
+                                    Wyśle email na samodzielnie określony adres z zapytaniem o poprawienie adresu email zgłaszającego.
                                 </p>
                                 <div class="form-control">
                                     <label class="label">
-                                        <span class="label-text">Nowy adres email odbiorcy:</span>
+                                        <span class="label-text">Potencjalny adres email odbiorcy:</span>
                                     </label>
                                     <div class="flex gap-2">
                                         <input v-model="invalidEmailTo" type="email"
@@ -354,7 +370,31 @@
                                     </label>
                                 </div>
                                 <div class="mt-3 text-xs opacity-50">
-                                    Stary email w systemie: <span class="font-mono">{{ data?.submitter?.email || 'brak'
+                                    Stary email w systemie: <span class="font-mono">{{ data?.submitter?.email || 'brak' }}</span>
+                                </div>
+                                <div class="mt-3 text-xs opacity-50" v-if="invalidEmailTo && isValidEmail(invalidEmailTo)">
+                                    Adres odbiorcy: <span class="font-mono">{{ invalidEmailTo }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Change Email (only if editing) -->
+                <div v-if="isEditing && sendDataChangeEmail" @@click="previewDataChangeEmail"
+                    class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors border-2 border-transparent hover:border-info">
+                    <div class="card-body">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">
+                                <i class="bi bi-info-circle text-info"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-lg mb-2">Podgląd emaila o zmianach</h4>
+                                <p class="text-sm opacity-70">
+                                    Zobacz jak będzie wyglądał email informujący o wprowadzonych zmianach w zgłoszeniu.
+                                </p>
+                                <div class="mt-3 text-xs opacity-50">
+                                    Odbiorca: <span class="font-mono">{{ data?.submitter?.email || 'brak adresu email'
                                         }}</span>
                                 </div>
                             </div>
@@ -405,7 +445,7 @@
                     <button @@click="backToEmailSelect" class="btn">
                         <i class="bi bi-arrow-left"></i> Wstecz
                     </button>
-                    <button @@click="sendEmail" :disabled="emailSending || emailPreviewError" class="btn btn-success">
+                    <button @@click="sendEmail" :disabled="emailSending || emailPreviewError || selectedEmailType === 'data_change'" class="btn btn-success">
                         <span v-if="!emailSending">
                             <i class="bi bi-send"></i> Wyślij email
                         </span>
@@ -544,7 +584,7 @@
                 formDataLoading: false,
                 emailModalOpen: false,
                 emailStep: 'select', // 'select' | 'preview'
-                selectedEmailType: null, // 'confirmation' | 'invalid'
+                selectedEmailType: null, // 'confirmation' | 'invalid' | 'data_change'
                 invalidEmailTo: '',
                 emailPreviewLoading: false,
                 emailPreviewHtml: '',
@@ -552,8 +592,12 @@
                 emailSending: false,
                 emailTypeLabels: {
                     confirmation: 'Email potwierdzający zgłoszenie',
-                    invalid: 'Powiadomienie o nieprawidłowym emailu'
-                }
+                    invalid: 'Powiadomienie o nieprawidłowym emailu',
+                    data_change: 'Powiadomienie o zmianach w zgłoszeniu'
+                },
+                sendDataChangeEmail: true,
+                schedules: [],
+                dataChangesForPreview: null
             }),
             async mounted() {
                 registerVueApp('submission-modal-app');
@@ -586,7 +630,12 @@
                         const res = await fetch(`/api/submissions/${id}`);
                         if (!res.ok) throw new Error('Nie udało się pobrać zgłoszenia');
                         this.data = await res.json();
-                        console.log(this.data);
+                        console.log('Submission data: ', this.data);
+
+                        const schedulesRes = await fetch(`/api/plans/${this.data.plan.id}/schedules`);
+                        if (!schedulesRes.ok) throw new Error('Nie udało się pobrać harmonogramów');
+                        this.schedules = (await schedulesRes.json()).schedules;
+                        console.log('Schedules: ', this.schedules);
                     } catch (e) {
                         this.error = e.message;
                     } finally {
@@ -600,10 +649,11 @@
                     try {
                         const resStreets = await fetch('/api/streets');
                         this.streets = await resStreets.json();
+                        console.log('Streets: ', this.streets);
 
                         const res = await fetch('/api/streets/building-options');
                         this.buildingOptions = await res.json();
-                        console.log(this.buildingOptions);
+                        console.log('BuildingOptions: ', this.buildingOptions);
                     } catch (e) {
                         console.error('Błąd podczas ładowania ulic i budynków:', e);
                     }
@@ -640,7 +690,8 @@
                         adminMessage: d.adminMessage || '',
                         adminNotes: d.adminNotes || '',
                         notesStatus: d.notesStatus,
-                        submitMethod: d.submitMethod
+                        submitMethod: d.submitMethod,
+                        scheduleId: d.visit.schedule.id || null
                     };
 
                     // Initialize registerBuildingPicker after Vue renders selects
@@ -662,6 +713,7 @@
                 cancelEdit() {
                     this.isEditing = false;
                     this.saveMsg = null;
+                    this.sendDataChangeEmail = true;
                 },
                 isFormValid() {
                     const formElement = document.querySelector('#container-form');
@@ -709,9 +761,13 @@
 
                         if (this.edit.notesStatus !== d.notesStatus) payload.notesStatus = parseInt(this.edit.notesStatus);
                         if (this.edit.submitMethod !== d.submitMethod) payload.submitMethod = parseInt(this.edit.submitMethod);
+                        if (this.edit.scheduleId !== d.visit.scheduleId) payload.scheduleId = this.edit.scheduleId ? parseInt(this.edit.scheduleId) : null;
 
                         // Only send PATCH if there are changes
                         if (Object.keys(payload).length > 0) {
+                            // Dodaj flagę wysyłania emaila o zmianach
+                            payload.sendDataChangeEmail = this.sendDataChangeEmail;
+
                             const res = await fetch(`/api/submissions/${id}`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
@@ -724,6 +780,7 @@
                         const res = await fetch(`/api/submissions/${id}`);
                         this.data = await res.json();
                         this.isEditing = false;
+                        this.sendDataChangeEmail = true;
                         notifications.success('Zmiany zostały zapisane.');
 
                         // Trigger callback to refresh list in parent view
@@ -780,11 +837,38 @@
                     const re = /@Html.Raw(RegExpressions.EmailPattern)/;
                     return re.test(email);
                 },
+                buildDataChanges() {
+                    const d = this.data;
+                    return {
+                        oldName: `${d.submitter.name} ${d.submitter.surname}`,
+                        oldAddress: `${d.address.streetType} ${d.address.streetName} ${d.address.buildingNumber}${d.address.buildingLetter} / ${d.address.apartmentNumber || ''}${d.address.apartmentLetter || ''}`,
+                        oldEmail: d.submitter.email || '',
+                        oldPhone: d.submitter.phone || '',
+                        oldSubmitterNotes: d.submitterNotes || '',
+                        oldNotesStatus: this.notesStatusLabel(d.notesStatus),
+                        oldAdminMessage: d.adminMessage || '',
+                        oldSchedule: d.visit.schedule.name || 'Brak',
+                        newName: `${this.edit.name} ${this.edit.surname}`,
+                        newAddress: `${this.streets.find(s => s.id == this.edit.streetId)?.type || ''} ${this.streets.find(s => s.id == this.edit.streetId)?.name || ''} ${document.getElementById('edit-building-select')?.options[document.getElementById('edit-building-select')?.selectedIndex]?.text || ''} / ${this.edit.apartment}`,
+                        newEmail: this.edit.email || '',
+                        newPhone: this.edit.phone || '',
+                        newSubmitterNotes: this.edit.submitterNotes || '',
+                        newNotesStatus: this.notesStatusLabel(this.edit.notesStatus),
+                        newAdminMessage: this.edit.adminMessage || '',
+                        newSchedule: this.schedules.find(s => s.id == this.edit.scheduleId)?.name || 'Brak'
+                    };
+                },
+                async previewDataChangeEmail() {
+                    this.dataChangesForPreview = this.buildDataChanges();
+                    console.log('Data changes for preview:', this.dataChangesForPreview);
+                    await this.selectEmailType('data_change');
+                },
                 async selectEmailType(type) {
                     if (type === 'invalid' && (!this.invalidEmailTo || !this.isValidEmail(this.invalidEmailTo))) {
                         return;
                     }
 
+                    this.emailModalOpen = true;
                     this.selectedEmailType = type;
                     this.emailStep = 'preview';
                     this.emailPreviewLoading = true;
@@ -804,6 +888,12 @@
                                 submissionId: this.data.id,
                                 to: this.invalidEmailTo
                             };
+                        } else if (type === 'data_change') {
+                            endpoint = '/api/email/preview/data_change';
+                            payload = {
+                                submissionId: this.data.id,
+                                changes: this.dataChangesForPreview,
+                            };
                         }
 
                         const res = await fetch(endpoint, {
@@ -814,6 +904,7 @@
 
                         if (!res.ok) {
                             const error = await res.json();
+                            console.log(error);
                             throw new Error(error.message || 'Nie udało się wygenerować podglądu');
                         }
 
@@ -869,6 +960,8 @@
                         return this.data?.submitter?.email || 'brak adresu';
                     } else if (this.selectedEmailType === 'invalid') {
                         return this.invalidEmailTo;
+                    } else if (this.selectedEmailType === 'data_change') {
+                        return this.data?.submitter?.email || 'brak adresu';
                     }
                     return '';
                 },
@@ -885,6 +978,15 @@
                 formatDate(d) {
                     if (!d) return 'N/A';
                     return new Date(d).toLocaleString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                },
+                onSubmitterNotesInput() {
+                    if (this.edit.submitterNotes) {
+                        if (this.edit.notesStatus === 0) {
+                            this.edit.notesStatus = 1; // Set to "Oczekuje" if notes are added
+                        }
+                    } else {
+                        this.edit.notesStatus = 0; // Reset status if notes are cleared
+                    }
                 },
 
                 notesStatusClass(notesStatus) {

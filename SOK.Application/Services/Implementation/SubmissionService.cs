@@ -36,7 +36,7 @@ namespace SOK.Application.Services.Implementation
                 (await _uow.Submission.GetPaginatedAsync(
                     s => s.Id == id,
                     submitter: true,
-                    address: true,
+                    addressFull: true,
                     visit: true,
                     formSubmission: true,
                     plan: true,
@@ -101,6 +101,7 @@ namespace SOK.Application.Services.Implementation
                 page: page,
                 submitter: true,
                 address: true,
+                plan: true,
                 visit: true);
 
             return result;
@@ -492,6 +493,46 @@ namespace SOK.Application.Services.Implementation
 
                 string emailPreview = await _emailService.PreviewEmailAsync(
                     emailType: confirmationEmail
+                );
+
+                return emailPreview;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<string> PreviewDataChangeEmailAsync(int submissionId, Application.Common.Helpers.EmailTypes.DataChanges changes)
+        {
+            Submission? submission = await GetSubmissionAsync(submissionId);
+            if (submission == null)
+            {
+                throw new ArgumentException($"Zgłoszenie o ID {submissionId} nie istnieje.");
+            }
+
+            if (string.IsNullOrWhiteSpace(submission.Submitter.Email))
+            {
+                throw new ArgumentException("Zgłaszający nie ma przypisanego adresu email.");
+            }
+
+            string? controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
+            if (string.IsNullOrWhiteSpace(controlLinkBase))
+            {
+                throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
+            }
+
+            try
+            {
+                var dataChangeEmail = new DataChangeEmail(
+                    submission: submission,
+                    controlLinkBase: controlLinkBase,
+                    changes: changes
+                );
+
+                string emailPreview = await _emailService.PreviewEmailAsync(
+                    emailType: dataChangeEmail
                 );
 
                 return emailPreview;

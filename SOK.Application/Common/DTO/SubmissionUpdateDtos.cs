@@ -50,5 +50,11 @@ namespace SOK.Application.Common.DTO
         public NotesFulfillmentStatus? NotesStatus { get; set; }
         
         public SubmitMethod? SubmitMethod { get; set; }
+
+        // Harmonogram
+        public int? ScheduleId { get; set; }
+
+        // Wysyłanie maila o zmianach
+        public bool SendDataChangeEmail { get; set; } = false;
     }
 }

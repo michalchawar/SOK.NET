@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SOK.Application.Common.DTO;
+using SOK.Application.Common.Helpers;
+using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using System.Linq.Expressions;
 
 namespace SOK.Web.Controllers.API
@@ -15,16 +18,25 @@ namespace SOK.Web.Controllers.API
     {
         private readonly ISubmissionService _submissionService;
         private readonly IPlanService _planService;
+        private readonly IScheduleService _scheduleService;
         private readonly IBuildingService _buildingService;
+        private readonly IEmailService _emailService;
+        private readonly IParishInfoService _parishInfoService;
 
         public SubmissionsController(
             ISubmissionService submissionService, 
             IPlanService planService,
-            IBuildingService buildingService)
+            IScheduleService scheduleService,
+            IBuildingService buildingService,
+            IEmailService emailService,
+            IParishInfoService parishInfoService)
         {
             _submissionService = submissionService;
             _planService = planService;
+            _scheduleService = scheduleService;
             _buildingService = buildingService;
+            _emailService = emailService;
+            _parishInfoService = parishInfoService;
         }
 
         // GET: api/<SubmissionsController>
@@ -97,6 +109,10 @@ namespace SOK.Web.Controllers.API
                 return NotFound(new { message = "Zgłoszenie nie zostało znalezione." });
             }
 
+            // Przechowaj stare wartości przed zmianami
+            var changes = new DataChanges();
+            SnapshotOldValues(submission, changes);
+
             // Aktualizuj dane zgłaszającego (jeśli wysłane)
             if (dto.Name != null)
                 submission.Submitter.Name = dto.Name;
@@ -145,9 +161,79 @@ namespace SOK.Web.Controllers.API
             if (dto.SubmitMethod.HasValue && submission.FormSubmission != null)
                 submission.FormSubmission.Method = dto.SubmitMethod.Value;
 
+            // Aktualizuj harmonogram (jeśli wysłane)
+            if (dto.ScheduleId.HasValue && submission.Visit != null)
+            {
+                // Sprawdź czy schedule istnieje
+                var schedules = (await _scheduleService.GetActiveSchedules()).OrderBy(s => s.Name);
+                var selectedSchedule = schedules.FirstOrDefault(s => s.Id == dto.ScheduleId);
+                
+                if (selectedSchedule != null)
+                {
+                    // Ustaw tylko ScheduleId - EF sam załaduje relację
+                    submission.Visit.ScheduleId = dto.ScheduleId.Value;
+                }
+            }
+
+            // Zapisz nowe wartości
+            SnapshotNewValues(submission, changes);
+
             await _submissionService.UpdateSubmissionAsync(submission);
 
+            // Wyślij email o zmianach jeśli zaznaczono i jeśli są widoczne zmiany
+            if (dto.SendDataChangeEmail && changes.HasChanges() && !string.IsNullOrEmpty(submission.Submitter.Email))
+            {
+                try
+                {
+                    var baseUrl = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
+                    if (!string.IsNullOrEmpty(baseUrl))
+                    {
+                        var dataChangeEmail = new DataChangeEmail(submission, baseUrl, changes);
+                        await _emailService.QueueEmailAsync(dataChangeEmail, submission, forceSend: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Loguj błąd, ale nie przerywaj operacji
+                    Console.WriteLine($"Błąd wysyłania emaila o zmianach: {ex.Message}");
+                }
+            }
+
             return Ok(new SubmissionDto(submission));
+        }
+
+        private string GetNotesStatusLabel(NotesFulfillmentStatus status)
+        {
+            return status switch
+            {
+                NotesFulfillmentStatus.NA => "Nie dotyczy",
+                NotesFulfillmentStatus.Pending => "Oczekuje",
+                NotesFulfillmentStatus.Rejected => "Odrzucone",
+                NotesFulfillmentStatus.Accepted => "Zaakceptowane",
+                _ => "N/A"
+            };
+        }
+
+        private void SnapshotOldValues(Submission submission, DataChanges changes)
+        {
+            changes.OldName = $"{submission.Submitter.Name} {submission.Submitter.Surname}";
+            changes.OldAddress = $"{submission.Address.Building?.Street.Type.FullName} {submission.Address.Building?.Street.Name} {submission.Address.Building?.Number}{(submission.Address.ApartmentNumber.HasValue ? $" / {submission.Address.ApartmentNumber}{submission.Address.ApartmentLetter}" : "")}";
+            changes.OldEmail = submission.Submitter.Email ?? "";
+            changes.OldSubmitterNotes = submission.SubmitterNotes ?? "";
+            changes.OldNotesStatus = GetNotesStatusLabel(submission.NotesStatus);
+            changes.OldAdminMessage = submission.AdminMessage ?? "";
+            changes.OldSchedule = submission.Visit?.Schedule?.Name ?? "Brak";
+        }
+
+        private void SnapshotNewValues(Submission submission, DataChanges changes)
+        {
+            changes.NewName = $"{submission.Submitter.Name} {submission.Submitter.Surname}";
+            changes.NewAddress = $"{submission.Address.Building?.Street.Type.FullName} {submission.Address.Building?.Street.Name} {submission.Address.Building?.Number}{(submission.Address.ApartmentNumber.HasValue ? $" / {submission.Address.ApartmentNumber}{submission.Address.ApartmentLetter}" : "")}";
+            changes.NewEmail = submission.Submitter.Email ?? "";
+            changes.NewSubmitterNotes = submission.SubmitterNotes ?? "";
+            changes.NewNotesStatus = GetNotesStatusLabel(submission.NotesStatus);
+            changes.NewAdminMessage = submission.AdminMessage ?? "";
+            changes.NewSchedule = submission.Visit?.Schedule?.Name ?? "Brak";
         }
 
         // GET api/<SubmissionsController>/5/form

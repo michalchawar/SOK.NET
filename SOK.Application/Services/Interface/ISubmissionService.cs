@@ -203,5 +203,25 @@ namespace SOK.Application.Services.Interface
         /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
         /// </exception>
         Task<string> PreviewInvalidEmailAsync(int submissionId, string to = "");
+
+        /// <summary>
+        /// Tworzy podgląd emaila z informacją o zmianach w zgłoszeniu.
+        /// </summary>
+        /// <param name="submissionId">ID zgłoszenia</param>
+        /// <param name="changes">Obiekt z informacjami o zmianach (stare i nowe wartości)</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego wartością jest treść HTML maila.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłoszenie o podanym ID nie istnieje.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Jeśli zgłaszający nie ma przypisanego adresu email.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
+        /// </exception>
+        Task<string> PreviewDataChangeEmailAsync(int submissionId, Application.Common.Helpers.EmailTypes.DataChanges changes);
     }
 }
