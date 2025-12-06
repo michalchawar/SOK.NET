@@ -136,6 +136,18 @@ namespace SOK.Application.Services.Implementation
                     return null;
                 }
 
+                // Dodaj prefiks do tematu
+                var shouldPrependPlanName = await _parishInfoService.GetValueAsync(InfoKeys.Email.PrependPlanNameToSubject);
+                if (shouldPrependPlanName?.ToLower() == "true")
+                {
+                    Plan? plan = await _uow.Plan.GetAsync(p => p.Id == submission.PlanId, tracked: false);
+                    string? planName = plan?.Name;
+                    if (!string.IsNullOrWhiteSpace(planName))
+                    {
+                        subject = $"{planName} - {subject}";
+                    }
+                }
+
                 // Pobierz globalnych odbiorców BCC z ustawień
                 var globalBccString = await _parishInfoService.GetValueAsync(InfoKeys.Email.BccRecipients);
                 var globalBccList = new List<string>();
@@ -291,16 +303,11 @@ namespace SOK.Application.Services.Implementation
                         : (smtpSettings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
 
                     await smtpClient.ConnectAsync(smtpSettings.Host, smtpSettings.Port, secureSocketOptions);
-                    
-                    _logger.LogInformation($"Connected to SMTP. Server capabilities: {string.Join(", ", smtpClient.Capabilities)}");
-                    _logger.LogInformation($"Authentication mechanisms: {string.Join(", ", smtpClient.AuthenticationMechanisms)}");
 
                     // Uwierzytelnienie jeśli podano dane logowania
                     if (!string.IsNullOrEmpty(smtpSettings.Username))
                     {
-                        _logger.LogInformation($"Attempting authentication with username: {smtpSettings.Username}");
                         await smtpClient.AuthenticateAsync(smtpSettings.Username, smtpSettings.Password);
-                        _logger.LogInformation($"Authentication successful");
                     }
                     else
                     {

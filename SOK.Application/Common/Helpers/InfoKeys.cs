@@ -26,6 +26,7 @@ namespace SOK.Application.Common.Helpers
         public static class Email
         {
             public const string EnableEmailSending = "Email.EnableEmailSending";
+            public const string PrependPlanNameToSubject = "Email.PrependPlanNameToSubject";
             public const string SmtpServer = "Email.SmtpServer";
             public const string SmtpRequireAuth = "Email.SmtpRequireAuth";
             public const string SmtpPort = "Email.SmtpPort";

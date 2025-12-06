@@ -181,6 +181,10 @@ namespace SOK.Web.Controllers
                                 Name = "Automatycznie rozsyłaj e-maile",
                                 Description = "Automatycznie wysyłaj maile ma wysyłać e-maile do zgłaszających (np. z powiadomieniami o przyjęciu zgłoszenia).",
                             },
+                            new CheckSettingVM(InfoKeys.Email.PrependPlanNameToSubject, settingsDict) {
+                                Name = "Dodaj nazwę planu do tematu e-maila",
+                                Description = "Dodaj nazwę planu, do którego należy zgłoszenie, do tematu wysyłanych e-maili (np. 'Kolęda 2024/25 - Potwierdzenie przyjęcia zgłoszenia').",
+                            },
                             new StringSettingVM(InfoKeys.Email.SmtpServer, settingsDict) {
                                 Name = "Serwer SMTP",
                                 Description = "Adres serwera SMTP, który będzie używany do wysyłania poczty e-mail z systemu.",
