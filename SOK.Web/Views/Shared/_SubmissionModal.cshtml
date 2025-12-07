@@ -6,47 +6,47 @@
     <div class="modal" :class="{ 'modal-open': isOpen }">
         <div class="modal-box w-11/12 max-w-5xl max-h-11/12 flex flex-col">
             <!-- Header -->
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-2xl">
+            <div class="grid grid-cols-2 justify-center lg:flex lg:justify-between lg:items-center gap-2">
+                <h3 class="flex items-center font-bold text-2xl order-1 lg:order-none">
                     <span v-if="!isEditing">Szczegóły zgłoszenia</span>
                     <span v-else class="text-warning">Edycja zgłoszenia</span>
                 </h3>
-                <div class="flex items-center gap-2">
-                    <!-- Akcje edycji -->
-                    <div class="flex justify-between gap-2">
-                        <div class="flex gap-2">
-                            <button v-if="!isEditing" @@click="startEdit" class="btn btn-primary btn-sm">
-                                <i class="bi bi-pencil"></i> Edytuj
-                            </button>
-                            <div v-if="isEditing && data.submitter.email" class="flex items-center gap-1.5 me-4">
-                                <span class="text-sm font-medium opacity-50">MAIL:</span>
-                                <label class="toggle">
-                                    <input type="checkbox" v-model="sendDataChangeEmail" />
-                                    <svg aria-label="disabled" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
-                                    </svg>
-                                    <svg aria-label="enabled" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope-arrow-up" viewBox="0 0 16 16">
-                                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4.5a.5.5 0 0 1-1 0V5.383l-7 4.2-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h5.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-1.99zm1 7.105 4.708-2.897L1 5.383zM1 4v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1"/>
-                                        <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.354-5.354 1.25 1.25a.5.5 0 0 1-.708.708L13 12.207V14a.5.5 0 0 1-1 0v-1.717l-.28.305a.5.5 0 0 1-.737-.676l1.149-1.25a.5.5 0 0 1 .722-.016"/>
-                                    </svg>  
-                                </label>
-                            </div>
-                            <button v-if="isEditing" @@click="cancelEdit" class="btn btn-outline btn-sm">Anuluj</button>
-                            <button v-if="isEditing" @@click="save" :disabled="isSaving" class="btn btn-success btn-sm">
-                                <span v-if="!isSaving"><i class="bi bi-check"></i> Zapisz</span>
-                                <span v-else class="loading loading-spinner"></span>
-                            </button>
-                        </div>
-                    </div>
 
-                    <!-- Menu akcji -->
+                <!-- Akcje edycji -->
+                <div class="col-span-full flex-1 flex justify-between items-center gap-2 order-3 lg:order-none">
+                    <div v-if="isEditing && data.submitter.email" class="flex items-center gap-3 lg:ms-auto lg:me-0">
+                        <label class="label">
+                            <span class="text-sm font-medium opacity-50">MAIL:</span>
+                            <input type="checkbox" class="toggle checked:toggle-primary"
+                                :disabled="!hasEmailChanges" v-model="sendDataChangeEmail" />
+                        </label>
+                        <button @@click="previewDataChangeEmail" :disabled="!hasEmailChanges || !sendDataChangeEmail"
+                            class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="flex gap-2 lg:ms-auto">
+                        <button v-if="isEditing" @@click="cancelEdit" class="btn btn-outline btn-sm">Anuluj</button>
+                        <button v-if="isEditing" @@click="save" :disabled="isSaving" class="btn btn-success btn-sm">
+                            <span v-if="!isSaving"><i class="bi bi-check"></i> Zapisz</span>
+                            <span v-else class="loading loading-spinner"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Zarządzanie -->
+                <div class="order-2 lg:order-none flex justify-end gap-2 items-center">
+                    <button v-if="!isEditing" @@click="startEdit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-pencil"></i> Edytuj
+                    </button>
                     <div class="dropdown dropdown-bottom dropdown-end">
                         <div tabindex="0" role="button" class="btn btn-ghost size-10"><i
                                 class="bi bi-three-dots-vertical text-lg "></i></div>
                         <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
                             <li v-if="isEditing && sendDataChangeEmail">
-                                <button @@click="previewDataChangeEmail" class="bg-primary hover:bg-primary/70 text-white">
-                                    <i class="bi bi-arrow-left-right"></i> Zobacz podgląd
+                                <button @@click="previewDataChangeEmail" :disabled="!hasEmailChanges"
+                                    class="bg-primary hover:bg-primary/70 text-white disabled:bg-base-300 disabled:text-opacity-50 disabled:cursor-not-allowed">
+                                    <i class="bi bi-arrow-left-right"></i> Zobacz podgląd maila
                                 </button>
                             </li>
                             <li>
@@ -68,7 +68,6 @@
                             </li>
                         </ul>
                     </div>
-
                     <!-- Zamknij -->
                     <button @@click="close" class="btn size-10 btn-ghost"><i class="bi bi-x-lg text-lg"></i></button>
                 </div>
@@ -98,7 +97,7 @@
                         <div
                             class="grid grid-cols-1 lg:grid-cols-2 lg:[grid-template-areas:'a_b''a_d''c_d'] lg:grid-rows-[min-content_1fr_min-content] items-start gap-4">
                             <!-- Zgłaszający -->
-                            <div class="card bg-base-200 [grid-area:a]">
+                            <div class="card bg-base-200 lg:[grid-area:a]">
                                 <div class="card-body">
                                     <h4 class="card-title"><i class="bi bi-person-fill"></i> Zgłaszający</h4>
                                     <div v-if="!isEditing" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
@@ -140,7 +139,7 @@
                                 </div>
                             </div>
                             <!-- Adres -->
-                            <div class="card bg-base-200 [grid-area:b]">
+                            <div class="card bg-base-200 lg:[grid-area:b]">
                                 <div class="card-body">
                                     <h4 class="card-title"><i class="bi bi-geo-alt-fill"></i> Adres</h4>
                                     <div v-if="!isEditing">
@@ -180,7 +179,7 @@
                                 </div>
                             </div>
                             <!-- Notatki i Statusy -->
-                            <div class="card bg-base-200 [grid-area:c]">
+                            <div class="card bg-base-200 lg:[grid-area:c]">
                                 <div class="card-body">
                                     <div class="flex gap-3 items-center justify-between">
                                         <h4 class="card-title"><i class="bi bi-chat-left-text"></i> Notatki</h4>
@@ -263,7 +262,7 @@
                                 </div>
                             </div>
                             <!-- Harmonogram i wizyta -->
-                            <div class="card bg-base-200 [grid-area:d]">
+                            <div class="card bg-base-200 lg:[grid-area:d]">
                                 <div class="card-body">
                                     <div class="flex gap-3 items-center justify-between">
                                         <h4 class="card-title"><i class="bi bi-calendar2-plus"></i> Wizyta</h4>
@@ -272,11 +271,14 @@
                                         </p>
                                     </div>
                                     <div class="py-3">
-                                        <label class="label"><span class="label-text font-semibold">Harmonogram:</span></label>
-                                        <p v-if="!isEditing" class="text-lg font-semibold">{{ data.visit.schedule.name || 'Nie przypisano' }}</p>
+                                        <label class="label"><span
+                                                class="label-text font-semibold">Harmonogram:</span></label>
+                                        <p v-if="!isEditing" class="text-lg font-semibold">{{ data.visit.schedule.name
+                                            || 'Nie przypisano' }}</p>
                                         <select v-else v-model="edit.scheduleId" class="select w-full">
                                             <option :value="null">Nie przypisano</option>
-                                            <option v-for="schedule in schedules" :key="schedule.id" :value="schedule.id">
+                                            <option v-for="schedule in schedules" :key="schedule.id"
+                                                :value="schedule.id">
                                                 {{ schedule.name }}
                                             </option>
                                         </select>
@@ -328,7 +330,8 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-lg mb-2">Email potwierdzający zgłoszenie</h4>
                                 <p class="text-sm opacity-70">
-                                    Wyśle email z potwierdzeniem przyjęcia zgłoszenia, zawierający link do panelu zgłoszenia.
+                                    Wyśle email z potwierdzeniem przyjęcia zgłoszenia, zawierający link do panelu
+                                    zgłoszenia.
                                 </p>
                                 <div class="mt-3 text-xs opacity-50">
                                     Odbiorca: <span class="font-mono">{{ data?.submitter?.email || 'brak adresu email'
@@ -349,7 +352,8 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-lg mb-2">Powiadomienie o nieprawidłowym emailu</h4>
                                 <p class="text-sm opacity-70 mb-3">
-                                    Wyśle email na samodzielnie określony adres z zapytaniem o poprawienie adresu email zgłaszającego.
+                                    Wyśle email na samodzielnie określony adres z zapytaniem o poprawienie adresu email
+                                    zgłaszającego.
                                 </p>
                                 <div class="form-control">
                                     <label class="label">
@@ -370,9 +374,11 @@
                                     </label>
                                 </div>
                                 <div class="mt-3 text-xs opacity-50">
-                                    Stary email w systemie: <span class="font-mono">{{ data?.submitter?.email || 'brak' }}</span>
+                                    Stary email w systemie: <span class="font-mono">{{ data?.submitter?.email || 'brak'
+                                        }}</span>
                                 </div>
-                                <div class="mt-3 text-xs opacity-50" v-if="invalidEmailTo && isValidEmail(invalidEmailTo)">
+                                <div class="mt-3 text-xs opacity-50"
+                                    v-if="invalidEmailTo && isValidEmail(invalidEmailTo)">
                                     Adres odbiorcy: <span class="font-mono">{{ invalidEmailTo }}</span>
                                 </div>
                             </div>
@@ -445,7 +451,9 @@
                     <button @@click="backToEmailSelect" class="btn">
                         <i class="bi bi-arrow-left"></i> Wstecz
                     </button>
-                    <button @@click="sendEmail" :disabled="emailSending || emailPreviewError || selectedEmailType === 'data_change'" class="btn btn-success">
+                    <button @@click="sendEmail"
+                        :disabled="emailSending || emailPreviewError || selectedEmailType === 'data_change'"
+                        class="btn btn-success">
                         <span v-if="!emailSending">
                             <i class="bi bi-send"></i> Wyślij email
                         </span>
@@ -489,16 +497,16 @@
                     </div>
                 </div>
 
-                <div class="divider"></div>
+                <div class="divider my-0"></div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="label"><span class="label-text font-semibold">Ulica:</span></label>
-                        <p class="text-sm">{{ formData.streetName }}</p>
+                        <p class="text-sm">{{ formData.streetSpecifier }} {{ formData.street }}</p>
                     </div>
                     <div>
                         <label class="label"><span class="label-text font-semibold">Numer budynku:</span></label>
-                        <p class="text-sm">{{ formData.buildingNumber }}</p>
+                        <p class="text-sm">{{ formData.building }}</p>
                     </div>
                 </div>
 
@@ -507,41 +515,42 @@
                         <label class="label"><span class="label-text font-semibold">Numer mieszkania:</span></label>
                         <p class="text-sm">{{ formData.apartment || 'N/A' }}</p>
                     </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Miasto:</span></label>
+                        <p class="text-sm">{{ formData.city }}</p>
+                    </div>
                 </div>
 
-                <div class="divider"></div>
+                <div class="divider my-0"></div>
 
                 <div>
                     <label class="label"><span class="label-text font-semibold">Notatki zgłaszającego:</span></label>
                     <p class="text-sm whitespace-pre-wrap">{{ formData.submitterNotes || 'Brak' }}</p>
                 </div>
 
-                <div class="divider"></div>
+                <div class="divider my-0"></div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Harmonogram:</span></label>
+                        <p class="text-sm whitespace-pre-wrap">{{ formData.scheduleName }}</p>
+                    </div>
+                    <div>
+                        <label class="label"><span class="label-text font-semibold">Metoda:</span></label>
+                        <p class="text-sm whitespace-pre-wrap">{{ submitMethodLabel(formData.method) }}</p>
+                    </div>
+                </div>
+
+                <div class="divider my-0"></div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="label"><span class="label-text font-semibold">IP zgłaszającego:</span></label>
-                        <p class="text-sm font-mono">{{ formData.submitterIp }}</p>
+                        <p class="text-sm font-mono">{{ formData.ip }}</p>
                     </div>
-                    <div>
-                        <label class="label"><span class="label-text font-semibold">User Agent:</span></label>
-                        <p class="text-xs break-all">{{ formData.submitterUserAgent }}</p>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="label"><span class="label-text font-semibold">Zgoda GDPR:</span></label>
-                    <p class="text-sm">{{ formData.gdprConsent ? '✅ Wyrażono' : '❌ Nie wyrażono' }}</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="label"><span class="label-text font-semibold">Data zgłoszenia:</span></label>
                         <p class="text-sm">{{ formatDate(formData.submitTime) }}</p>
-                    </div>
-                    <div>
-                        <label class="label"><span class="label-text font-semibold">UID zgłoszenia:</span></label>
-                        <p class="text-sm font-mono">{{ formData.uniqueId }}</p>
                     </div>
                 </div>
             </div>
@@ -620,6 +629,27 @@
                 }
             },
             computed: {
+                hasEmailChanges() {
+                    if (!this.isEditing) return false;
+                    const d = this.data;
+                    const e = this.edit;
+
+                    if (e.name.trim() !== d.submitter.name) return true;
+                    if (e.surname.trim() !== d.submitter.surname) return true;
+                    if (e.email.trim() !== (d.submitter.email || '')) return true;
+
+                    const newBuildingId = parseInt(e.buildingId);
+                    if (newBuildingId !== d.address.buildingId) return true;
+
+                    if (e.apartment.trim() !== (d.address.apartmentNumber || '') + (d.address.apartmentLetter || '')) return true;
+                    if (e.submitterNotes.trim() !== (d.submitterNotes || '')) return true;
+                    if (e.adminMessage.trim() !== (d.adminMessage || '')) return true;
+                    if (parseInt(e.notesStatus) !== d.notesStatus) return true;
+                    if (parseInt(e.submitMethod) !== d.submitMethod) return true;
+                    if ((e.scheduleId ? parseInt(e.scheduleId) : null) !== d.visit.schedule.id) return true;
+
+                    return false;
+                }
             },
             methods: {
                 async open(id) {
@@ -747,7 +777,7 @@
                         if (this.edit.email !== (d.submitter.email || '')) payload.email = this.edit.email || '';
                         if (this.edit.phone !== (d.submitter.phone || '')) payload.phone = this.edit.phone || '';
 
-                        const newBuildingId = parseInt(document.getElementById('edit-building-select').value);
+                        const newBuildingId = parseInt(this.edit.buildingId);
                         if (newBuildingId !== d.address.buildingId) payload.buildingId = newBuildingId;
 
                         if (this.edit.apartment !== d.address.apartment) payload.apartment = this.edit.apartment || '';
@@ -800,6 +830,7 @@
                         const res = await fetch(`/api/submissions/${this.data.id}/form`);
                         if (!res.ok) throw new Error('Brak danych formularza');
                         this.formData = await res.json();
+                        console.log('Form data: ', this.formData);
                     } catch (e) {
                         alert(e.message);
                         this.formDataOpen = false;
@@ -1054,6 +1085,11 @@
                         case 2: return 'Formularz internetowy';
                         case 3: return 'Telefonicznie';
                         case 4: return 'Osobiście';
+                        case "NotRegistered": return 'Nie zarejestrowano';
+                        case "PaperForm": return 'Formularz papierowy';
+                        case "WebForm": return 'Formularz internetowy';
+                        case "Phone": return 'Telefonicznie';
+                        case "Stationary": return 'Osobiście';
                         default: return 'N/A';
                     }
                 }
