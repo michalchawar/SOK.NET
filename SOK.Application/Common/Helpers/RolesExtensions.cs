@@ -2,12 +2,12 @@
 using SOK.Domain.Entities.Central;
 using SOK.Domain.Enums;
 
-namespace SOK.Infrastructure.Extensions
+namespace SOK.Application.Common.Helpers
 {
     /// <summary>
     /// Klasa do rozszerzenia funkcjonalności związanych z zarządzaniem użytkownikami.
     /// </summary>
-    public static class UserManagerExtensions
+    public static class RolesExtensions
     {
         /// <summary>
         /// Dodaje określonego <paramref name="user"/> do podanej roli.

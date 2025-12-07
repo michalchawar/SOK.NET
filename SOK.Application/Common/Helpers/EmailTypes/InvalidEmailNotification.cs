@@ -37,7 +37,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
             return new Dictionary<string, string>
             {
                 ["subject"] = GetSubject(),
-                ["bad_email"] = _submission.Submitter.Email,
+                ["bad_email"] = _submission.Submitter.Email ?? "Brak",
             };
         }
     }
