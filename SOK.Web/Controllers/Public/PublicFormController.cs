@@ -271,7 +271,8 @@ namespace SOK.Web.Controllers
 
         protected async Task PopulateNewSubmissionWebFormVM(NewSubmissionWebFormVM vm)
         {
-            var streets = await _streetService.GetAllStreetsAsync(buildings: true, type: true);
+            var streets = (await _streetService.GetAllStreetsAsync(buildings: true, type: true))
+                .Where(s => s.Buildings.Any(b => b.AllowSelection));
 
             vm.StreetList = streets.Select(s => new SelectListItem
             {
@@ -281,7 +282,10 @@ namespace SOK.Web.Controllers
 
             vm.BuildingList = streets.ToDictionary(
                 s => s.Id,
-                s => s.Buildings.OrderBy(b => b.Number).ThenBy(b => b.Letter).Select(b => new SelectListItem
+                s => s.Buildings.Where(b => b.AllowSelection)
+                                .OrderBy(b => b.Number)
+                                .ThenBy(b => b.Letter)
+                                .Select(b => new SelectListItem
                 {
                     Text = b.Number + (b.Letter ?? ""),
                     Value = b.Id.ToString()
