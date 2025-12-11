@@ -21,6 +21,16 @@
         /// którego wartością jest obiekt transakcji, implementujący interfejs <see cref="ITransaction"/>.
         /// </returns>
         Task<ITransaction> BeginTransactionAsync();
+
+        /// <summary>
+        /// Wykonuje operację w ramach transakcji z obsługą strategii ponownych prób.
+        /// </summary>
+        /// <typeparam name="TResult">Typ wyniku operacji.</typeparam>
+        /// <param name="operation">Operacja do wykonania w ramach transakcji.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task{TResult}"/>, reprezentujący asynchroniczną operację.
+        /// </returns>
+        Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation);
     }
 
     /// <summary>

@@ -122,7 +122,7 @@ namespace SOK.Infrastructure.Repositories
             {
                 UserName = string.Join("-", displayName.ToLower().Replace(".", string.Empty).Replace(",", string.Empty).Split([' ', '-', '/'], StringSplitOptions.TrimEntries).TakeLast(2).Append(random.Next(1000).ToString())),
                 DisplayName = displayName,
-                Parish = parish,
+                ParishId = parish.Id,
             };
 
             ParishMember newMember = new()
@@ -140,6 +140,30 @@ namespace SOK.Infrastructure.Repositories
             await _userManager.AddToRolesAsync(newUser, roles.Select(r => r.ToString()));
 
             return newMember;
+        }
+
+        /// <inheritdoc />
+        public async Task<User?> GetUserByIdAsync(string userId)
+        {
+            return await _userManager.FindByIdAsync(userId);
+        }
+
+        /// <inheritdoc />
+        public async Task UpdateUserAsync(User user)
+        {
+            await _userManager.UpdateAsync(user);
+        }
+
+        /// <inheritdoc />
+        public async Task<IdentityResult> SetPasswordAsync(User user, string newPassword)
+        {
+            // Remove old password if exists
+            if (await _userManager.HasPasswordAsync(user))
+            {
+                await _userManager.RemovePasswordAsync(user);
+            }
+            
+            return await _userManager.AddPasswordAsync(user, newPassword);
         }
     }
 }

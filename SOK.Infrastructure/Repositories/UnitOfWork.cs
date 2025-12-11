@@ -25,6 +25,26 @@ namespace SOK.Infrastructure.Repositories
             return new Transaction(await _db.Database.BeginTransactionAsync());
         }
 
+        public async Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation)
+        {
+            var strategy = _db.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await BeginTransactionAsync();
+                try
+                {
+                    var result = await operation();
+                    await transaction.CommitAsync();
+                    return result;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+        }
+
         /// <inheritdoc cref="ITransaction" />
         private class Transaction : ITransaction
         {

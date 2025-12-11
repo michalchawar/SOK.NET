@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@source "./wwwroot/**/*.js,./Views/**/*.cshtml";
+@source "./wwwroot/**/*.js,./Views/**/*.cshtml,./wwwroot/css/roles-safelist.css";
 @plugin "daisyui";
 
 @custom-variant dark ([data-theme="dark"] &);
@@ -26,6 +26,7 @@ body {
 }
 
 @layer utilities {
+
     .navbar {
         @apply py-1;
         min-height: 2rem;

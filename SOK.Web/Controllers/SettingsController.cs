@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using SOK.Web.ViewModels.Parish;
 
@@ -51,10 +52,121 @@ namespace SOK.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Users()
         {
-            var users = await _parishMemberService.GetUsersPaginatedAsync(pageSize: 20, loadRoles: true);
+            var users = await _parishMemberService.GetUsersPaginatedAsync(pageSize: 100, loadRoles: true);
 
             ViewData["UserDtos"] = users;
-            return View();
+            return View("Users/Index");
+        }
+
+        [HttpGet("Settings/Users/Create")]
+        public IActionResult CreateUser()
+        {
+            var model = new CreateUserVM();
+            ViewData["AllRoles"] = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
+            return View("Users/Create", model);
+        }
+
+        [HttpPost("Settings/Users/Create")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUser(CreateUserVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewData["AllRoles"] = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
+                return View("Users/Create", model);
+            }
+
+            var result = await _parishMemberService.CreateUserAsync(
+                model.DisplayName,
+                model.UserName,
+                model.Email,
+                model.Password,
+                model.SelectedRoles);
+
+            if (result == null)
+            {
+                TempData["error"] = "Nie udało się utworzyć użytkownika. Login może być już zajęty.";
+                ViewData["AllRoles"] = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
+                return View("Users/Create", model);
+            }
+
+            TempData["success"] = $"Użytkownik {result.DisplayName} został utworzony pomyślnie.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpGet("Settings/Users/Edit/{id}")]
+        public async Task<IActionResult> EditUser(string id)
+        {
+            var user = await _parishMemberService.GetUserByIdAsync(id, loadRoles: true, loadPlans: true);
+            
+            if (user == null)
+            {
+                TempData["error"] = "Nie znaleziono użytkownika.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            var allPlans = await _parishMemberService.GetAllPlansAsync();
+
+            var model = new EditUserVM
+            {
+                CentralId = user.CentralId,
+                DisplayName = user.DisplayName,
+                UserName = user.UserName ?? string.Empty,
+                Email = user.Email,
+                SelectedRoles = user.Roles.ToList(),
+                AssignedPlanIds = user.AssignedPlans.Select(p => p.Id).ToList(),
+                AvailablePlans = allPlans.ToList()
+            };
+
+            ViewData["AllRoles"] = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
+            return View("Users/Edit", model);
+        }
+
+        [HttpPost("Settings/Users/Edit/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(string id, EditUserVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var allPlans = await _parishMemberService.GetAllPlansAsync();
+                model.AvailablePlans = allPlans.ToList();
+                ViewData["AllRoles"] = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
+                return View("Users/Edit", model);
+            }
+
+            var result = await _parishMemberService.UpdateUserAsync(
+                id,
+                model.DisplayName,
+                model.UserName,
+                model.Email,
+                model.SelectedRoles,
+                model.AssignedPlanIds);
+
+            if (!result)
+            {
+                TempData["error"] = "Nie udało się zaktualizować użytkownika.";
+                var allPlans = await _parishMemberService.GetAllPlansAsync();
+                model.AvailablePlans = allPlans.ToList();
+                ViewData["AllRoles"] = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
+                return View("Users/Edit", model);
+            }
+
+            TempData["success"] = "Użytkownik został zaktualizowany pomyślnie.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost("Settings/Users/ResetPassword/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string id)
+        {
+            var newPassword = await _parishMemberService.ResetPasswordAsync(id);
+
+            if (newPassword == null)
+            {
+                return Json(new { success = false, message = "Nie udało się zresetować hasła." });
+            }
+
+            return Json(new { success = true, password = newPassword });
         }
 
         [HttpGet]

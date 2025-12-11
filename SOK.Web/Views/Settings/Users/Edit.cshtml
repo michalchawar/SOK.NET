@@ -1,0 +1,230 @@
+@model EditUserVM
+@using SOK.Domain.Enums
+@using SOK.Application.Common.Helpers
+@{
+    ViewData["Title"] = "Edytuj użytkownika";
+    var allRoles = ViewData["AllRoles"] as List<Role> ?? new List<Role>();
+}
+
+<div id="editUserApp" class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="EditUser" asp-route-id="@Model.CentralId" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        @Html.AntiForgeryToken()
+        
+        <!-- === Sekcja 1: Podstawowe dane === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Podstawowe informacje</h2>
+                <p class="text-sm opacity-40">
+                    Edytuj podstawowe dane użytkownika, takie jak nazwa wyświetlana i login.
+                </p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <label asp-for="DisplayName" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.DisplayName)</span>
+                    <input asp-for="DisplayName" class="input input-lg w-full" placeholder="Np. ks. Jan Kowalski" />
+                    <span asp-validation-for="DisplayName" class="text-error text-sm"></span>
+                </label>
+                
+                <label asp-for="UserName" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.UserName)</span>
+                    <input asp-for="UserName" class="input input-lg w-full" placeholder="Np. jan.kowalski" />
+                    <span asp-validation-for="UserName" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 2: Kontakt === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Dane kontaktowe</h2>
+                <p class="text-sm opacity-40">
+                    Edytuj adres email użytkownika.
+                </p>
+            </div>
+            <div>
+                <label asp-for="Email" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.Email)</span>
+                    <input asp-for="Email" type="email" class="input input-lg w-full" placeholder="Np. jan.kowalski@parafia.pl" />
+                    <span asp-validation-for="Email" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 3: Resetowanie hasła === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Resetowanie hasła</h2>
+                <p class="text-sm opacity-40">
+                    Zresetuj hasło użytkownika na nowe, losowe. Po zresetowaniu będziesz mógł je skopiować.
+                </p>
+            </div>
+            <div>
+                <button type="button" 
+                        v-on:click="resetPassword" 
+                        class="btn btn-warning"
+                        :disabled="isResetting">
+                    <span v-if="!isResetting"><i class="bi bi-key"></i> Resetuj hasło</span>
+                    <span v-else><i class="bi bi-hourglass-split"></i> Resetowanie...</span>
+                </button>
+                
+                <div v-if="newPassword" class="mt-3 p-3 bg-success/20 rounded-lg">
+                    <p class="text-sm font-semibold mb-2">Nowe hasło:</p>
+                    <div class="flex gap-2 items-center">
+                        <code class="flex-1 p-2 bg-base-200 rounded font-mono text-sm">{{ newPassword }}</code>
+                        <button type="button" 
+                                v-on:click="copyPassword" 
+                                class="btn btn-sm btn-primary">
+                            <i class="bi bi-clipboard"></i> Kopiuj
+                        </button>
+                    </div>
+                    <p v-if="passwordCopied" class="text-sm text-success mt-2">
+                        <i class="bi bi-check-circle"></i> Skopiowano!
+                    </p>
+                </div>
+                
+                <div v-if="resetError" class="mt-3 p-3 bg-error/20 rounded-lg">
+                    <p class="text-sm text-error">{{ resetError }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 4: Role === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Przypisane role</h2>
+                <p class="text-sm opacity-40">
+                    Edytuj role użytkownika w systemie. Możesz wybrać wiele ról.
+                </p>
+            </div>
+            <div class="flex flex-col gap-2">
+                @foreach (var role in allRoles)
+                {
+                    <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-base-200 transition-colors">
+                        <input type="checkbox" 
+                               name="SelectedRoles" 
+                               value="@role" 
+                               class="checkbox checkbox-primary"
+                               @(Model.SelectedRoles.Contains(role) ? "checked" : "") />
+                        <i class="@role.GetRoleIcon() text-lg"></i>
+                        <span class="label-text font-medium flex-1">@role.ToPolishName()</span>
+                        <span class="badge badge-xs @role.GetBadgeColorClass()">@role.ToString()</span>
+                    </label>
+                }
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 5: Przypisane plany === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Przypisane plany</h2>
+                <p class="text-sm opacity-40">
+                    Wybierz plany, do których użytkownik jest przypisany. Wybrane plany będą widoczne dla użytkownika.
+                </p>
+            </div>
+            <div class="flex flex-col gap-2">
+                @if (Model.AvailablePlans.Any())
+                {
+                    @foreach (var plan in Model.AvailablePlans)
+                    {
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" 
+                                   name="AssignedPlanIds" 
+                                   value="@plan.Id" 
+                                   class="checkbox checkbox-secondary"
+                                   @(Model.AssignedPlanIds.Contains(plan.Id) ? "checked" : "") />
+                            <span class="label-text font-medium">@plan.Name</span>
+                        </label>
+                    }
+                }
+                else
+                {
+                    <p class="text-sm opacity-60">Brak dostępnych planów w systemie.</p>
+                }
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <div asp-validation-summary="All" class="text-sm text-error"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="Users" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+            <a asp-action="Users" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Wróć do listy
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    isResetting: false,
+                    newPassword: null,
+                    passwordCopied: false,
+                    resetError: null
+                }
+            },
+            methods: {
+                async resetPassword() {
+                    this.isResetting = true;
+                    this.resetError = null;
+                    this.newPassword = null;
+                    this.passwordCopied = false;
+                    
+                    try {
+                        const response = await fetch('@Url.Action("ResetPassword", "Settings", new { id = Model.CentralId })', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.newPassword = data.password;
+                        } else {
+                            this.resetError = data.message || 'Nie udało się zresetować hasła.';
+                        }
+                    } catch (error) {
+                        this.resetError = 'Wystąpił błąd podczas resetowania hasła.';
+                        console.error('Error:', error);
+                    } finally {
+                        this.isResetting = false;
+                    }
+                },
+                async copyPassword() {
+                    try {
+                        await navigator.clipboard.writeText(this.newPassword);
+                        this.passwordCopied = true;
+                        setTimeout(() => {
+                            this.passwordCopied = false;
+                        }, 3000);
+                    } catch (error) {
+                        console.error('Failed to copy:', error);
+                    }
+                }
+            }
+        }).mount('#editUserApp');
+    </script>
+}

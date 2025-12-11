@@ -5,7 +5,7 @@ using SOK.Domain.Enums;
 namespace SOK.Application.Common.Helpers
 {
     /// <summary>
-    /// Klasa do rozszerzenia funkcjonalności związanych z zarządzaniem użytkownikami.
+    /// Klasa do rozszerzenia funkcjonalności związanych z enumem ról.
     /// </summary>
     public static class RolesExtensions
     {
@@ -124,6 +124,78 @@ namespace SOK.Application.Common.Helpers
             Role role)
         {
             return await userManager.GetUsersInRoleAsync(role.ToString());
+        }
+
+        /// <summary>
+        /// Zwraca polską nazwę roli.
+        /// </summary>
+        /// <param name="role">Rola do przetłumaczenia.</param>
+        /// <returns>Polska nazwa roli.</returns>
+        public static string ToPolishName(this Role role)
+        {
+            return role switch
+            {
+                Role.Administrator => "Administrator",
+                Role.Priest => "Ksiądz",
+                Role.SubmitSupport => "Wsparcie zgłoszeń",
+                Role.VisitSupport => "Wsparcie wizyt",
+                Role.DefaultUser => "Użytkownik",
+                _ => role.ToString()
+            };
+        }
+
+        /// <summary>
+        /// Zwraca klasę koloru badge dla danej roli (dla DaisyUI).
+        /// </summary>
+        /// <param name="role">Rola, dla której pobieramy klasę koloru.</param>
+        /// <returns>Klasa CSS dla badge.</returns>
+        public static string GetBadgeColorClass(this Role role)
+        {
+            return role switch
+            {
+                Role.Administrator => "bg-red-500 border-red-500 text-white",
+                Role.Priest => "bg-purple-500 border-purple-500 text-white",
+                Role.SubmitSupport => "bg-blue-500 border-blue-500 text-white",
+                Role.VisitSupport => "bg-green-500 border-green-500 text-white",
+                Role.DefaultUser => "bg-gray-400 border-gray-400 text-white",
+                _ => "bg-gray-300 border-gray-300"
+            };
+        }
+
+        /// <summary>
+        /// Zwraca priorytet sortowania dla roli (niższa wartość = wyższy priorytet).
+        /// </summary>
+        /// <param name="role">Rola do oceny.</param>
+        /// <returns>Wartość priorytetu.</returns>
+        public static int GetSortPriority(this Role role)
+        {
+            return role switch
+            {
+                Role.Administrator => 1,
+                Role.Priest => 2,
+                Role.SubmitSupport => 3,
+                Role.VisitSupport => 4,
+                Role.DefaultUser => 5,
+                _ => 99
+            };
+        }
+
+        /// <summary>
+        /// Zwraca ikonę Bootstrap Icons dla danej roli.
+        /// </summary>
+        /// <param name="role">Rola, dla której pobieramy ikonę.</param>
+        /// <returns>Klasa ikony Bootstrap Icons.</returns>
+        public static string GetRoleIcon(this Role role)
+        {
+            return role switch
+            {
+                Role.Administrator => "bi-shield-fill-check",
+                Role.Priest => "bi-book",
+                Role.SubmitSupport => "bi-clipboard-check",
+                Role.VisitSupport => "bi-house-heart",
+                Role.DefaultUser => "bi-person",
+                _ => "bi-person-circle"
+            };
         }
     }
 }
