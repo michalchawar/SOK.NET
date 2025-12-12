@@ -1,4 +1,5 @@
-﻿@model NewSubmissionVM
+﻿@using SOK.Domain.Enums
+@model NewSubmissionVM
 
 @{
     ViewData["Title"] = "Wprowadź zgłoszenie";
@@ -12,7 +13,8 @@
             <div class="">
                 <label asp-for="Name" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.Name)</span>
-                    <input asp-for="Name" placeholder="@Html.DisplayNameFor(m => m.Name)" class="input w-full input-lg focus:input-primary" />
+                    <input asp-for="Name" placeholder="@Html.DisplayNameFor(m => m.Name)"
+                        class="input w-full input-lg focus:input-primary" />
                 </label>
                 <span asp-validation-for="Name" class="text-error"></span>
             </div>
@@ -20,7 +22,8 @@
             <div class="">
                 <label asp-for="Surname" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.Surname)</span>
-                    <input asp-for="Surname" placeholder="@Html.DisplayNameFor(m => m.Surname)" class="input w-full input-lg focus:input-primary" />
+                    <input asp-for="Surname" placeholder="@Html.DisplayNameFor(m => m.Surname)"
+                        class="input w-full input-lg focus:input-primary" />
                 </label>
                 <span asp-validation-for="Surname" class="text-error"></span>
             </div>
@@ -28,7 +31,8 @@
             <div class="col-span-full">
                 <label asp-for="Email" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.Email)</span>
-                    <input asp-for="Email" placeholder="@Html.DisplayNameFor(m => m.Email)" class="input w-full input-lg focus:input-primary" />
+                    <input asp-for="Email" placeholder="@Html.DisplayNameFor(m => m.Email)"
+                        class="input w-full input-lg focus:input-primary" />
                 </label>
                 <span asp-validation-for="Email" class="text-error"></span>
             </div>
@@ -36,15 +40,23 @@
             <div class="hidden">
                 <label asp-for="Phone" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.Phone)</span>
-                    <input asp-for="Phone" placeholder="@Html.DisplayNameFor(m => m.Phone)" class="input w-full input-lg focus:input-primary" />
+                    <input asp-for="Phone" placeholder="@Html.DisplayNameFor(m => m.Phone)"
+                        class="input w-full input-lg focus:input-primary" />
                 </label>
                 <span asp-validation-for="Phone" class="text-error"></span>
             </div>
 
             <div class="divider divider-end col-span-full my-2">
+                <label asp-for="SubmissionDate" class="floating-label min-w-44 text-base-content"
+                    id="date-picker-container">
+                    <span>@Html.DisplayNameFor(m => m.SubmissionDate)</span>
+                    <input asp-for="SubmissionDate" type="date" class="input input-sm w-full focus:input-primary"
+                        tabindex="-1" id="submission-date-input" />
+                </label>
                 <label asp-for="ScheduleId" class="floating-label min-w-44 text-base-content">
                     <span>@Html.DisplayNameFor(m => m.ScheduleId)</span>
-                    <select asp-for="ScheduleId" asp-items="@Model.ScheduleList" class="select select-sm w-full focus:select-primary">
+                    <select asp-for="ScheduleId" asp-items="@Model.ScheduleList" tabindex="-1"
+                        class="select select-sm w-full focus:select-primary">
                     </select>
                 </label>
             </div>
@@ -52,7 +64,8 @@
             <div class="">
                 <label asp-for="StreetId" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.StreetId)</span>
-                    <select asp-for="StreetId" asp-items="@Model.StreetList" class="select select-lg w-full focus:select-primary">
+                    <select asp-for="StreetId" asp-items="@Model.StreetList"
+                        class="select select-lg w-full focus:select-primary">
                         <option disabled selected class="">--Wybierz--</option>
                     </select>
                 </label>
@@ -64,8 +77,8 @@
                     <label asp-for="BuildingId" class="floating-label">
                         <span>@Html.DisplayNameFor(m => m.BuildingId)</span>
                         <select asp-for="BuildingId"
-                                asp-items="@(Model.BuildingList.ContainsKey(Model.StreetId) ? Model.BuildingList[Model.StreetId] : new List<SelectListItem>())" 
-                           class="select select-lg w-full focus:select-primary">
+                            asp-items="@(Model.BuildingList.ContainsKey(Model.StreetId) ? Model.BuildingList[Model.StreetId] : new List<SelectListItem>())"
+                            class="select select-lg w-full focus:select-primary">
                             <option disabled selected class="">--Wybierz--</option>
                         </select>
                     </label>
@@ -75,7 +88,8 @@
                 <div class="w-1/2">
                     <label asp-for="Apartment" class="floating-label">
                         <span>@Html.DisplayNameFor(m => m.Apartment)</span>
-                        <input asp-for="Apartment" placeholder="@Html.DisplayNameFor(m => m.Apartment)" class="input input-lg w-full focus:input-primary" />
+                        <input asp-for="Apartment" placeholder="@Html.DisplayNameFor(m => m.Apartment)"
+                            class="input input-lg w-full focus:input-primary" />
                     </label>
                     <span asp-validation-for="Apartment" class="text-error"></span>
                 </div>
@@ -84,7 +98,8 @@
             <div class="hidden">
                 <label asp-for="SubmitterNotes" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.SubmitterNotes)</span>
-                    <textarea asp-for="SubmitterNotes" placeholder="@Html.DisplayNameFor(m => m.SubmitterNotes)" class="textarea w-full textarea-lg focus:textarea-primary">
+                    <textarea asp-for="SubmitterNotes" placeholder="@Html.DisplayNameFor(m => m.SubmitterNotes)"
+                        class="textarea w-full textarea-lg focus:textarea-primary">
                             </textarea>
                 </label>
                 <span asp-validation-for="SubmitterNotes" class="text-error"></span>
@@ -93,7 +108,8 @@
             <div class="hidden">
                 <label asp-for="AdminNotes" class="floating-label">
                     <span>@Html.DisplayNameFor(m => m.AdminNotes)</span>
-                    <textarea asp-for="AdminNotes" placeholder="@Html.DisplayNameFor(m => m.AdminNotes)" class="textarea w-full textarea-lg focus:textarea-primary">
+                    <textarea asp-for="AdminNotes" placeholder="@Html.DisplayNameFor(m => m.AdminNotes)"
+                        class="textarea w-full textarea-lg focus:textarea-primary">
                             </textarea>
                 </label>
                 <span asp-validation-for="AdminNotes" class="text-error"></span>
@@ -110,12 +126,40 @@
                 </label>
             </div>
 
-            <div class="col-span-full text-center">
-                <label asp-for="SendNotificationEmail" class="cursor-pointer select-none">
+            <div class="col-span-full">
+                <div class="flex flex-col items-center justify-center gap-2 mb-2">
+                    <span class="font-semibold">Metoda zgłoszenia:</span>
+                    <div class="join">
+                        <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.PaperForm)"
+                            class="join-item btn not-checked:btn-soft checked:btn-accent" id="method-paper-form"
+                            value="@((int)SubmitMethod.PaperForm)" aria-label="Formularz papierowy" />
+                        <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.Stationary)"
+                            class="join-item btn not-checked:btn-soft checked:btn-accent" id="method-stationary"
+                            value="@((int)SubmitMethod.Stationary)" aria-label="Stacjonarnie" />
+                        <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.Phone)"
+                            class="join-item btn not-checked:btn-soft checked:btn-accent" id="method-phone"
+                            value="@((int)SubmitMethod.Phone)" aria-label="Telefonicznie" />
+                        <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.NotRegistered)"
+                            class="join-item btn btn-dash checked:btn-accent" id="method-not-registered"
+                            value="@((int)SubmitMethod.NotRegistered)" aria-label="Nie zarejestrowano" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-full text-center flex flex-col gap-3">
+                <label asp-for="SendNotificationEmail" class="cursor-pointer select-none tooltip"
+                    data-tip="Jeśli podano adres e-mail, zostanie wysłane potwierdzenie otrzymania zgłoszenia.">
                     <input asp-for="SendNotificationEmail" type="checkbox" class="checkbox checkbox-primary mr-2" />
                     <span>@Html.DisplayNameFor(m => m.SendNotificationEmail)</span>
                 </label>
+                <label for="use-custom-date" class="cursor-pointer select-none tooltip"
+                    data-tip="Domyślnie zgłoszenie zostanie dodane z teraźniejszą datą i godziną. Zaznacz tę opcję, aby wybrać inną datę. System dodatkowo ustawi godzinę na 7:00 wybranego dnia.">
+                    <input asp-for="UseCustomDate" type="checkbox" id="use-custom-date"
+                        class="checkbox mr-2" />
+                    <span>@Html.DisplayNameFor(m => m.UseCustomDate)</span>
+                </label>
             </div>
+
         </div>
     </form>
 </div>
@@ -156,6 +200,27 @@
                     adminNotes.classList.add("hidden");
                 }
             });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const useCustomDateCheckbox = document.getElementById("use-custom-date");
+            const datePickerContainer = document.getElementById("date-picker-container");
+            const dateInput = document.getElementById("submission-date-input");
+
+            function updateDateFieldVisibility() {
+                if (useCustomDateCheckbox.checked) {
+                    datePickerContainer.style.display = "";
+                    dateInput.removeAttribute("disabled");
+                } else {
+                    datePickerContainer.style.display = "none";
+                    dateInput.setAttribute("disabled", "disabled");
+                }
+            }
+
+            // Initialize on page load
+            updateDateFieldVisibility();
+
+            useCustomDateCheckbox.addEventListener("change", updateDateFieldVisibility);
         });
     </script>
 }

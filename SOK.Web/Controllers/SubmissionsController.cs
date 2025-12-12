@@ -6,6 +6,7 @@ using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using SOK.Web.ViewModels.Parish;
 
@@ -60,10 +61,15 @@ namespace SOK.Web.Controllers
 
         [HttpGet]
         [ActivePage("NewSubmission")]
-        public async Task<IActionResult> New()
+        public async Task<IActionResult> New(DateOnly? defaultDate = null, bool? useCustomDate = null, SubmitMethod? method = null)
         {
             NewSubmissionVM model = new NewSubmissionVM();
-            await PopulateNewSubmissionVM(model);
+            await PopulateNewSubmissionVM(model, defaultDate);
+            
+            if (useCustomDate.HasValue)
+                model.UseCustomDate = useCustomDate.Value;
+            if (method.HasValue)
+                model.Method = method.Value;
 
             return View(model);
         }
@@ -103,26 +109,35 @@ namespace SOK.Web.Controllers
                     SendConfirmationEmail = model.SendNotificationEmail
                 };
 
+                if (model.UseCustomDate)
+                    request.Created = new DateTime(model.SubmissionDate, new TimeOnly(hour: 7, minute: 0));
+
                 try
                 {
                     await _submissionService.CreateSubmissionAsync(request);
                 }
+                catch (InvalidOperationException)
+                {
+                    TempData["error"] = "Pod podanym adresem już istnieje zgłoszenie.";
+                    await PopulateNewSubmissionVM(model);
+                    return View(model);
+                }
                 catch (Exception)
                 {
-                    ModelState.AddModelError(string.Empty, "Wystąpił błąd podczas tworzenia zgłoszenia. Spróbuj ponownie.");
+                    TempData["error"] = "Wystąpił błąd podczas tworzenia zgłoszenia. Spróbuj ponownie.";
                     await PopulateNewSubmissionVM(model);
                     return View(model);
                 }
 
                 TempData["success"] = "Twoje zgłoszenie zostało pomyślnie utworzone.";
-                return RedirectToAction(nameof(New));
+                return RedirectToAction(nameof(New), new { defaultDate = model.SubmissionDate, useCustomDate = model.UseCustomDate, method = model.Method });
             }
 
             await PopulateNewSubmissionVM(model);
             return View(model);
         }
 
-        protected async Task PopulateNewSubmissionVM(NewSubmissionVM vm)
+        protected async Task PopulateNewSubmissionVM(NewSubmissionVM vm, DateOnly? defaultDate = null)
         {
             var streets = await _streetService.GetAllStreetsAsync(buildings: true);
 
@@ -152,6 +167,9 @@ namespace SOK.Web.Controllers
 
             if (defaultSchedule != null)
                 vm.ScheduleId = defaultSchedule.Id;
+
+            if (defaultDate.HasValue)
+                vm.SubmissionDate = defaultDate.Value;
         }
     }
 }

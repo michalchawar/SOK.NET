@@ -59,11 +59,18 @@ namespace SOK.Web.ViewModels.Parish
         public string? AdminNotes { get; set; } = null;
 
         [Display(Name = "Metoda otrzymania zgłoszenia")]
-        [DefaultValue(SubmitMethod.NotRegistered)]
-        public SubmitMethod Method { get; set; } = SubmitMethod.NotRegistered;
+        [DefaultValue(SubmitMethod.PaperForm)]
+        public SubmitMethod Method { get; set; } = SubmitMethod.PaperForm;
 
         [Display(Name = "Harmonogram")]
         public int ScheduleId { get; set; } = default!;
+
+        [Display(Name = "Data przyjęcia")]
+        public DateOnly SubmissionDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+
+        [Display(Name = "Wprowadź inną datę przyjęcia zgłoszenia")]
+        [DefaultValue(false)]
+        public bool UseCustomDate { get; set; } = false;
 
         [Display(Name = "Wyślij powiadomienie e-mail do zgłaszającego")]
         [DefaultValue(true)]

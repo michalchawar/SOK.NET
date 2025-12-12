@@ -145,7 +145,7 @@ namespace SOK.Application.Services.Implementation
             submissionDto.ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']).ToLower();
 
             // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
-            Submission submission = new Submission(schedule.Plan)
+            Submission submission = new Submission(schedule.Plan, submissionDto.Created)
             {
                 Submitter = submitter,
                 SubmitterNotes = submissionDto.SubmitterNotes,

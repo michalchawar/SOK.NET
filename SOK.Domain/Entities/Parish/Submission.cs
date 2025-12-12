@@ -123,10 +123,13 @@ namespace SOK.Domain.Entities.Parish
         /// Konstruktor tworzący zgłoszenie powiązane z określonym planem.
         /// </summary>
         /// <param name="plan">Plan, do którego należy zgłoszenie.</param>
-        public Submission(Plan plan)
+        public Submission(Plan plan, DateTime? submitTime = null)
         {
             PlanId = plan.Id;
             Plan = plan;
+
+            if (submitTime.HasValue)
+                SubmitTime = submitTime.Value;
         }
     }
 }
