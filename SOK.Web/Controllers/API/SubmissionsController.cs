@@ -175,10 +175,10 @@ namespace SOK.Web.Controllers.API
                 }
             }
 
+            await _submissionService.UpdateSubmissionAsync(submission);
+            
             // Zapisz nowe wartości
             SnapshotNewValues(submission, changes);
-
-            await _submissionService.UpdateSubmissionAsync(submission);
 
             // Wyślij email o zmianach jeśli zaznaczono i jeśli są widoczne zmiany
             if (dto.SendDataChangeEmail && changes.HasChanges() && !string.IsNullOrEmpty(submission.Submitter.Email))

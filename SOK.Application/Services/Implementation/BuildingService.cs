@@ -18,20 +18,25 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<Building?> GetBuildingAsync(int id)
         {
-            return await _uow.Building.GetAsync(b => b.Id == id);
+            return 
+                (await _uow.Building.GetPaginatedAsync(
+                    b => b.Id == id,
+                    street: true,
+                    tracked: true))
+                .FirstOrDefault();
         }
 
         /// <inheritdoc />
-        //public async Task<IEnumerable<Building>> GetBuildingsPaginatedAsync(
-        //    Expression<Func<Building, bool>>? filter = null,
-        //    int page = 1,
-        //    int pageSize = 1)
-        //{
-        //    if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
-        //    if (page < 1) throw new ArgumentException("Page must be positive.");
+        public async Task<IEnumerable<Building>> GetBuildingsPaginatedAsync(
+           Expression<Func<Building, bool>>? filter = null,
+           int page = 1,
+           int pageSize = 1)
+        {
+           if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
+           if (page < 1) throw new ArgumentException("Page must be positive.");
 
-        //    return await _uow.Building.GetPaginatedAsync(filter, pageSize: pageSize, page: page);
-        //}
+           return await _uow.Building.GetPaginatedAsync(filter, pageSize: pageSize, page: page);
+        }
 
         /// <inheritdoc />
         public async Task CreateBuildingAsync(Building building)
