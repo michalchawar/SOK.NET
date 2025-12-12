@@ -77,7 +77,8 @@ namespace SOK.Application.Services.Implementation
                     pageSize: pageSize,
                     page: page,
                     submitter: true,
-                    address: true)];
+                    address: true,
+                    formSubmission: true)];
 
             return result;
         }
