@@ -125,7 +125,7 @@ namespace SOK.Infrastructure.Repositories
             var allInfos = GetQueryable()
                 .Where(pi => pi.Name.StartsWith(prefix));
             
-            return allInfos.ToDictionary(
+            return await allInfos.ToDictionaryAsync(
                 info => info.Name.Substring(prefix.Length),
                 info => info.Value
             );

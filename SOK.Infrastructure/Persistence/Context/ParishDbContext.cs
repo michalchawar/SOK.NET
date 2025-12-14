@@ -128,7 +128,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 .ToList();
 
             // Pobierz aktualnie zalogowanego użytkownika raz dla wszystkich snapshotów
-            int? currentUserId = await GetCurrentUserIdAsync();
+            int? currentUserId = GetCurrentUserId();
 
             foreach (var entry in entries)
             {
@@ -147,7 +147,7 @@ namespace SOK.Infrastructure.Persistence.Context
             }
         }
 
-        private async Task<int?> GetCurrentUserIdAsync()
+        private int? GetCurrentUserId()
         {
             try
             {
