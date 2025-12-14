@@ -271,5 +271,52 @@ namespace SOK.Application.Services.Implementation
             await transaction.CommitAsync();
             await transactionCentral.CommitAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<DateTime?> GetDateTimeMetadataAsync(Plan plan, string metadataKey)
+        {
+            string? value = await _uow.ParishInfo.GetMetadataAsync(plan, metadataKey);
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (DateTime.TryParse(value, out DateTime result))
+                return result;
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task SetDateTimeMetadataAsync(Plan plan, string metadataKey, DateTime value)
+        {
+            await _uow.ParishInfo.SetMetadataAsync(plan, metadataKey, value.ToString("O"));
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<TimeOnly?> GetTimeMetadataAsync(Plan plan, string metadataKey)
+        {
+            string? value = await _uow.ParishInfo.GetMetadataAsync(plan, metadataKey);
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (TimeOnly.TryParse(value, out TimeOnly result))
+                return result;
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task SetTimeMetadataAsync(Plan plan, string metadataKey, TimeOnly value)
+        {
+            await _uow.ParishInfo.SetMetadataAsync(plan, metadataKey, value.ToString("c"));
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMetadataAsync(Plan plan, string metadataKey)
+        {
+            await _uow.ParishInfo.DeleteMetadataAsync(plan, metadataKey);
+            await _uow.SaveAsync();
+        }
     }
 }

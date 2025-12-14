@@ -112,5 +112,59 @@ namespace SOK.Application.Services.Interface
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
         /// </returns>
         Task ClearActivePlanAsync();
+
+        /// <summary>
+        /// Pobiera wartość metadanej typu <see cref="DateTime"/> dla planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego pobierana jest metadana.</param>
+        /// <param name="metadataKey">Klucz metadanej (użyj stałych z <see cref="Common.Helpers.PlanMetadataKeys"/>).</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest wartość <see cref="DateTime"/> lub <see cref="null"/>.
+        /// </returns>
+        Task<DateTime?> GetDateTimeMetadataAsync(Plan plan, string metadataKey);
+
+        /// <summary>
+        /// Ustawia wartość metadanej typu <see cref="DateTime"/> dla planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego ustawiana jest metadana.</param>
+        /// <param name="metadataKey">Klucz metadanej (użyj stałych z <see cref="Common.Helpers.PlanMetadataKeys"/>).</param>
+        /// <param name="value">Wartość do zapisania.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task SetDateTimeMetadataAsync(Plan plan, string metadataKey, DateTime value);
+
+        /// <summary>
+        /// Pobiera wartość metadanej typu <see cref="TimeOnly"/> dla planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego pobierana jest metadana.</param>
+        /// <param name="metadataKey">Klucz metadanej (użyj stałych z <see cref="Common.Helpers.PlanMetadataKeys"/>).</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest wartość <see cref="TimeOnly"/> lub <see cref="null"/>.
+        /// </returns>
+        Task<TimeOnly?> GetTimeMetadataAsync(Plan plan, string metadataKey);
+
+        /// <summary>
+        /// Ustawia wartość metadanej typu <see cref="TimeOnly"/> dla planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego ustawiana jest metadana.</param>
+        /// <param name="metadataKey">Klucz metadanej (użyj stałych z <see cref="Common.Helpers.PlanMetadataKeys"/>).</param>
+        /// <param name="value">Wartość do zapisania.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task SetTimeMetadataAsync(Plan plan, string metadataKey, TimeOnly value);
+
+        /// <summary>
+        /// Usuwa metadaną dla planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego usuwana jest metadana.</param>
+        /// <param name="metadataKey">Klucz metadanej do usunięcia.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task DeleteMetadataAsync(Plan plan, string metadataKey);
     }
 }
