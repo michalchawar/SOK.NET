@@ -161,7 +161,7 @@
 
             <!-- RODO Checkbox -->
             <div class="form-control md:col-span-2">
-                <label class="label cursor-pointer flex justify-start gap-3 items-start max-w-full">
+                <label class="hidden label cursor-pointer justify-start gap-3 items-start max-w-full">
                     <input asp-for="GdprConsent"
                             v-model="form.gdprConsent"
                             type="checkbox" 
@@ -175,6 +175,13 @@
                         </p>
                     </div>
                 </label>
+                <div class="flex flex-col">
+                    <h5 class="font-semibold">Wysyłając formularz wyrażasz zgodę na przetwarzanie danych osobowych.</h5>
+                    <p class="text-sm opacity-70 mt-1">
+                        Administratorem danych osobowych jest @Model.Parish.Name. 
+                        Twoje dane będą wykorzystane wyłącznie w celu zorganizowania wizyty duszpasterskiej.
+                    </p>
+                </div>
                 <span asp-validation-for="GdprConsent" class="text-error mt-1"></span>
             </div>
 
@@ -231,7 +238,7 @@
                         email: '@Html.Raw(Model.Email)',
                         hasNotes: @(Model.HasAdditionalNotes ? "true" : "false"),
                         notes: '@Html.Raw(Model.SubmitterNotes)',
-                        gdprConsent: @(Model.GdprConsent ? "true" : "false")
+                        gdprConsent: true
                     },
                     buildingList: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BuildingList)),
                     isSubmitting: false,

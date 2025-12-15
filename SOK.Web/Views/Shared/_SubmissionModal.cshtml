@@ -1008,7 +1008,7 @@
                 },
                 formatDate(d) {
                     if (!d) return 'N/A';
-                    return new Date(d).toLocaleString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    return new Date(d + "Z").toLocaleString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 },
                 onSubmitterNotesInput() {
                     if (this.edit.submitterNotes) {

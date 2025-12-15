@@ -160,6 +160,14 @@
                 </label>
             </div>
 
+            <div class="col-span-full alert alert-info alert-soft mt-4 flex items-center gap-2">
+                <i class="bi bi-info-circle"></i>
+                <span>
+                    Aby przejść do następnego podstawowego pola formularza, naciśnij spację.
+                    Aby wprowadzić znak spacji w polu tekstowym, użyj <kbd class="kbd">Shift</kbd> + <kbd class="kbd">Spacja</kbd>.
+                </span>
+            </div>
+
         </div>
     </form>
 </div>
@@ -175,6 +183,48 @@
             const buildingOptions = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BuildingList));
 
             registerBuildingPicker(streetSelect, buildingSelect, buildingOptions);
+        });
+
+        // Auto-focus na pierwszym inpucie i nawigacja spacją
+        document.addEventListener("DOMContentLoaded", function () {
+            const nameInput = document.getElementById("Name");
+            const surnameInput = document.getElementById("Surname");
+            const streetSelect = document.getElementById("StreetId");
+            const buildingSelect = document.getElementById("BuildingId");
+            const apartmentInput = document.getElementById("Apartment");
+
+            const navigationFields = [nameInput, surnameInput, streetSelect, buildingSelect, apartmentInput];
+
+            // Auto-focus na pierwszym polu
+            nameInput.focus();
+
+            // Nawigacja spacją między polami
+            navigationFields.forEach((field, index) => {
+                field.addEventListener("keydown", function (e) {
+                    if (e.key === " " && !e.shiftKey && e.target.tagName === "INPUT" && e.target.type === "text") {
+                        // Dla inputów tekstowych blokujemy spację i przechodzimy dalej
+                        e.preventDefault();
+                        const nextIndex = (index + 1) % navigationFields.length;
+                        navigationFields[nextIndex].focus();
+                    } else if (e.key === " " && !e.shiftKey && e.target.tagName === "SELECT") {
+                        // Dla selectów również przechodzimy dalej na spację
+                        e.preventDefault();
+                        const nextIndex = (index + 1) % navigationFields.length;
+                        navigationFields[nextIndex].focus();
+                    }
+                });
+            });
+
+            // Obsługa Enter na selekcie bramy do wysłania formularza
+            buildingSelect.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    const form = this.closest("form");
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            });
         });
 
         document.addEventListener("DOMContentLoaded", function () {
