@@ -14,13 +14,13 @@
 
                 <!-- Akcje edycji -->
                 <div class="col-span-full flex-1 flex justify-between items-center gap-2 order-3 lg:order-none">
-                    <div v-if="isEditing && data.submitter.email" class="flex items-center gap-3 lg:ms-auto lg:me-0">
+                    <div v-if="isEditing && edit.email" class="flex items-center gap-3 lg:ms-auto lg:me-0">
                         <label class="label">
                             <span class="text-sm font-medium opacity-50">MAIL:</span>
                             <input type="checkbox" class="toggle checked:toggle-primary"
                                 :disabled="!hasEmailChanges" v-model="sendDataChangeEmail" />
                         </label>
-                        <button @@click="previewDataChangeEmail" :disabled="!hasEmailChanges || !sendDataChangeEmail"
+                        <button @@click="previewDataChangeEmail" :disabled="!hasEmailChanges || !sendDataChangeEmail || !isValidEmail(edit.email)"
                             class="btn btn-primary btn-sm">
                             <i class="bi bi-eye"></i>
                         </button>
