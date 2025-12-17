@@ -39,7 +39,7 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// Zgłoszenie powiązane z adresem (relacja opcjonalna).
         /// </summary>
-        public Submission? Submission { get; set; } = default!;
+        public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 
 
         /// <summary>

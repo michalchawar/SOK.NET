@@ -12,7 +12,7 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
             // (zdefiniowany przez atrybut [Key] w modelu)
 
             // Indeksy i unikalność
-            builder.HasIndex(v => new { v.ScheduleId, v.OrdinalNumber })
+            builder.HasIndex(v => new { v.AgendaId, v.OrdinalNumber })
                 .IsUnique();
 
             // Generowane pola

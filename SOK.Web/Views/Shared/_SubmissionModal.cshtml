@@ -284,14 +284,26 @@
                                         </select>
                                     </div>
                                     <div class="divider my-0"></div>
-                                    <div class="py-5">
+                                    <div class="py-1">
                                         <div v-if="data.visit.status === 0" class="flex flex-col items-center gap-1">
                                             <i class="bi bi-clock-history text-3xl opacity-50"></i>
                                             <span class="text-lg font-normal opacity-80">Oczekuje na zaplanowanie</span>
                                         </div>
-                                        <div v-else>
-                                            <p class="text-lg font-semibold">{{ data.visit.plannedDate }}</p>
-                                            <p class="text-sm opacity-70">{{ data.visit.ordinalNumber }} na liście</p>
+                                        <div v-else class="space-y-5">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div v-if="data.visit.status === 1" class="flex flex-col items-center justify-center gap-1.5">
+                                                    <i class="bi bi-calendar-check-fill text-3xl text-success opacity-50"></i>
+                                                    <span class="text-xl font-semibold opacity-80">Zaplanowana</span>
+                                                </div>
+                                                <div class="text-end">
+                                                    <p class="text-lg font-semibold">{{ formatDate(data.visit.plannedDate) }}</p>
+                                                    <p class="text-sm opacity-70">{{ data.visit.ordinalNumber }} na liście</p>
+                                                </div>
+                                            </div>
+                                            <a :href="`/Calendar/AgendaEditor/${data.visit.agendaId}`"
+                                                class="btn btn-accent btn-soft w-full justify-center" target="_blank">
+                                                <i class="bi bi-journal-text"></i> Przejdź do edytora harmonogramu
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -1018,6 +1030,10 @@
                     } else {
                         this.edit.notesStatus = 0; // Reset status if notes are cleared
                     }
+                },
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric' });
                 },
 
                 notesStatusClass(notesStatus) {

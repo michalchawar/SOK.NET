@@ -99,6 +99,7 @@ namespace SOK.Infrastructure.Repositories
         public IAgendaRepository Agenda { get; private set; }
         public IPlanRepository Plan { get; private set; }
         public IDayRepository Day { get; private set; }
+        public IBuildingAssignmentRepository BuildingAssignment { get; private set; }
         public IParishMemberRepository ParishMember { get; private set; }
         public IEmailLogRepository EmailLog { get; private set; }
 
@@ -117,6 +118,7 @@ namespace SOK.Infrastructure.Repositories
             Agenda = new AgendaRepository(db);
             Plan = new PlanRepository(db);
             Day = new DayRepository(db);
+            BuildingAssignment = new BuildingAssignmentRepository(db);
             ParishMember = new ParishMemberRepository(db, userManager);
             EmailLog = new EmailLogRepository(db);
         }

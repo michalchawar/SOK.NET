@@ -1,0 +1,290 @@
+@model SOK.Web.ViewModels.Parish.ManageDaysVM
+@{
+    ViewData["Title"] = "Zarządzanie dniami kolędy";
+}
+
+<div class="container mx-auto p-4" id="manage-days-app">
+    <div v-cloak>
+
+        <!-- Nagłówek -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+                <h1 class="text-3xl font-bold">Zarządzanie dniami kolędy</h1>
+                <p class="text-base-content/70 mt-1">Plan: @Model.PlanName</p>
+            </div>
+            <div class="flex gap-2">
+                <a asp-action="Index" class="btn btn-ghost">Anuluj</a>
+                <button @@click="saveDays" :disabled="saving" class="btn btn-primary">
+                    <span v-if="!saving">
+                        <i class="bi bi-check-2"></i>
+                        Zapisz zmiany
+                    </span>
+                    <span v-else class="loading loading-spinner"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Daty -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="card bg-base-100 shadow-md">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-4">Zakres dat kolędy</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col items-start">
+                            <label class="label">
+                                <span>Data rozpoczęcia</span>
+                            </label>
+                            <input type="date"
+                                   v-model="startDate"
+                                   @@change="generateDays"
+                                   class="input" />
+                        </div>
+                        <div class="flex flex-col items-start">
+                            <label class="label">
+                                <span>Data zakończenia</span>
+                            </label>
+                            <input type="date"
+                                   v-model="endDate"
+                                   @@change="generateDays"
+                                   class="input" />
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-4">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Zmiana dat automatycznie wygeneruje listę dni. Kliknij dni, które chcesz dodać do planu kolędy.</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Akcje masowe -->
+            <div class="card bg-base-100 shadow-md">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-4">Akcje masowe</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @@click="selectAll" class="btn btn-primary btn-soft">Dodaj wszystkie</button>
+                        <button type="button" @@click="deselectAll" class="btn btn-error btn-soft">Usuń wszystkie</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @@click="selectWeekdays" class="btn btn-outline">Tylko dni robocze</button>
+                        <button type="button" @@click="selectWeekends" class="btn btn-outline">Tylko weekendy</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Lista dni -->
+            <div class="card bg-base-100 shadow-md col-span-full">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-4">Dni kolędy ({{ selectedDaysCount }} / {{ allDates.length }})</h2>
+            
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        <div v-for="dateInfo in allDates" :key="dateInfo.dateStr" class="day-card">
+                            <div
+                                @@click="toggleDay(dateInfo)"
+                                class="card shadow-sm border-2 transition-all cursor-pointer hover:shadow-lg"
+                                :class="dateInfo.isSelected ? 'border-primary bg-primary text-primary-content' : 'border-base-300 bg-base-200 hover:border-primary/50'">
+                                <div class="card-body p-4">
+                                    <!-- Nagłówek z datą -->
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1">
+                                            <h3 class="font-bold text-lg">{{ formatDate(dateInfo.dateStr) }}</h3>
+                                            <p class="text-sm opacity-80">{{ dateInfo.dayOfWeekName }}</p>
+                                        </div>
+                                        <div class="flex flex-col items-end gap-1">
+                                            <span v-if="dateInfo.dayOfWeek === 0" class="badge [--badge-color:var(--color-teal-800)] badge-sm">Nd</span>
+                                            <span v-else-if="dateInfo.dayOfWeek === 6" class="badge [--badge-color:var(--color-slate-500)] badge-sm">So</span>
+                                            <span v-if="dateInfo.isSelected" class="badge badge-success badge-sm"><i class="bi bi-check"></i></span>
+                                        </div>
+                                    </div>
+                                    <!-- Godziny (zawsze widoczne gdy dzień jest wybrany) -->
+                                    <div v-if="dateInfo.isSelected" class="grid grid-cols-1 md:grid-cols-2 gap-2" @@click.stop>
+                                        <div class="">
+                                            <label class="label py-0">
+                                                <span class="text-xs opacity-80">Godzina rozpoczęcia:</span>
+                                            </label>
+                                            <input type="time"
+                                                   v-model="dateInfo.startHour"
+                                                   class="input input-sm bg-base-100 text-base-content" />
+                                        </div>
+                                        <div class="">
+                                            <label class="label py-0">
+                                                <span class="text-xs opacity-80">Godzina zakończenia:</span>
+                                            </label>
+                                            <input type="time"
+                                                   v-model="dateInfo.endHour"
+                                                   class="input input-sm bg-base-100 text-base-content" />
+                                        </div>
+                                    </div>
+                                    <!-- Info gdy niewybrany -->
+                                    <div v-else class="text-center mt-2 opacity-60 text-sm">
+                                        Kliknij aby dodać
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_VueScript" />
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    planId: @Model.PlanId,
+                    startDate: '@Model.VisitsStartDate.ToString("yyyy-MM-dd")',
+                    endDate: '@Model.VisitsEndDate.ToString("yyyy-MM-dd")',
+                    existingDays: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ExistingDays.Select(d => new {
+                        id = d.Id,
+                        date = d.Date.ToString("yyyy-MM-dd"),
+                        startHour = d.StartHour.ToString("HH:mm"),
+                        endHour = d.EndHour.ToString("HH:mm")
+                    }))),
+                    defaultHours: {
+                        weekdaysStart: '@Model.DefaultHours.WeekdaysStart.ToString("HH:mm")',
+                        weekdaysEnd: '@Model.DefaultHours.WeekdaysEnd.ToString("HH:mm")',
+                        saturdayStart: '@Model.DefaultHours.SaturdayStart.ToString("HH:mm")',
+                        saturdayEnd: '@Model.DefaultHours.SaturdayEnd.ToString("HH:mm")',
+                        sundayStart: '@Model.DefaultHours.SundayStart.ToString("HH:mm")',
+                        sundayEnd: '@Model.DefaultHours.SundayEnd.ToString("HH:mm")'
+                    },
+                    allDates: [],
+                    saving: false
+                };
+            },
+            computed: {
+                selectedDaysCount() {
+                    return this.allDates.filter(d => d.isSelected).length;
+                },
+                selectedDays() {
+                    return this.allDates.filter(d => d.isSelected);
+                }
+            },
+            mounted() {
+                registerVueApp('manage-days-app');
+                this.generateDays();
+            },
+            methods: {
+                generateDays() {
+                    const start = new Date(this.startDate + 'T00:00:00Z');
+                    const end = new Date(this.endDate + 'T00:00:00Z');
+                    const days = [];
+                    
+                    // Stwórz mapę istniejących dni dla szybkiego dostępu
+                    const existingDaysMap = {};
+                    this.existingDays.forEach(d => {
+                        existingDaysMap[d.date] = d;
+                    });
+                    this.allDates.forEach(d => {
+                        if (d.isSelected)
+                            existingDaysMap[d.dateStr] = d;
+                    })
+
+                    // Generuj wszystkie daty w zakresie
+                    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                        const dateStr = date.toISOString().split('T')[0];
+                        const dayOfWeek = date.getDay();
+                        const existing = existingDaysMap[dateStr];
+
+                        // Określ domyślne godziny na podstawie dnia tygodnia
+                        let defaultStart, defaultEnd;
+                        if (dayOfWeek === 6) { // Sobota
+                            defaultStart = this.defaultHours.saturdayStart;
+                            defaultEnd = this.defaultHours.saturdayEnd;
+                        } else if (dayOfWeek === 0) { // Niedziela
+                            defaultStart = this.defaultHours.sundayStart;
+                            defaultEnd = this.defaultHours.sundayEnd;
+                        } else { // Pn-Pt
+                            defaultStart = this.defaultHours.weekdaysStart;
+                            defaultEnd = this.defaultHours.weekdaysEnd;
+                        }
+
+                        days.push({
+                            id: existing ? existing.id : null,
+                            dateStr: dateStr,
+                            dayOfWeek: dayOfWeek,
+                            dayOfWeekName: this.getDayName(dayOfWeek),
+                            isSelected: !!existing,
+                            startHour: existing ? existing.startHour : defaultStart,
+                            endHour: existing ? existing.endHour : defaultEnd
+                        });
+                    }
+
+                    this.allDates = days;
+                },
+                getDayName(dayOfWeek) {
+                    const names = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+                    return names[dayOfWeek];
+                },
+                formatDate(dateStr) {
+                    const date = new Date(dateStr + 'T00:00:00Z');
+                    return date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                },
+                toggleDay(dateInfo) {
+                    dateInfo.isSelected = !dateInfo.isSelected;
+                },
+                selectAll() {
+                    this.allDates.forEach(d => d.isSelected = true);
+                },
+                deselectAll() {
+                    this.allDates.forEach(d => d.isSelected = false);
+                },
+                selectWeekdays() {
+                    this.allDates.forEach(d => {
+                        d.isSelected = d.dayOfWeek >= 1 && d.dayOfWeek <= 5;
+                    });
+                },
+                selectWeekends() {
+                    this.allDates.forEach(d => {
+                        d.isSelected = d.dayOfWeek === 0 || d.dayOfWeek === 6;
+                    });
+                },
+                async saveDays() {
+                    this.saving = true;
+
+                    // Przygotuj dane do wysłania - tylko wybrane dni
+                    const daysToSave = this.selectedDays.map(d => ({
+                        id: d.id,
+                        date: d.dateStr,
+                        startHour: d.startHour,
+                        endHour: d.endHour
+                    }));
+
+                    const requestData = {
+                        planId: this.planId,
+                        visitsStartDate: this.startDate,
+                        visitsEndDate: this.endDate,
+                        days: daysToSave
+                    };
+
+                    try {
+                        const response = await fetch('/api/CalendarApi/days', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(requestData)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            // Przekieruj do głównego widoku kalendarza
+                            window.location.href = '/Calendar/Index';
+                        } else {
+                            const error = await response.json();
+                            alert('Błąd: ' + (error.error || 'Nie udało się zapisać dni'));
+                        }
+                    } catch (error) {
+                        alert('Wystąpił błąd podczas zapisywania: ' + error.message);
+                    } finally {
+                        this.saving = false;
+                    }
+                }
+            }
+        }).mount('#manage-days-app');
+    </script>
+}

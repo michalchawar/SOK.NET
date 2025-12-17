@@ -137,7 +137,8 @@
                             </p>
                         </div>
                     }
-                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Planned)
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Planned
+                          || Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Pending)
                     {
                         <div class="flex flex-col items-center gap-4">
                             <i class="bi bi-calendar-check-fill text-6xl text-success"></i>
@@ -157,45 +158,31 @@
                                     </div>
                                 </div>
                             }
-                            
-                            @if (Model.Visit.OrdinalNumber.HasValue)
-                            {
-                                <p class="opacity-70">
-                                    Numer porządkowy: <span class="font-bold">@Model.Visit.OrdinalNumber</span>
-                                </p>
-                            }
-                        </div>
-                    }
-                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Pending)
-                    {
-                        <div class="flex flex-col items-center gap-4">
-                            <i class="bi bi-person-walking text-6xl text-info"></i>
-                            <h3 class="text-xl font-semibold text-info">Wizyta w trakcie realizacji</h3>
-                            <p class="opacity-70">Księża są obecnie w drodze do Ciebie.</p>
                         </div>
                     }
                     else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Visited)
                     {
                         <div class="flex flex-col items-center gap-4">
                             <i class="bi bi-check-circle-fill text-6xl text-success"></i>
-                            <h3 class="text-xl font-semibold text-success">Wizyta zrealizowana</h3>
+                            <h3 class="text-xl font-semibold text-success">Wizyta się zakończyła</h3>
                             <p class="opacity-70">Dziękujemy za gościnność!</p>
                         </div>
                     }
-                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Rejected || Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Withdrawn)
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Rejected)
                     {
                         <div class="flex flex-col items-center gap-4">
-                            <i class="bi bi-x-circle-fill text-6xl text-error"></i>
-                            <h3 class="text-xl font-semibold text-error">@(Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Rejected ? "Wizyta odrzucona" : "Wizyta wycofana")</h3>
+                            <i class="bi bi-exclamation-circle text-6xl text-error"></i>
+                            <h3 class="text-xl font-semibold text-error">Wizyta się nie odbyła</h3>
+                            <p class="opacity-70">Nie udało nam się dotrzeć do Ciebie w wyznaczonym terminie.</p>
+                            <p class="opacity-70">Skontaktuj się z nami, aby ustalić nowy termin wizyty:</p>
+                            <a href="mailto:@Model.Parish.Email" class="opacity-80">@Model.Parish.Email</a>
                         </div>
                     }
-
-                    @if (!string.IsNullOrEmpty(Model.Visit.Agenda) && Model.Visit.Status != SOK.Domain.Enums.VisitStatus.Rejected && Model.Visit.Status != SOK.Domain.Enums.VisitStatus.Withdrawn)
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Withdrawn)
                     {
-                        <div class="divider my-2"></div>
-                        <div>
-                            <h3 class="text-sm font-semibold opacity-70 mb-1">Szczegóły:</h3>
-                            <p class="text-base bg-base-300 p-3 rounded whitespace-pre-wrap">@Model.Visit.Agenda</p>
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="bi bi-x-circle-fill text-6xl text-neutral"></i>
+                            <h3 class="text-xl font-semibold text-neutral">Zgłoszenie wycofane</h3>
                         </div>
                     }
 

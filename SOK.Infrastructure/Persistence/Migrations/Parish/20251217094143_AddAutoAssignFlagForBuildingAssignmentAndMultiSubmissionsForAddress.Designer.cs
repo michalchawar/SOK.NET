@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOK.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Parish
+namespace SOK.Infrastructure.Persistence.Migrations.Parish
 {
     [DbContext(typeof(ParishDbContext))]
-    partial class ParishDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251217094143_AddAutoAssignFlagForBuildingAssignmentAndMultiSubmissionsForAddress")]
+    partial class AddAutoAssignFlagForBuildingAssignmentAndMultiSubmissionsForAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -892,14 +895,14 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ScheduleId");
+                    b.HasIndex("AgendaId");
 
                     b.HasIndex("SubmissionId")
                         .IsUnique();
 
-                    b.HasIndex("AgendaId", "OrdinalNumber")
+                    b.HasIndex("ScheduleId", "OrdinalNumber")
                         .IsUnique()
-                        .HasFilter("[AgendaId] IS NOT NULL AND [OrdinalNumber] IS NOT NULL");
+                        .HasFilter("[ScheduleId] IS NOT NULL AND [OrdinalNumber] IS NOT NULL");
 
                     b.ToTable("Visits");
                 });

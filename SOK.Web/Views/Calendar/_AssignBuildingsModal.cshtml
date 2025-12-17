@@ -1,0 +1,1024 @@
+@model int
+
+<!-- Modal przypisywania budynków -->
+<dialog id="assign-buildings-modal" class="modal">
+    <div id="assign-buildings-app" class="modal-box w-full max-w-7xl h-[90vh] flex flex-col p-0">
+        <!-- Header -->
+        <div class="sticky top-0 z-10 bg-base-100 border-b border-base-300 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold">Zarządzaj przypisaniami budynków</h3>
+                    <p class="text-sm text-base-content/70 mt-1">
+                        Dzień kolędowy: <span class="font-semibold" id="modalDayDate"></span>
+                    </p>
+                </div>
+                <button type="button" class="btn btn-sm btn-circle btn-ghost" onclick="modal.close()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Vue App -->
+        <div class="flex-1 overflow-hidden flex flex-col">
+            <!-- Loading State -->
+            <div v-if="loading" class="flex-1 flex items-center justify-center">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+
+            <!-- Content -->
+            <template v-else>
+                <!-- Tabs -->
+                <div role="tablist" class="tabs tabs-box justify-center px-6 pt-4 bg-base-100 flex-shrink-0">
+                    <button 
+                        role="tab" 
+                        class="tab"
+                        :class="{ 'tab-active': activeTab === 'manual' }"
+                        @@click="activeTab = 'manual'">
+                        <span class="hidden sm:inline">Wybierz ręcznie</span>
+                        <span class="sm:hidden">Ręcznie</span>
+                    </button>
+                    <button 
+                        role="tab" 
+                        class="tab"
+                        :class="{ 'tab-active': activeTab === 'range' }"
+                        @@click="activeTab = 'range'">
+                        <span class="hidden sm:inline">Kreator zakresu</span>
+                        <span class="sm:hidden">Zakres</span>
+                    </button>
+                    <button 
+                        role="tab" 
+                        class="tab"
+                        :class="{ 'tab-active': activeTab === 'overview' }"
+                        @@click="activeTab = 'overview'">
+                        <span class="hidden sm:inline">Przegląd ulic</span>
+                        <span class="sm:hidden">Ulice</span>
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="flex-1 overflow-auto px-6 pb-6">
+                    <!-- Tab 1: Manual Selection -->
+                    <div v-show="activeTab === 'manual'" class="pt-4">
+                        <div class="flex flex-col gap-4">
+                            <!-- Sticky filters header -->
+                            <div class="sticky top-0 z-10 bg-base-100 pb-4">
+                                <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+                                    <!-- Filters row -->
+                                    <div class="flex flex-col content-start md:content-end gap-4 row-span-2">
+                                        <!-- Street filter -->
+                                        <div class="flex flex-col gap-1">
+                                            <label class="label">
+                                                <span class="">Ulica</span>
+                                            </label>
+                                            <select v-model="manualStreetFilter" class="select focus:select-primary select-sm">
+                                                <option :value="null">Wszystkie</option>
+                                                <option v-for="street in streets" :key="street.id" :value="street.id">
+                                                    {{ street.name }}
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Status filter -->
+                                        <div class="flex flex-col gap-1">
+                                            <label class="label">
+                                                <span class="">Status</span>
+                                            </label>
+
+                                            <div class="flex gap-2">
+                                                <button type="button" 
+                                                    @@click="manualStatusFilter = 'all'"
+                                                    class="btn btn-soft btn-sm" :class="[manualStatusFilter === 'all' ? 'btn-primary' : '']">
+                                                    <span>Wszystkie</span>
+                                                </button>
+                                                <button type="button" 
+                                                    @@click="manualStatusFilter = 'unassigned'"
+                                                    class="btn btn-soft btn-sm" :class="[manualStatusFilter === 'unassigned' ? 'btn-warning' : '']">
+                                                    <span>Nieprzypisane</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Sort -->
+                                        <div class="flex flex-col gap-1">
+                                            <label class="label">
+                                                <span class="">Sortuj</span>
+                                            </label>
+
+                                            <div class="join">
+                                                <button type="button" 
+                                                    @@click="manualSort = 'street'"
+                                                    class="h-auto join-item flex-1 flex flex-col btn btn-soft p-1" 
+                                                    :class="[manualSort === 'street' ? 'btn-accent' : 'btn-soft']">
+                                                    <span>Ulica</span>
+                                                </button>
+                                                <button type="button" 
+                                                    @@click="manualSort = 'building'"
+                                                    class="h-auto join-item flex-1 flex flex-col btn btn-soft p-1" 
+                                                    :class="[manualSort === 'building' ? 'btn-accent' : 'btn-soft']">
+                                                    <span>Numer budynku</span>
+                                                </button>
+                                                <button type="button" 
+                                                    @@click="manualSort = 'submissions'"
+                                                    class="h-auto join-item flex-1 flex flex-col btn btn-soft p-1" 
+                                                    :class="[manualSort === 'submissions' ? 'btn-accent' : 'btn-soft']">
+                                                    <span>Zgłoszenia</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Schedule selector -->
+                                    <div class="flex flex-col gap-1 items-start md:items-end">
+                                        <label class="label">
+                                            <span class=" font-semibold">Harmonogram</span>
+                                        </label>
+                                        <div class="flex gap-2">
+                                            <button v-for="schedule in schedules" :key="schedule.id"
+                                                @@click="manualScheduleId = schedule.id" type="button"
+                                                class="btn"
+                                                :class="[manualScheduleId === schedule.id ? 'btn-secondary' : '']">
+                                                <span>{{ schedule.name }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Selection summary -->
+                                    <div v-if="manualScheduleId && manualFilteredBuildings.length > 0"
+                                         class="p-3 bg-primary/10 rounded-lg flex items-center justify-between">
+                                        <div class="flex flex-col justify-center items-center md:items-start gap-0.5">
+                                            <span class="text-sm">
+                                                Zaznaczone budynki: <strong>{{ manualSelectedBuildings.length }}</strong>
+                                            </span>
+                                            <span class="text-lg font-semibold">
+                                                Zgłoszenia: <span class="font-bold">{{ manualSubmissionSum }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-ghost"
+                                                @@click="selectAllManual"
+                                                :disabled="manualSelectedBuildings.length === manualFilteredBuildings.length">
+                                                Zaznacz wszystkie
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-ghost"
+                                                @@click="deselectAllManual"
+                                                :disabled="manualSelectedBuildings.length === 0">
+                                                Odznacz wszystkie
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Buildings grid -->
+                            <div v-if="!manualScheduleId" class="text-center py-12 text-base-content/60">
+                                Wybierz harmonogram, aby wyświetlić listę budynków
+                            </div>
+                            <div v-else-if="manualLoading" class="text-center py-12">
+                                <span class="loading loading-spinner loading-lg"></span>
+                            </div>
+                            <div v-else-if="manualFilteredBuildings.length === 0" class="text-center py-12 text-base-content/60">
+                                Brak budynków spełniających kryteria
+                            </div>
+                            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                <button
+                                    v-for="building in manualFilteredBuildings"
+                                    :key="`${building.buildingId}-${building.scheduleId}`"
+                                    type="button"
+                                    class="card card-compact bg-base-200 hover:bg-base-300 transition-colors cursor-pointer text-left"
+                                    :class="{ 'ring-2 ring-primary bg-primary/20': manualSelectedBuildings.includes(building.buildingId) }"
+                                    @@click="toggleManualSelection(building.buildingId)">
+                                    <div class="card-body">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-semibold truncate">{{ building.streetName }}</div>
+                                                <div class="text-2xl font-bold">{{ building.buildingNumber }}</div>
+                                            </div>
+                                            <div class="flex flex-col gap-1 items-end">
+                                                <div v-if="building.isAssignedToThisDay" class="badge badge-success badge-sm">
+                                                    Przypisany
+                                                </div>
+                                                <div v-if="building.isAssignedToOtherDay && building.assignedDayDates" class="flex flex-wrap gap-1 justify-end">
+                                                    <div 
+                                                        v-for="(date, index) in building.assignedDayDates" 
+                                                        :key="index"
+                                                        class="badge badge-warning badge-sm tooltip tooltip-left" 
+                                                        :data-tip="formatDate(date)">
+                                                        {{ formatDateShort(date) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-base text-base-content/70 mt-2">
+                                            <div>Nieprzypisane: <strong>{{ building.submissionsUnassigned }}</strong></div>
+                                            <div class="text-sm">
+                                                Wszystkie: <strong>{{ building.submissionsTotal }}</strong>
+                                            </div>
+                                            <div v-if="building.submissionsAssignedHere > 0" class="text-sm text-success">
+                                                Przypisane tutaj: <strong>{{ building.submissionsAssignedHere }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Range Wizard -->
+                    <div v-show="activeTab === 'range'" class="pt-4">
+                        <div class="max-w-2xl mx-auto space-y-6">
+                            <!-- Schedule selector -->
+                            <div class=" w-full">
+                                <label class="label">
+                                    <span class=" font-semibold">Harmonogram</span>
+                                </label>
+                                <select v-model="rangeScheduleId" class="select w-full">
+                                    <option :value="null">-- Wybierz harmonogram --</option>
+                                    <option v-for="schedule in schedules" :key="schedule.id" :value="schedule.id">
+                                        {{ schedule.name }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div v-if="rangeScheduleId">
+                                <!-- Street selector -->
+                                <div class=" w-full">
+                                    <label class="label">
+                                        <span class=" font-semibold">Ulica</span>
+                                    </label>
+                                    <select v-model="rangeStreetId" class="select w-full">
+                                        <option :value="null">-- Wybierz ulicę --</option>
+                                        <option v-for="street in streets" :key="street.id" :value="street.id">
+                                            {{ street.name }}
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div v-if="rangeStreetId">
+                                    <!-- Mode selector -->
+                                    <div class="">
+                                        <label class="label">
+                                            <span class=" font-semibold">Tryb przypisania</span>
+                                        </label>
+                                        <div class="flex flex-col gap-2">
+                                            <label class="flex items-center gap-3 p-3 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200">
+                                                <input type="radio" v-model.number="rangeMode" :value="0" class="radio radio-primary" />
+                                                <div>
+                                                    <div class="font-semibold">Cała ulica</div>
+                                                    <div class="text-xs text-base-content/70">Przypisz wszystkie budynki na tej ulicy</div>
+                                                </div>
+                                            </label>
+                                            <label class="flex items-center gap-3 p-3 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200">
+                                                <input type="radio" v-model.number="rangeMode" :value="1" class="radio radio-primary" />
+                                                <div>
+                                                    <div class="font-semibold">Zakres numerów</div>
+                                                    <div class="text-xs text-base-content/70">Określ zakres od-do</div>
+                                                </div>
+                                            </label>
+                                            <label class="flex items-center gap-3 p-3 border border-base-300 rounded-lg cursor-pointer hover:bg-base-200">
+                                                <input type="radio" v-model.number="rangeMode" :value="2" class="radio radio-primary" />
+                                                <div>
+                                                    <div class="font-semibold">Inteligentne przypisanie</div>
+                                                    <div class="text-xs text-base-content/70">Automatyczne przypisanie z limitem zgłoszeń</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Number Range Options -->
+                                    <div v-if="rangeMode === 1" class="space-y-3">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div class="">
+                                                <label class="label">
+                                                    <span class="">Od numeru</span>
+                                                </label>
+                                                <input type="number" v-model.number="rangeFrom" class="input" placeholder="1" />
+                                            </div>
+                                            <div class="">
+                                                <label class="label">
+                                                    <span class="">Do numeru</span>
+                                                </label>
+                                                <input type="number" v-model.number="rangeTo" class="input" placeholder="100" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Intelligent Assignment Options -->
+                                    <div v-if="rangeMode === 2" class="space-y-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div class="">
+                                                <label class="label">
+                                                    <span class="">Kierunek</span>
+                                                </label>
+                                                <select v-model.number="rangeDirection" class="select">
+                                                    <option :value="0">Rosnąco</option>
+                                                    <option :value="1">Malejąco</option>
+                                                </select>
+                                            </div>
+                                            <div class="">
+                                                <label class="label">
+                                                    <span class="">Od numeru</span>
+                                                </label>
+                                                <input type="number" v-model.number="rangeStartNumber" class="input" placeholder="1" />
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div class="">
+                                                <label class="label">
+                                                    <span class="">Parzystość</span>
+                                                </label>
+                                                <select v-model.number="rangeParityFilter" class="select">
+                                                    <option :value="3">Wszystkie</option>
+                                                    <option :value="1">Tylko parzyste</option>
+                                                    <option :value="2">Tylko nieparzyste</option>
+                                                </select>
+                                            </div>
+                                            <div class="">
+                                                <label class="label">
+                                                    <span class="">Max zgłoszeń</span>
+                                                </label>
+                                                <input type="number" v-model.number="rangeMaxSubmissions" class="input" placeholder="Bez limitu" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Preview button -->
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-outline w-full"
+                                        @@click="previewRange"
+                                        :disabled="!canPreviewRange">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        Podgląd
+                                    </button>
+
+                                    <!-- Preview results -->
+                                    <div v-if="rangePreviewBuildings.length > 0" class="alert alert-info">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <div>
+                                            <div class="font-bold">Zostanie przypisanych {{ rangePreviewBuildings.length }} budynków</div>
+                                            <div class="text-xs">Całkowita liczba zgłoszeń: {{ rangePreviewTotalSubmissions }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-else class="text-center py-12 text-base-content/60">
+                                Wybierz harmonogram, aby skorzystać z kreatora
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Streets Overview -->
+                    <div v-show="activeTab === 'overview'" class="pt-4">
+                        <div class="flex flex-col gap-4">
+                            <!-- Schedule selector -->
+                            <div class=" w-full">
+                                <label class="label">
+                                    <span class=" font-semibold">Harmonogram</span>
+                                </label>
+                                <select v-model="overviewScheduleId" class="select w-full">
+                                    <option :value="null">-- Wybierz harmonogram --</option>
+                                    <option v-for="schedule in schedules" :key="schedule.id" :value="schedule.id">
+                                        {{ schedule.name }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div v-if="!overviewScheduleId" class="text-center py-12 text-base-content/60">
+                                Wybierz harmonogram, aby wyświetlić podsumowanie
+                            </div>
+                            <div v-else-if="overviewLoading" class="text-center py-12">
+                                <span class="loading loading-spinner loading-lg"></span>
+                            </div>
+                            <div v-else-if="streetsSummary.length === 0" class="text-center py-12 text-base-content/60">
+                                Brak ulic do wyświetlenia
+                            </div>
+                            <div v-else class="space-y-3">
+                                <div 
+                                    v-for="street in streetsSummary" 
+                                    :key="street.streetId"
+                                    class="card bg-base-200">
+                                    <div class="card-body p-4">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div class="flex-1">
+                                                <h4 class="font-semibold text-lg">{{ street.streetName }}</h4>
+                                                <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                                    <div>
+                                                        <span class="text-base-content/70">Budynki:</span>
+                                                        <strong class="ml-1">{{ street.assignedBuildings }} / {{ street.totalBuildings }}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-base-content/70">Zgłoszenia:</span>
+                                                        <strong class="ml-1">{{ street.assignedSubmissions }} / {{ street.totalSubmissions }}</strong>
+                                                    </div>
+                                                </div>
+                                                <!-- Progress bars -->
+                                                <div class="space-y-1 mt-3">
+                                                    <div>
+                                                        <div class="flex justify-between text-xs text-base-content/70 mb-1">
+                                                            <span>Budynki</span>
+                                                            <span>{{ Math.round((street.assignedBuildings / street.totalBuildings) * 100) }}%</span>
+                                                        </div>
+                                                        <progress 
+                                                            class="progress progress-primary w-full" 
+                                                            :value="street.assignedBuildings" 
+                                                            :max="street.totalBuildings">
+                                                        </progress>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex justify-between text-xs text-base-content/70 mb-1">
+                                                            <span>Zgłoszenia</span>
+                                                            <span>{{ Math.round((street.assignedSubmissions / street.totalSubmissions) * 100) }}%</span>
+                                                        </div>
+                                                        <progress 
+                                                            class="progress progress-success w-full" 
+                                                            :value="street.assignedSubmissions" 
+                                                            :max="street.totalSubmissions">
+                                                        </progress>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                class="btn btn-sm btn-primary whitespace-nowrap"
+                                                @@click="assignWholeStreet(street.streetId)"
+                                                :disabled="street.assignedBuildings === street.totalBuildings">
+                                                Przypisz całą ulicę
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Footer -->
+        <div class="sticky bottom-0 z-10 bg-base-100 border-t border-base-300 px-6 py-4 flex justify-end gap-3">
+            <button type="button" class="btn btn-ghost" onclick="modal.close()">Anuluj</button>
+            <button 
+                type="button" 
+                class="btn btn-primary"
+                @@click="saveAssignments"
+                :disabled="!canSave">
+                <span v-if="saving" class="loading loading-spinner"></span>
+                <span v-else>Zapisz</span>
+            </button>
+        </div>
+
+        <!-- Modal wyboru agendy --> 
+        <dialog id="agenda-assignment-modal" class="modal">
+            <div class="modal-box max-w-2xl">
+                <h3 class="text-lg font-bold mb-4">Przypisz zgłoszenia do agendy</h3>
+                
+                <div v-if="agendaAssignmentLoading" class="flex justify-center py-8">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+                
+                <template v-else>
+                    <p class="text-sm text-base-content/70 mb-4">
+                        Nieprzypisane zgłoszenia z wybranych budynków mogą zostać automatycznie przypisane do agendy.
+                        Wybierz agendę lub pomiń ten krok:
+                    </p>
+                    
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- Istniejące agendy -->
+                        <div 
+                            v-for="agenda in availableAgendas" 
+                            :key="agenda.id"
+                            class="card bg-base-200 cursor-pointer hover:bg-base-300 transition-colors"
+                            :class="{ 'bg-base-300': selectedAgendaId === agenda.id }"
+                            @@click="selectedAgendaId = agenda.id">
+                            <div class="card-body p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <div class="font-semibold">{{ agenda.priestName || 'Brak księdza' }}</div>
+                                        <div v-if="agenda.ministerNames.length > 0" class="text-sm text-base-content/70">
+                                            Ministranci: {{ agenda.ministerNames.join(', ') }}
+                                        </div>
+                                        <div class="text-sm text-base-content/70">
+                                            Wizyt: {{ agenda.visitsCount }} | {{ agenda.startHour }} - {{ agenda.endHour }}
+                                        </div>
+                                    </div>
+                                    <input 
+                                        type="radio" 
+                                        :checked="selectedAgendaId === agenda.id" 
+                                        class="radio radio-primary" 
+                                        @@click.stop="selectedAgendaId = agenda.id" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Opcja utworzenia nowej agendy -->
+                        <div 
+                            class="card bg-base-200 cursor-pointer hover:bg-base-300 transition-colors border-2 border-dashed"
+                            :class="{ 'bg-base-300': selectedAgendaId === -1 }"
+                            @@click="selectedAgendaId = -1">
+                            <div class="card-body p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <div class="font-semibold flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Utwórz nową agendę
+                                        </div>
+                                        <div class="text-sm text-base-content/70">
+                                            Zostanie utworzona nowa agenda bez przypisanych księży
+                                        </div>
+                                    </div>
+                                    <input 
+                                        type="radio" 
+                                        :checked="selectedAgendaId === -1" 
+                                        class="radio radio-primary" 
+                                        @@click.stop="selectedAgendaId = -1" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <div class="modal-action">
+                    <button type="button" class="btn btn-ghost" @@click="closeAgendaAssignmentModal">Pomiń przypisywanie</button>
+                    <button 
+                        type="button" 
+                        class="btn btn-primary" 
+                        @@click="confirmAgendaAssignment"
+                        :disabled="selectedAgendaId === null || assignmentSaving">
+                        <span v-if="assignmentSaving" class="loading loading-spinner"></span>
+                        <span v-else>Przypisz zgłoszenia</span>
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    </div>
+</dialog>
+
+<script>
+    let mountedApp = null;
+    let modal = document.getElementById('assign-buildings-modal');
+    let agendaModal = null;
+
+    window.initAssignmentModal = function() {
+        if (mountedApp) return; // Already initialized
+
+        const { createApp } = Vue;
+        const dayId = @Model;
+
+        const app = createApp({
+            data() {
+                return {
+                    dayId: dayId,
+                    loading: false,
+                    schedules: [],
+                    streets: [],
+                    activeTab: 'manual',
+                    
+                    // Manual tab
+                    manualScheduleId: null,
+                    manualStreetFilter: null,
+                    manualStatusFilter: 'all',
+                    manualSort: 'street',
+                    manualBuildings: [],
+                    manualSelectedBuildings: [],
+                    manualLoading: false,
+                    
+                    // Range tab
+                    rangeScheduleId: null,
+                    rangeStreetId: null,
+                    rangeMode: 0, // WholeStreet = 0
+                    rangeFrom: null,
+                    rangeTo: null,
+                    rangeDirection: 0, // Ascending = 0
+                    rangeStartNumber: null,
+                    rangeParityFilter: 3, // Both = 3 (Even | Odd)
+                    rangeMaxSubmissions: null,
+                    rangePreviewBuildings: [],
+                    rangePreviewTotalSubmissions: 0,
+                    
+                    // Overview tab
+                    overviewScheduleId: null,
+                    streetsSummary: [],
+                    overviewLoading: false,
+                    
+                    // Agenda assignment
+                    agendaAssignmentLoading: false,
+                    availableAgendas: [],
+                    selectedAgendaId: null,
+                    pendingAssignmentData: null,
+                    assignmentSaving: false,
+                    
+                    // General
+                    saving: false
+                };
+            },
+            mounted() {
+                registerVueApp("assign-buildings-app");
+            },
+            computed: {
+                manualFilteredBuildings() {
+                    let filtered = this.manualBuildings;
+                    
+                    if (this.manualStreetFilter) {
+                        filtered = filtered.filter(b => b.streetId === this.manualStreetFilter);
+                    }
+                    
+                    if (this.manualStatusFilter === 'unassigned') {
+                        filtered = filtered.filter(b => !b.isAssignedToThisDay && !b.isAssignedToOtherDay);
+                    } else if (this.manualStatusFilter === 'assigned') {
+                        filtered = filtered.filter(b => b.isAssignedToThisDay);
+                    }
+                    
+                    if (this.manualSort === 'street') {
+                        filtered.sort((a, b) => a.streetName.localeCompare(b.streetName) || a.buildingNumber.localeCompare(b.buildingNumber));
+                    } else if (this.manualSort === 'building') {
+                        filtered.sort((a, b) => {
+                            const aNum = parseInt(a.buildingNumber) || 0;
+                            const bNum = parseInt(b.buildingNumber) || 0;
+                            return aNum - bNum;
+                        });
+                    } else if (this.manualSort === 'submissions') {
+                        filtered.sort((a, b) => b.submissionsTotal - a.submissionsTotal);
+                    }
+                    
+                    return filtered;
+                },
+                manualSubmissionSum() {
+                    return this.manualBuildings
+                        .filter(b => this.manualSelectedBuildings.includes(b.buildingId))
+                        .reduce((sum, b) => sum + b.submissionsUnassigned, 0)
+                    + this.manualBuildings
+                        .reduce((sum, b) => sum + b.submissionsAssignedHere, 0);
+                },
+                canPreviewRange() {
+                    if (!this.rangeStreetId) return false;
+                    if (this.rangeMode === 'NumberRange') {
+                        return this.rangeFrom !== null && this.rangeTo !== null;
+                    }
+                    if (this.rangeMode === 'IntelligentAssignment') {
+                        return this.rangeStartNumber !== null && this.rangeDirection !== null;
+                    }
+                    return true;
+                },
+                canSave() {
+                    if (this.saving) return false;
+                    if (this.activeTab === 'manual') {
+                        return this.manualScheduleId;
+                    }
+                    if (this.activeTab === 'range') {
+                        return this.rangeScheduleId && this.rangePreviewBuildings.length > 0;
+                    }
+                    return false;
+                }
+            },
+            watch: {
+                manualScheduleId(newVal) {
+                    if (newVal) {
+                        this.loadManualBuildings();
+                    } else {
+                        this.manualBuildings = [];
+                        this.manualSelectedBuildings = [];
+                    }
+                },
+                overviewScheduleId(newVal) {
+                    if (newVal) {
+                        this.loadStreetsSummary();
+                    } else {
+                        this.streetsSummary = [];
+                    }
+                }
+            },
+            methods: {
+                async loadModalData() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/Calendar/modal-data?dayId=${this.dayId}`);
+                        if (!response.ok) throw new Error('Failed to load modal data');
+                        const data = await response.json();
+                        
+                        this.schedules = data.schedules;
+                        this.streets = data.streets;
+                        document.getElementById('modalDayDate').textContent = data.date;
+                        
+                        // Automatycznie załaduj budynki dla pierwszego harmonogramu jeśli istnieje
+                        if (this.schedules.length > 0) {
+                            this.manualScheduleId = this.schedules[0].id;
+                            await this.loadManualBuildings();
+                        }
+                    } catch (error) {
+                        console.error('Error loading modal data:', error);
+                        alert('Nie udało się załadować danych modalu');
+                        modal.close();
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadManualBuildings() {
+                    this.manualLoading = true;
+                    try {
+                        const response = await fetch(`/api/Calendar/day-buildings?dayId=${this.dayId}`);
+                        if (!response.ok) throw new Error('Failed to load buildings');
+                        const data = await response.json();
+                        this.manualBuildings = data.filter(b => b.scheduleId === this.manualScheduleId);
+                        
+                        this.manualSelectedBuildings = this.manualBuildings
+                            .filter(b => b.isAssignedToThisDay)
+                            .map(b => b.buildingId);
+                    } catch (error) {
+                        console.error('Error loading buildings:', error);
+                        alert('Nie udało się załadować budynków');
+                    } finally {
+                        this.manualLoading = false;
+                    }
+                },
+                toggleManualSelection(buildingId) {
+                    const index = this.manualSelectedBuildings.indexOf(buildingId);
+                    if (index > -1) {
+                        this.manualSelectedBuildings.splice(index, 1);
+                    } else {
+                        this.manualSelectedBuildings.push(buildingId);
+                    }
+                },
+                selectAllManual() {
+                    this.manualSelectedBuildings = this.manualFilteredBuildings.map(b => b.buildingId);
+                },
+                deselectAllManual() {
+                    this.manualSelectedBuildings = [];
+                },
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric' });
+                },
+                formatDateShort(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' });
+                },
+                async previewRange() {
+                    try {
+                        if (this.manualBuildings.length === 0 || this.manualBuildings[0].scheduleId !== this.rangeScheduleId) {
+                            const response = await fetch(`/api/Calendar/day-buildings?dayId=${this.dayId}`);
+                            if (!response.ok) throw new Error('Failed to load buildings');
+                            const data = await response.json();
+                            this.manualBuildings = data;
+                        }
+                        
+                        let filtered = this.manualBuildings.filter(b => 
+                            b.scheduleId === this.rangeScheduleId && 
+                            b.streetId === this.rangeStreetId
+                        );
+                        
+                        if (this.rangeMode === 1) {
+                            filtered = filtered.filter(b => {
+                                const num = parseInt(b.buildingNumber);
+                                return num >= this.rangeFrom && num <= this.rangeTo;
+                            });
+                        } else if (this.rangeMode === 2) {
+                            filtered.sort((a, b) => {
+                                const aNum = parseInt(a.buildingNumber) || 0;
+                                const bNum = parseInt(b.buildingNumber) || 0;
+                                return this.rangeDirection === 0 ? aNum - bNum : bNum - aNum;
+                            });
+                            
+                            filtered = filtered.filter(b => {
+                                const num = parseInt(b.buildingNumber) || 0;
+                                return this.rangeDirection === 0 
+                                    ? num >= this.rangeStartNumber 
+                                    : num <= this.rangeStartNumber;
+                            });
+                            
+                            if (this.rangeParityFilter === 1) {
+                                filtered = filtered.filter(b => {
+                                    const num = parseInt(b.buildingNumber) || 0;
+                                    return num % 2 === 0;
+                                });
+                            } else if (this.rangeParityFilter === 2) {
+                                filtered = filtered.filter(b => {
+                                    const num = parseInt(b.buildingNumber) || 0;
+                                    return num % 2 !== 0;
+                                });
+                            }
+                            
+                            if (this.rangeMaxSubmissions) {
+                                let total = 0;
+                                const limited = [];
+                                for (const building of filtered) {
+                                    if (total + building.submissionsTotal > this.rangeMaxSubmissions) break;
+                                    limited.push(building);
+                                    total += building.submissionsTotal;
+                                }
+                                filtered = limited;
+                            }
+                        }
+                        
+                        this.rangePreviewBuildings = filtered;
+                        this.rangePreviewTotalSubmissions = filtered.reduce((sum, b) => sum + b.submissionsTotal, 0);
+                    } catch (error) {
+                        console.error('Error previewing range:', error);
+                        alert('Nie udało się wygenerować podglądu');
+                    }
+                },
+                async loadStreetsSummary() {
+                    this.overviewLoading = true;
+                    try {
+                        const response = await fetch(`/api/Calendar/streets-summary?dayId=${this.dayId}`);
+                        if (!response.ok) throw new Error('Failed to load streets summary');
+                        this.streetsSummary = await response.json();
+                    } catch (error) {
+                        console.error('Error loading streets summary:', error);
+                        alert('Nie udało się załadować podsumowania ulic');
+                    } finally {
+                        this.overviewLoading = false;
+                    }
+                },
+                async assignWholeStreet(streetId) {
+                    if (!confirm('Czy na pewno chcesz przypisać wszystkie budynki z tej ulicy?')) return;
+                    
+                    this.saving = true;
+                    try {
+                        const response = await fetch('/api/Calendar/assign-range', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                dayId: this.dayId,
+                                scheduleId: this.overviewScheduleId,
+                                streetId: streetId,
+                                mode: 0
+                            })
+                        });
+                        
+                        if (!response.ok) throw new Error('Failed to assign street');
+                        
+                        // Zamknij modal i odśwież stronę
+                        modal.close();
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Error assigning street:', error);
+                        alert('Nie udało się przypisać budynków');
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+                async saveAssignments() {
+                    this.saving = true;
+                    
+                    // Przygotuj dane do zapisu
+                    let assignmentData = null;
+                    
+                    try {
+                        if (this.activeTab === 'manual') {
+                            assignmentData = {
+                                dayId: this.dayId,
+                                scheduleId: this.manualScheduleId,
+                                buildingIds: this.manualSelectedBuildings
+                            };
+                        } else if (this.activeTab === 'range') {
+                            assignmentData = {
+                                dayId: this.dayId,
+                                scheduleId: this.rangeScheduleId,
+                                streetId: this.rangeStreetId,
+                                mode: this.rangeMode
+                            };
+                            
+                            if (this.rangeMode === 1) {
+                                assignmentData.rangeFrom = this.rangeFrom;
+                                assignmentData.rangeTo = this.rangeTo;
+                            } else if (this.rangeMode === 2) {
+                                assignmentData.startNumber = this.rangeStartNumber;
+                                assignmentData.direction = this.rangeDirection;
+                                assignmentData.parityFilter = this.rangeParityFilter;
+                                if (this.rangeMaxSubmissions) {
+                                    assignmentData.maxSubmissions = this.rangeMaxSubmissions;
+                                }
+                            }
+                        }
+                        
+                        // Zapisz dane i otwórz modal wyboru agendy
+                        this.pendingAssignmentData = assignmentData;
+                        await this.openAgendaAssignmentModal();
+                        
+                    } catch (error) {
+                        console.error('Error preparing assignments:', error);
+                        alert('Nie udało się przygotować przypisań');
+                        this.saving = false;
+                    }
+                },
+                async openAgendaAssignmentModal() {
+                    this.agendaAssignmentLoading = true;
+                    this.selectedAgendaId = null;
+                    
+                    if (!agendaModal) {
+                        agendaModal = document.getElementById('agenda-assignment-modal');
+                    }
+                    agendaModal.showModal();
+                    
+                    try {
+                        // Pobierz dostępne agendy dla tego dnia
+                        const agendasResponse = await fetch(`/api/agenda/day/${this.dayId}`);
+                        if (!agendasResponse.ok) throw new Error('Failed to fetch agendas');
+                        
+                        const agendas = await agendasResponse.json();
+                        
+                        // Przekształć dane agendy
+                        this.availableAgendas = agendas.map(a => ({
+                            id: a.id,
+                            priestName: a.priest ? a.priest.displayName : null,
+                            ministerNames: a.ministers ? a.ministers.map(m => m.displayName) : [],
+                            visitsCount: a.visitsCount || 0,
+                            startHour: a.startHourOverride || '08:00',
+                            endHour: a.endHourOverride || '16:00 (napraw mnie)'
+                        }));
+                        
+                        // Auto-select first agenda or "new agenda" option
+                        if (this.availableAgendas.length > 0) {
+                            this.selectedAgendaId = this.availableAgendas[0].id;
+                        } else {
+                            this.selectedAgendaId = -1; // New agenda
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error loading agendas:', error);
+                        alert('Nie udało się pobrać listy agend');
+                        agendaModal.close();
+                        this.saving = false;
+                    } finally {
+                        this.agendaAssignmentLoading = false;
+                    }
+                },
+                closeAgendaAssignmentModal() {
+                    if (agendaModal) {
+                        agendaModal.close();
+                    }
+                    // Pomiń przypisanie - nie przekazuj agendaId wcale
+                    this.performAssignmentWithoutAgenda();
+                },
+                async confirmAgendaAssignment() {
+                    if (this.selectedAgendaId === null) return;
+                    
+                    // Przekaż agendaId: -1 (nowa agenda) lub konkretne ID
+                    await this.performAssignment(this.selectedAgendaId, true);
+                },
+                async performAssignment(agendaId, shouldAssign) {
+                    this.assignmentSaving = true;
+                    
+                    try {
+                        const data = { ...this.pendingAssignmentData };
+                        
+                        // Tylko jeśli shouldAssign jest true, dodaj agendaId
+                        if (shouldAssign) {
+                            data.agendaId = agendaId;
+                        }
+                        
+                        const endpoint = this.activeTab === 'manual' 
+                            ? '/api/Calendar/assign-buildings'
+                            : '/api/Calendar/assign-range';
+                        
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        if (!response.ok) throw new Error('Failed to save assignments');
+                        
+                        // Zamknij oba modale i odśwież stronę
+                        if (agendaModal) agendaModal.close();
+                        modal.close();
+                        window.location.reload();
+                        
+                    } catch (error) {
+                        console.error('Error saving assignments:', error);
+                        alert('Nie udało się zapisać przypisań');
+                    } finally {
+                        this.assignmentSaving = false;
+                        this.saving = false;
+                    }
+                },
+                async performAssignmentWithoutAgenda() {
+                    // Wywołaj performAssignment bez shouldAssign (nie doda agendaId)
+                    await this.performAssignment(null, false);
+                }
+            }
+        });
+
+        mountedApp = app.mount('#assign-buildings-app');
+    };
+
+    // Function to open modal and load data
+    window.openAssignmentModal = async function() {
+        const modal = document.getElementById('assign-buildings-modal');
+        modal.showModal();
+        await mountedApp.loadModalData();
+    };
+</script>

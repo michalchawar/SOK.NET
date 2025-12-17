@@ -39,5 +39,10 @@ namespace SOK.Domain.Entities.Parish
         /// Harmonogram, w ramach którego następuje przypisanie budynku (relacja nawigacyjna).
         /// </summary>
         public Schedule Schedule { get; set; } = default!;
+
+        /// <summary>
+        /// Określa, czy nowe zgłoszenia dla tego budynku mają być automatycznie przypisywane do tego dnia.
+        /// </summary>
+        public bool EnableAutoAssign { get; set; } = false;
     }
 }

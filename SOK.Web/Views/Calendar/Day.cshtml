@@ -1,0 +1,328 @@
+@using SOK.Application.Common.Helpers
+@using SOK.Web.ViewModels.Calendar
+@model SOK.Domain.Entities.Parish.Day
+@{
+    ViewData["Title"] = "Dzień kolędy - " + ViewData["DayDate"];
+}
+
+<div class="container mx-auto p-4">
+    <!-- Nagłówek -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">@ViewData["DayDate"]</h1>
+            <p class="text-base-content/70 mt-1">Godziny: @Model.StartHour.ToString("HH:mm") -
+                @Model.EndHour.ToString("HH:mm")</p>
+        </div>
+        <div class="flex flex-col flex-wrap items-end gap-2">
+            <div class="flex justify-end gap-2">
+                @if (ViewData["PreviousDayId"] != null)
+                {
+                    <a asp-action="Day" asp-route-id="@ViewData["PreviousDayId"]" class="btn btn-secondary btn-soft">
+                        <i class="bi bi-arrow-left"></i>
+                        Poprzedni dzień
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-secondary btn-soft" disabled>
+                        <i class="bi bi-arrow-left"></i>
+                        Poprzedni dzień
+                    </button>
+                }
+                @if (ViewData["NextDayId"] != null)
+                {
+                    <a asp-action="Day" asp-route-id="@ViewData["NextDayId"]" class="btn btn-accent btn-soft">
+                        Następny dzień
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-accent btn-soft" disabled>
+                        Następny dzień
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                }
+            </div>
+            <a asp-action="Index" class="btn btn-ghost">
+                <i class="bi bi-arrow-left"></i>
+                Powrót do kalendarza
+            </a>
+        </div>
+    </div>
+
+    <!-- Placeholder -->
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body flex gap-5">
+            <!-- Podstawowe informacje -->
+            <div class="">
+                <h2 class="text-xl font-semibold mb-4">Informacje o dniu</h2>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="stat bg-base-200 rounded-lg col-span-2">
+                        <div class="stat-title">Data</div>
+                        <div class="stat-value text-2xl">@Model.Date.ToString("dd.MM.yyyy")</div>
+                        <div class="stat-desc">@Model.Date.DayOfWeek.GetPolishName()</div>
+                    </div>
+                    <div class="stat bg-primary/40 text-white rounded-lg">
+                        <div class="stat-title">Wizyty</div>
+                        <div class="stat-value font-semibold text-3xl">@(Model.Agendas.Select(a =>
+                                                        a.Visits.Count).Sum())</div>
+                        <div class="stat-desc whitespace-normal">zaplanowanych odwiedzin</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Godziny kolędy</div>
+                        <div class="stat-value text-2xl">@Model.StartHour.ToString("HH:mm")</div>
+                        <div class="stat-desc whitespace-normal">do @Model.EndHour.ToString("HH:mm")</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg lg:col-span-2">
+                        <div class="stat-title">Przypisane budynki</div>
+                        <div class="stat-value text-2xl">@(Model.BuildingsAssigned?.Count ?? 0)</div>
+                        <div class="stat-desc whitespace-normal">budynków w planie</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg lg:col-span-2">
+                        <div class="stat-title">Agendy</div>
+                        <div class="stat-value text-2xl">@(Model.Agendas?.Count ?? 0)</div>
+                        <div class="stat-desc whitespace-normal">harmonogramów księdza</div>
+                    </div>
+                </div>
+            </div>
+
+            @{
+                var agendas = ViewData["Agendas"] as SOK.Web.ViewModels.Calendar.DayAgendasVM;
+            }
+            <div class="flex items-center">
+                <div class="text-nowrap text-2xl sm:text-lg font-medium">
+                    Agendy
+                    @if (agendas != null && agendas.Agendas.Any())
+                    {
+                        <span class="badge badge-primary ml-2">@agendas.Agendas.Count</span>
+                    }
+                </div>
+
+                <div class="divider flex-1 my-0 px-3 self-auto"></div>
+                
+                <button type="button" class="btn btn-primary" onclick="openAgendaModal()">
+                    <i class="bi bi-plus-circle"></i>
+                    Dodaj agendę
+                </button>
+            </div>
+
+            <!-- Lista agend -->
+            <div class="">
+                @if (agendas == null || !agendas.Agendas.Any())
+                {
+                    <div class="text-center py-8 text-base-content/60">
+                        <i class="bi bi-calendar-check text-4xl mb-2"></i>
+                        <p>Brak agend dla tego dnia.</p>
+                        <p class="text-sm mt-2">Kliknij przycisk "Dodaj agendę" aby utworzyć agendę.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                        @foreach ((AgendaItemVM agenda, int index) in agendas.Agendas.WithIndex())
+                        {
+                            <a asp-action="AgendaEditor" asp-route-id="@agenda.Id" 
+                               class="group card bg-base-300 hover:bg-primary/20 transition-colors cursor-pointer relative">
+                                <div class="card-body flex flex-col sm:flex-row justify-start sm:justify-between p-4">
+                                    <div class="">
+                                        <h3 class="mb-3 text-2xl flex w-full sm:w-auto items-center">
+                                            <i class="bi bi-journal-text mr-2"></i>
+                                            <span>
+                                                Ksiądz <span class="font-semibold">@(index + 1)</span>
+                                            </span>
+                                            <button type="button" class="btn btn-outline hover:btn-primary ms-auto sm:ms-4"
+                                                onclick="openAgendaModal(@agenda.Id); event.preventDefault(); event.stopPropagation();">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        </h3>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            @if (!string.IsNullOrEmpty(agenda.PriestName))
+                                            {
+                                                <div class="badge badge-lg badge-soft badge-primary gap-2">
+                                                    <i class="bi bi-person-fill"></i>
+                                                    @agenda.PriestName
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="badge badge-lg badge-ghost gap-2">
+                                                    <i class="bi bi-person-fill"></i>
+                                                    <span class="hidden sm:inline">
+                                                        Bez przypisanego księdza
+                                                    </span>
+                                                    <span class="sm:hidden">
+                                                        Brak
+                                                    </span>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            @if (agenda.MinisterNames.Any())
+                                            {
+                                                @foreach (var minister in agenda.MinisterNames)
+                                                {
+                                                    <div class="badge badge-sm badge-soft badge-accent gap-2">
+                                                        <i class="bi bi-person-plus"></i>
+                                                        @minister
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col justify-start sm:justify-normal sm:text-end gap-1 sm:gap-4 text-base-content/70">
+                                        @if (agenda.ShowsAssignment)
+                                        {
+                                            <span class="badge badge-sm badge-success">
+                                                Opublikowano
+                                            </span>
+                                        }
+                                        @if (agenda.ShowHours)
+                                        {
+                                            <span class="badge badge-sm badge-info tooltip"
+                                                data-tip="Oznaczyłeś tę agendę jako ułożoną, zatem przewidywane godziny odwiedzin są widoczne dla zgłaszających.">
+                                                Godziny widoczne
+                                            </span>
+                                        }
+                                        <div class="flex gap-x-1 items-baseline sm:flex-col sm:items-end">
+                                            <span class="sm:text-sm">
+                                                <i class="bi bi-clock"></i>
+                                                Godziny:
+                                            </span>
+                                            <div class="text-lg font-semibold">
+                                                @(agenda.StartHourOverride?.ToString("HH:mm") ??
+                                                                                                Model.StartHour.ToString("HH:mm"))
+                                                -
+                                                @(agenda.EndHourOverride?.ToString("HH:mm") ??
+                                                                                                Model.EndHour.ToString("HH:mm"))
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-x-1 items-baseline sm:flex-col sm:items-end">
+                                            <span class="sm:text-sm">
+                                                <i class="bi bi-house-check"></i>
+                                                Wizyty:
+                                            </span>
+                                            <div class="text-lg font-semibold">
+                                                @agenda.VisitsCount
+                                            </div>
+                                        </div>
+                                        @if (agenda.GatheredFunds > 0)
+                                        {
+                                            <div class="flex gap-x-1 items-baseline sm:flex-col sm:items-end">
+                                                <span class="sm:text-sm">
+                                                    <i class="bi bi-cash-stack"></i>
+                                                    Zebrane środki:
+                                                </span>
+                                                <div class="text-lg font-semibold">
+                                                    @agenda.GatheredFunds zł
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="absolute hidden sm:block -left-0 opacity-0 top-1/2 -translate-y-1/2 group-hover:left-1/2 group-hover:opacity-100 transition-all">
+                                        <i class="bi bi-chevron-double-right text-5xl text-base-content/30"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+
+            @{
+                var assignments = ViewData["Assignments"] as SOK.Web.ViewModels.Calendar.DayAssignmentsVM;
+            }
+            <div class="flex flex-col items-start gap-y-1.5 sm:flex-row sm:items-center">
+                <div class="text-nowrap text-2xl sm:text-lg font-medium">
+                    Przypisania budynków
+                    @if (assignments != null && assignments.TotalBuildingsAssigned > 0)
+                    {
+                        <span class="badge badge-primary ml-2">@assignments.TotalBuildingsAssigned</span>
+                    }
+                </div>
+
+                <div class="hidden sm:divider flex-1 my-0 px-3 self-auto"></div>
+                
+                <button type="button" class="btn btn-primary" onclick="openAssignmentModal()">
+                    <i class="bi bi-building-add"></i>
+                    Zarządzaj przypisaniami
+                </button>
+            </div>
+            
+            <!-- Przypisania budynków -->
+            <div class="">
+                @if (assignments == null || !assignments.Schedules.Any())
+                {
+                    <div class="text-center py-8 text-base-content/60">
+                        <i class="bi bi-inbox text-4xl mb-2"></i>
+                        <p>Brak przypisanych budynków do tego dnia.</p>
+                        <p class="text-sm mt-2">Kliknij przycisk "Zarządzaj przypisaniami" aby dodać budynki.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-4 mt-4">
+                        @foreach (var schedule in assignments.Schedules)
+                        {
+                            <div class="card bg-base-300">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div>
+                                            <h4 class="font-semibold text-lg">@schedule.ScheduleName</h4>
+                                            <p class="text-sm text-base-content/70">
+                                                @schedule.TotalBuildings budynków · @schedule.TotalSubmissions zgłoszeń
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Budynki pogrupowane według ulic -->
+                                    @{
+                                        var buildingsByStreet = schedule.Buildings
+                                        .GroupBy(b => new { b.StreetId, b.StreetName })
+                                        .OrderBy(g => g.Key.StreetName);
+                                    }
+                                    <div class="space-y-3">
+                                        @foreach (var street in buildingsByStreet)
+                                        {
+                                            <div class="border-l-4 border-primary pl-3">
+                                                <div class="font-medium text-sm mb-2">@street.Key.StreetName</div>
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach (var building in street)
+                                                    {
+                                                        <div class="badge badge-lg gap-2 tooltip"
+                                                            data-tip="@building.SubmissionsTotal zgłoszeń (@building.SubmissionsUnassigned nieprzypisanych)">
+                                                            <i class="bi bi-building"></i>
+                                                            @building.BuildingNumber
+                                                            @if (building.SubmissionsTotal > 0)
+                                                            {
+                                                                <span
+                                                                    class="badge badge-sm badge-ghost">@building.SubmissionsTotal</span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_AssignBuildingsModal" model="@Model.Id" />
+<partial name="_AgendaModal" model="@Model.Id" />
+
+@section Scripts {
+    <partial name="_VueScript" />
+
+    <script>
+        $(document).ready(function () {
+            window.initAssignmentModal();
+        });
+    </script>
+}

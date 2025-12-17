@@ -165,14 +165,15 @@ namespace SOK.Application.Services.Implementation
             Address? address = building.Addresses
                 .FirstOrDefault(a => a.ApartmentNumber == submissionDto.ApartmentNumber
                                   && a.ApartmentLetter == submissionDto.ApartmentLetter);
+            
             // Jeśli adres istnieje, to nie może mieć zgłoszenia
             if (address != null)
             {
-                address = await _uow.Address.GetAsync(a => a.Id == address.Id, includeProperties: "Submission", tracked: true);
-                if (address!.Submission != null)
+                address = await _uow.Address.GetAsync(a => a.Id == address.Id, includeProperties: "Submissions", tracked: true);
+                if (address!.Submissions.Any(s => s.PlanId == schedule.Plan.Id))
                     throw new InvalidOperationException($"Cannot create submission for address: '{address.ToString()}'. Address already has a submission.");
                 
-                address.Submission = submission;
+                address.Submissions.Add(submission);
                 submission.Address = address;
             }
             // Jeśli adres nie istnieje to utwórz
@@ -183,7 +184,7 @@ namespace SOK.Application.Services.Implementation
                     ApartmentNumber = submissionDto.ApartmentNumber,
                     ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']),
                     Building = building,
-                    Submission = submission
+                    Submissions = [submission]
                 };
             }
             submission.Address = address;

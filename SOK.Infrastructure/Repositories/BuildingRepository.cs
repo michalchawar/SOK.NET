@@ -38,7 +38,7 @@ namespace SOK.Infrastructure.Repositories
 
             if (addresses)
                 query = query.Include(b => b.Addresses)
-                         .ThenInclude(a => a.Submission);
+                         .ThenInclude(a => a.Submissions);
 
             if (days)
                 query = query.Include(b => b.Days);

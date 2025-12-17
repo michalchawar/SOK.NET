@@ -35,6 +35,15 @@ namespace SOK.Application.Common.Helpers
             return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
         }
 
+        /// <summary>
+        /// Zamienia pierwszą literę każdego wyrazu w łańcuchu na wielką literę.
+        /// </summary>
+        /// <param name="input">Łańcuch znaków do przetworzenia.</param>
+        /// <returns>
+        /// Łańcuch znaków z pierwszą literą każdego wyrazu zamienioną na wielką literę. Rozbija również wyrazy po myślnikach.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static string FirstCharToUpper(this string input) => 
             input switch
             {
@@ -46,5 +55,28 @@ namespace SOK.Application.Common.Helpers
                                  word.Split('-', StringSplitOptions.RemoveEmptyEntries)
                                      .Select(part => part.Length > 1 ? string.Concat(part[0].ToString().ToUpper(), part.ToLower().AsSpan(1)) : part.ToUpper()))))
             };
+
+        /// <summary>
+        /// Zwraca polską nazwę dnia tygodnia.
+        /// </summary>
+        /// <param name="dayOfWeek">Dzień tygodnia, dla którego ma zostać zwrócona polska nazwa.</param>
+        /// <returns>
+        /// Polska nazwa dnia tygodnia.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static string GetPolishName(this DayOfWeek dayOfWeek)
+        {
+            return dayOfWeek switch
+            {
+                DayOfWeek.Monday => "Poniedziałek",
+                DayOfWeek.Tuesday => "Wtorek",
+                DayOfWeek.Wednesday => "Środa",
+                DayOfWeek.Thursday => "Czwartek",
+                DayOfWeek.Friday => "Piątek",
+                DayOfWeek.Saturday => "Sobota",
+                DayOfWeek.Sunday => "Niedziela",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
     }
 }

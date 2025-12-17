@@ -166,5 +166,38 @@ namespace SOK.Application.Services.Interface
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
         /// </returns>
         Task DeleteMetadataAsync(Plan plan, string metadataKey);
+
+        /// <summary>
+        /// Pobiera wszystkie dni dla podanego planu.
+        /// </summary>
+        /// <param name="planId">Identyfikator planu.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest lista obiektów <see cref="Day"/>.
+        /// </returns>
+        Task<List<Day>> GetDaysForPlanAsync(int planId);
+
+        /// <summary>
+        /// Pobiera pojedynczy dzień po identyfikatorze.
+        /// </summary>
+        /// <param name="dayId">Identyfikator dnia.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest obiekt <see cref="Day"/> lub <see cref="null"/>.
+        /// </returns>
+        Task<Day?> GetDayAsync(int dayId);
+
+        /// <summary>
+        /// Zarządza dniami kolędowymi dla planu (bulk create/update/delete).
+        /// Usuwa dni, które nie są w liście, aktualizuje istniejące i tworzy nowe.
+        /// </summary>
+        /// <param name="planId">Identyfikator planu.</param>
+        /// <param name="days">Lista dni do zarządzania.</param>
+        /// <param name="visitsStartDate">Data rozpoczęcia kolędy (zostanie zapisana w metadanych).</param>
+        /// <param name="visitsEndDate">Data zakończenia kolędy (zostanie zapisana w metadanych).</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task ManageDaysAsync(int planId, List<Day> days, DateTime visitsStartDate, DateTime visitsEndDate);
     }
 }

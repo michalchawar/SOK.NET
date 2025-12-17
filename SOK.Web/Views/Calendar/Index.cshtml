@@ -1,9 +1,84 @@
-﻿@{
+﻿@using SOK.Application.Common.Helpers
+@model SOK.Web.ViewModels.Parish.CalendarIndexVM
+@{
     ViewData["Title"] = "Kalendarz";
 }
 
-<h1>Kalendarz</h1>
+<div class="container mx-auto p-4">
+    <!-- Nagłówek -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">Kalendarz kolędy</h1>
+            <p class="text-base-content/70 mt-1">Plan: @Model.PlanName</p>
+            @if (Model.VisitsStartDate.HasValue && Model.VisitsEndDate.HasValue)
+            {
+                <p class="text-sm text-base-content/60 mt-1">
+                    @Model.VisitsStartDate.Value.ToString("dd.MM.yyyy") - @Model.VisitsEndDate.Value.ToString("dd.MM.yyyy")
+                </p>
+            }
+        </div>
+        <div class="flex gap-2">
+            <a asp-action="ManageDays" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i>
+                Zarządzaj dniami
+            </a>
+        </div>
+    </div>
 
-<div class="text-center">
-    <h1 class="text-xl">W trakcie prac</h1>
+    <!-- Lista dni -->
+    @if (Model.HasDays)
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            @foreach (var day in Model.Days)
+            {
+                <a asp-action="Day" asp-route-id="@day.Id" class="card bg-base-100 shadow-md hover:shadow-xl transition-shadow border border-base-300 hover:border-primary">
+                    <div class="card-body p-4">
+                        <!-- Nagłówek z datą -->
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="card-title text-lg">@day.Date.ToString("dd.MM.yyyy")</h3>
+                                <p class="text-sm text-base-content/70">@day.Date.DayOfWeek.GetPolishName()</p>
+                            </div>
+                            @if (day.Date.DayOfWeek == DayOfWeek.Sunday)
+                            {
+                                <span class="badge [--badge-color:var(--color-teal-800)]">Niedziela</span>
+                            }
+                            else if (day.Date.DayOfWeek == DayOfWeek.Saturday)
+                            {
+                                <span class="badge [--badge-color:var(--color-slate-500)]">Sobota</span>
+                            }
+                        </div>
+
+                        <!-- Godziny -->
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="bi bi-clock text-base-content/60"></i>
+                            <span class="text-base-content/80">@day.StartHour.ToString("HH:mm") - @day.EndHour.ToString("HH:mm")</span>
+                        </div>
+
+                        <!-- Liczba budynków -->
+                        <div class="flex items-center gap-2 text-sm mt-2">
+                            <i class="bi bi-building text-base-content/60"></i>
+                            <span class="text-base-content/80">
+                                @if (day.BuildingsCount > 0)
+                                {
+                                    <span>@day.BuildingsCount budynków</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning">Brak przypisań</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Nie znaleziono żadnych dni kolędowych. Kliknij "Zarządzaj dniami", aby dodać nowe dni.</span>
+        </div>
+    }
 </div>

@@ -25,6 +25,11 @@ body {
     @apply font-outfit;
 }
 
+main > .container > .card {
+    @apply -mx-[1.625rem];
+    @apply sm:mx-0;
+}
+
 @layer utilities {
 
     .navbar {
@@ -51,6 +56,12 @@ body {
 
     .divider {
         @apply text-(--divider-color);
+    }
+
+    .tabs-box .tab-active {
+        --tab-bg: var(--color-primary);
+        @apply text-white;
+        @apply font-semibold;
     }
 
     /* .btn:focus {

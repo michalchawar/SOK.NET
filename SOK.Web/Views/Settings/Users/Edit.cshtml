@@ -6,7 +6,7 @@
     var allRoles = ViewData["AllRoles"] as List<Role> ?? new List<Role>();
 }
 
-<div id="editUserApp" class="min-h-full w-full flex flex-col items-center justify-center">
+<div id="edit-user-app" class="min-h-full w-full flex flex-col items-center justify-center">
     <form asp-action="EditUser" asp-route-id="@Model.CentralId" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
         @Html.AntiForgeryToken()
         
@@ -170,7 +170,8 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <partial name="_VueScript" />
+
     <script>
         const { createApp } = Vue;
         
@@ -182,6 +183,9 @@
                     passwordCopied: false,
                     resetError: null
                 }
+            },
+            mounted() {
+                registerVueApp('edit-user-app');
             },
             methods: {
                 async resetPassword() {
@@ -225,6 +229,6 @@
                     }
                 }
             }
-        }).mount('#editUserApp');
+        }).mount('#edit-user-app');
     </script>
 }

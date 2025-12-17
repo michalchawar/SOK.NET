@@ -33,8 +33,8 @@ namespace SOK.Infrastructure.Persistence.Configurations.Parish
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(s => s.Address)
-                .WithOne(a => a.Submission)
-                .HasForeignKey<Submission>(s => s.AddressId)
+                .WithMany(a => a.Submissions)
+                .HasForeignKey(s => s.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(s => s.Plan)

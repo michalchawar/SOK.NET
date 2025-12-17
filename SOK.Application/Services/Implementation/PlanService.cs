@@ -318,5 +318,73 @@ namespace SOK.Application.Services.Implementation
             await _uow.ParishInfo.DeleteMetadataAsync(plan, metadataKey);
             await _uow.SaveAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<List<Day>> GetDaysForPlanAsync(int planId)
+        {
+            var days = await _uow.Day.GetAllAsync(
+                filter: d => d.PlanId == planId,
+                orderBy: d => d.Date
+            );
+            return days.OrderBy(d => d.Date).ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task<Day?> GetDayAsync(int dayId)
+        {
+            return await _uow.Day.GetAsync(d => d.Id == dayId, includeProperties: "BuildingsAssigned");
+        }
+
+        /// <inheritdoc />
+        public async Task ManageDaysAsync(int planId, List<Day> days, DateTime visitsStartDate, DateTime visitsEndDate)
+        {
+            await using var transaction = await _uow.BeginTransactionAsync();
+
+            // Pobierz plan
+            Plan? plan = await _uow.Plan.GetAsync(p => p.Id == planId);
+            if (plan == null)
+                throw new ArgumentException("Plan o podanym ID nie istnieje.");
+
+            // Zapisz metadane dat
+            await SetDateTimeMetadataAsync(plan, Common.Helpers.PlanMetadataKeys.VisitsStartDate, visitsStartDate);
+            await SetDateTimeMetadataAsync(plan, Common.Helpers.PlanMetadataKeys.VisitsEndDate, visitsEndDate);
+
+            // Pobierz istniejące dni dla tego planu
+            var existingDays = await _uow.Day.GetAllAsync(d => d.PlanId == planId);
+            var existingDaysDict = existingDays.ToDictionary(d => d.Date);
+
+            // Przygotuj słownik nowych dni
+            var newDaysDict = days.ToDictionary(d => d.Date);
+
+            // Usuń dni, które nie są w nowej liście
+            foreach (var existingDay in existingDays)
+            {
+                if (!newDaysDict.ContainsKey(existingDay.Date))
+                {
+                    _uow.Day.Remove(existingDay);
+                }
+            }
+
+            // Aktualizuj istniejące lub dodaj nowe
+            foreach (var day in days)
+            {
+                if (existingDaysDict.TryGetValue(day.Date, out var existingDay))
+                {
+                    // Aktualizuj istniejący
+                    existingDay.StartHour = day.StartHour;
+                    existingDay.EndHour = day.EndHour;
+                    _uow.Day.Update(existingDay);
+                }
+                else
+                {
+                    // Dodaj nowy
+                    day.PlanId = planId;
+                    _uow.Day.Add(day);
+                }
+            }
+
+            await _uow.SaveAsync();
+            await transaction.CommitAsync();
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace SOK.Application.Common.DTO
         public TimeOnly? EstimatedTime { get; set; }
         public bool DateVisible { get; set; }
         public bool TimeVisible { get; set; }
+        public int? AgendaId { get; set; } 
 
         public ScheduleDto Schedule { get; set; }
 
@@ -30,6 +31,7 @@ namespace SOK.Application.Common.DTO
             EndHour = visit.Agenda?.EndHourOverride ?? visit.Agenda?.Day.EndHour;
             DateVisible = visit.Agenda?.ShowsAssignment ?? false;
             TimeVisible = visit.Agenda?.ShowHours ?? false;
+            AgendaId = visit.Agenda?.Id;
 
             Schedule = visit.Status != VisitStatus.Withdrawn ? new ScheduleDto(visit.Schedule!) : null!;
         }

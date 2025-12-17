@@ -137,6 +137,11 @@
         IDayRepository Day { get; }
 
         /// <summary>
+        /// Repozytorium przypisań budynków do dni.
+        /// </summary>
+        IBuildingAssignmentRepository BuildingAssignment { get; }
+
+        /// <summary>
         /// Repozytorium członków parafii.
         /// </summary>
         IParishMemberRepository ParishMember { get; }
