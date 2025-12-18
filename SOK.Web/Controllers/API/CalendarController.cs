@@ -193,7 +193,9 @@ namespace SOK.Web.Controllers.API
                     request.DayId,
                     request.ScheduleId,
                     request.BuildingIds,
-                    request.AgendaId
+                    request.AgendaId,
+                    request.AgendaId > 0 ? request.UnassignNotMatchingVisits : false,
+                    request.AgendaId != null ? request.SendEmails : false
                 );
                 return Ok(new { success = true, message = "Budynki zostały pomyślnie przypisane." });
             }

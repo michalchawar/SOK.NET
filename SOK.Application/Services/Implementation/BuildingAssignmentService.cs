@@ -1,4 +1,5 @@
 using SOK.Application.Common.DTO;
+using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -10,11 +11,13 @@ namespace SOK.Application.Services.Implementation
     {
         private readonly IUnitOfWorkParish _uow;
         private readonly IAgendaService _agendaService;
+        private readonly IEmailNotificationService _notificationService;
 
-        public BuildingAssignmentService(IUnitOfWorkParish uow, IAgendaService agendaService)
+        public BuildingAssignmentService(IUnitOfWorkParish uow, IAgendaService agendaService, IEmailNotificationService notificationService)
         {
             _uow = uow;
             _agendaService = agendaService;
+            _notificationService = notificationService;
         }
 
         /// <inheritdoc />
@@ -113,7 +116,13 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task AssignBuildingsToDayAsync(int dayId, int scheduleId, List<int> buildingIds, int? agendaId = null)
+        public async Task AssignBuildingsToDayAsync(
+            int dayId, 
+            int scheduleId, 
+            List<int> buildingIds, 
+            int? agendaId = null, 
+            bool unassignOthers = false, 
+            bool sendEmails = false)
         {
             await using var transaction = await _uow.BeginTransactionAsync();
 
@@ -151,9 +160,20 @@ namespace SOK.Application.Services.Implementation
             else if (agendaId.HasValue && agendaId.Value > 0)
             {
                 // Przypisz do istniejącej agendy
-                await AssignUnassignedSubmissionsToAgendaAsync(dayId, scheduleId, buildingIds, agendaId.Value);
+                await AssignUnassignedSubmissionsToAgendaAsync(dayId, scheduleId, buildingIds, agendaId.Value, sendEmails);
             }
             // Jeśli agendaId == null, nic nie rób (pomiń przypisanie)
+
+            // Jeśli unassignOthers jest true, odplanuj zgłoszenia w budynkach, które zostały usunięte z przypisań
+            if (unassignOthers)
+            {
+                var removedBuildingIds = existingAssignments
+                    .Where(a => !buildingIds.Contains(a.BuildingId))
+                    .Select(a => a.BuildingId)
+                    .ToList();
+
+                await UnassignSubmissionsAsync(dayId, scheduleId, removedBuildingIds);
+            }
 
             await transaction.CommitAsync();
         }
@@ -353,7 +373,12 @@ namespace SOK.Application.Services.Implementation
         /// <summary>
         /// Przypisuje nieprzypisane zgłoszenia z wybranych budynków do agendy.
         /// </summary>
-        private async Task AssignUnassignedSubmissionsToAgendaAsync(int dayId, int scheduleId, List<int> buildingIds, int agendaId)
+        private async Task AssignUnassignedSubmissionsToAgendaAsync(
+            int dayId, 
+            int scheduleId, 
+            List<int> buildingIds, 
+            int agendaId,
+            bool sendEmails = false)
         {
             // Pobierz dzień z planem
             var day = await _uow.Day.GetAsync(d => d.Id == dayId, includeProperties: "Plan");
@@ -362,28 +387,69 @@ namespace SOK.Application.Services.Implementation
 
             // Pobierz wszystkie zgłoszenia z wybranych budynków
             var submissions = await _uow.Submission.GetAllAsync(
-                s => s.PlanId == day.PlanId,
+                s => buildingIds.Contains(s.Address.BuildingId) && s.PlanId == day.PlanId,
                 includeProperties: "Address.Building,Visit"
             );
 
             // Filtruj: tylko z wybranych budynków, niezapisane lub bez agendy, pasujący harmonogram
-            var unassignedSubmissionIds = submissions
-                .Where(s => buildingIds.Contains(s.Address.BuildingId))
+            var unassignedSubmissions = submissions
                 .Where(s => s.Visit.AgendaId == null)
                 .Where(s => s.Visit.ScheduleId == scheduleId)
-                .Select(s => s.Id)
                 .ToList();
 
             // Jeśli są zgłoszenia do przypisania, użyj metody z AgendaService
-            if (unassignedSubmissionIds.Any())
+            if (unassignedSubmissions.Any())
             {
                 var dto = new AssignVisitsToAgendaDto
                 {
                     AgendaId = agendaId,
-                    SubmissionIds = unassignedSubmissionIds
+                    SubmissionIds = unassignedSubmissions.Select(s => s.Id).ToList(),
+                    SendEmails = sendEmails
                 };
 
                 await _agendaService.AssignVisitsToAgendaAsync(dto);
+            }
+        }
+
+        /// <summary>
+        /// Odpisuje zgłoszenia z wybranych budynków od agendy.
+        /// </summary>
+        private async Task UnassignSubmissionsAsync(int dayId, int scheduleId, List<int> buildingIds)
+        {
+            // Pobierz dzień z planem
+            var day = await _uow.Day.GetAsync(d => d.Id == dayId, includeProperties: "Plan,Agenda");
+            if (day == null)
+                throw new ArgumentException("Day not found.");
+
+            // Pobierz wszystkie zgłoszenia z wybranych budynków
+            var submissions = await _uow.Submission.GetAllAsync(
+                s => buildingIds.Contains(s.Address.BuildingId) && s.PlanId == day.PlanId,
+                includeProperties: "Address.Building,Visit.Agenda"
+            );
+
+            // Filtruj: tylko z wybranych budynków, z zaplanowaną wizytą, pasujący harmonogram
+            var assignedSubmissions = submissions
+                .Where(s => s.Visit.Agenda != null)
+                .Where(s => s.Visit.Agenda!.DayId == dayId)
+                .Where(s => s.Visit.ScheduleId == scheduleId)
+                .ToList();
+
+            // Jeśli są zgłoszenia do wypisania, iteruj po agendach i użyj metody z AgendaService
+            if (assignedSubmissions.Any())
+            {
+                foreach (var agenda in day.Agendas)
+                {
+                    var dto = new RemoveVisitsFromAgendaDto
+                    {
+                        AgendaId = agenda.Id,
+                        VisitIds = assignedSubmissions
+                            .Where(s => s.Visit.AgendaId == agenda.Id)
+                            .Select(s => s.Visit.Id)
+                            .ToList()
+                    };
+
+                    await _agendaService.RemoveVisitsFromAgendaAsync(dto);
+                }
             }
         }
     }

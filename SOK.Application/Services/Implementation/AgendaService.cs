@@ -11,11 +11,13 @@ namespace SOK.Application.Services.Implementation
     {
         private readonly IUnitOfWorkParish _uow;
         private readonly IParishMemberService _parishMemberService;
+        private readonly IEmailNotificationService _notificationService;
 
-        public AgendaService(IUnitOfWorkParish uow, IParishMemberService parishMemberService)
+        public AgendaService(IUnitOfWorkParish uow, IParishMemberService parishMemberService, IEmailNotificationService notificationService)
         {
             _uow = uow;
             _parishMemberService = parishMemberService;
+            _notificationService = notificationService;
         }
 
         /// <inheritdoc />
@@ -407,6 +409,11 @@ namespace SOK.Application.Services.Implementation
                 // Zaktualizuj dane wizyty
                 submission.Visit.AgendaId = agenda.Id;
                 submission.Visit.Status = VisitStatus.Planned;
+
+                if (dto.SendEmails)
+                {
+                    await _notificationService.SendVisitPlannedEmail(submission);
+                }
             }
 
             // Zaktualizuj numery porządkowe

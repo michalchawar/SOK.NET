@@ -548,10 +548,27 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="divider my-0"></div>
+
+                    <p class="text-sm text-base-content/70 mb-4">
+                        Dodatkowe opcje:
+                    </p>
+
+                    <div class="flex flex-col gap-2 items-center">
+                        <div class="tooltip cursor-pointer" data-tip="Wyślij powiadomienia mailowe o ustaleniu terminu wizyty do wszystkich nowo przypisanych zgłoszeń.">
+                            <input type="checkbox" id="send-emails-to-assigned" v-model="sendEmailsToAssigned" class="checkbox checkbox-primary me-2" />
+                            <label for="send-emails-to-assigned" class="text-base-content/70">Wyślij powiadomienia mailowe</label>
+                        </div>
+                        <div class="tooltip cursor-pointer" data-tip="Usuń z wszystkich agend tego dnia zgłoszenia, które były przypisane do budynków, których przypisania zamierzasz usunąć.">
+                            <input type="checkbox" id="deassign-unassigned" v-model="deassignUnassigned" class="checkbox checkbox-primary me-2" />
+                            <label for="deassign-unassigned" class="text-base-content/70">Wypisz zgłoszenia z usuniętych bram</label>
+                        </div>
+                    </div>
                 </template>
                 
                 <div class="modal-action">
-                    <button type="button" class="btn btn-ghost" @@click="closeAgendaAssignmentModal">Pomiń przypisywanie</button>
+                    <button type="button" class="btn btn-ghost" @@click="skipAssignmentAndSave">Pomiń przypisywanie</button>
                     <button 
                         type="button" 
                         class="btn btn-primary" 
@@ -561,6 +578,9 @@
                         <span v-else>Przypisz zgłoszenia</span>
                     </button>
                 </div>
+            </div>
+            <div class="modal-backdrop" @@click="closeAssignmentModal()">
+
             </div>
         </dialog>
     </div>
@@ -617,6 +637,8 @@
                     agendaAssignmentLoading: false,
                     availableAgendas: [],
                     selectedAgendaId: null,
+                    sendEmailsToAssigned: false,
+                    deassignUnassigned: false,
                     pendingAssignmentData: null,
                     assignmentSaving: false,
                     
@@ -917,6 +939,8 @@
                 async openAgendaAssignmentModal() {
                     this.agendaAssignmentLoading = true;
                     this.selectedAgendaId = null;
+                    this.sendEmailsToAssigned = true;
+                    this.deassignUnassigned = true;
                     
                     if (!agendaModal) {
                         agendaModal = document.getElementById('agenda-assignment-modal');
@@ -956,7 +980,15 @@
                         this.agendaAssignmentLoading = false;
                     }
                 },
-                closeAgendaAssignmentModal() {
+                closeAssignmentModal() {
+                    if (agendaModal) {
+                        agendaModal.close();
+                    }
+                    
+                    this.assignmentSaving = false;
+                    this.saving = false;
+                },
+                skipAssignmentAndSave() {
                     if (agendaModal) {
                         agendaModal.close();
                     }
@@ -978,6 +1010,14 @@
                         // Tylko jeśli shouldAssign jest true, dodaj agendaId
                         if (shouldAssign) {
                             data.agendaId = agendaId;
+                        }
+
+                        if (this.selectedAgendaId > 0 && this.deassignUnassigned) {
+                            data.UnassignNotMatchingVisits = true;
+                        }
+
+                        if (this.selectedAgendaId !== null && this.sendEmailsToAssigned) {
+                            data.sendEmails = true;
                         }
                         
                         const endpoint = this.activeTab === 'manual' 

@@ -60,9 +60,10 @@ namespace SOK.Infrastructure.Extensions
             services.AddScoped<IBuildingService, BuildingService>();
             services.AddScoped<IStreetService, StreetService>();
             services.AddScoped<ICityService, CityService>();
-            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IBuildingAssignmentService, BuildingAssignmentService>();
             services.AddScoped<IAgendaService, AgendaService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 
             // Rejestracja serwisu w tle do wysyłania emaili
             services.AddHostedService<EmailSenderBackgroundService>();

@@ -7,7 +7,9 @@ namespace SOK.Application.Common.DTO
         int DayId,
         int ScheduleId,
         List<int> BuildingIds,
-        int? AgendaId = null
+        int? AgendaId = null,
+        bool UnassignNotMatchingVisits = false,
+        bool SendEmails = false
     );
 
     /// <summary>

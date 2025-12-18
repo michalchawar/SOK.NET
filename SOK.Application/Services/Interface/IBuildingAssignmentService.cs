@@ -22,7 +22,15 @@ namespace SOK.Application.Services.Interface
         /// <param name="scheduleId">Identyfikator harmonogramu.</param>
         /// <param name="buildingIds">Lista identyfikatorów budynków do przypisania.</param>
         /// <param name="agendaId">Opcjonalny identyfikator agendy do której mają być przypisane nieprzypisane zgłoszenia.</param>
-        Task AssignBuildingsToDayAsync(int dayId, int scheduleId, List<int> buildingIds, int? agendaId = null);
+        /// <param name="unassignOthers">Flaga wskazująca czy odpiąć zgłoszenia w budynkach, które zostały usunięte z przypisań.</param>
+        /// <param name="sendEmails">Flaga wskazująca czy wysłać powiadomienia email o przypisaniach.</param>
+        Task AssignBuildingsToDayAsync(
+            int dayId, 
+            int scheduleId, 
+            List<int> buildingIds, 
+            int? agendaId = null, 
+            bool unassignOthers = false, 
+            bool sendEmails = false);
 
         /// <summary>
         /// Przypisuje budynki zakresem według podanych parametrów.

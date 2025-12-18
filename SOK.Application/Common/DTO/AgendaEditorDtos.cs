@@ -71,6 +71,8 @@ namespace SOK.Application.Common.DTO
 
         [Required]
         public List<int> SubmissionIds { get; set; } = new();
+
+        public bool SendEmails { get; set; } = false;
     }
 
     /// <summary>
