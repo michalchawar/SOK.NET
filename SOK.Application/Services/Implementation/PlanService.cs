@@ -143,6 +143,7 @@ namespace SOK.Application.Services.Implementation
             {
                 Name = s.Name,
                 ShortName = s.ShortName,
+                Color = s.Color,
                 Plan = plan
             }).ToList();
             foreach (Schedule schedule in schedules)
@@ -218,6 +219,7 @@ namespace SOK.Application.Services.Implementation
                 {
                     schedule.Name = newSchedule.Name;
                     schedule.ShortName = newSchedule.ShortName;
+                    schedule.Color = newSchedule.Color;
                     schedule.Plan = plan;
                     _uow.Schedule.Update(schedule);
                 }
@@ -227,6 +229,7 @@ namespace SOK.Application.Services.Implementation
                     {
                         Name = newSchedule.Name,
                         ShortName = newSchedule.ShortName,
+                        Color = newSchedule.Color,
                         Plan = plan
                     };
                     _uow.Schedule.Add(schedule);

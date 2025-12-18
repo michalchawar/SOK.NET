@@ -31,6 +31,12 @@ namespace SOK.Domain.Entities.Parish
         public string ShortName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Kolor harmonogramu w formacie RGB (#RRGGBB).
+        /// </summary>
+        [MaxLength(7)]
+        public string Color { get; set; } = "#bec5d1";
+
+        /// <summary>
         /// Identyfikator planu, do którego należy harmonogram.
         /// </summary>
         public int PlanId { get; set; }

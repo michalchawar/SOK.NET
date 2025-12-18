@@ -16,6 +16,7 @@ namespace SOK.Application.Common.DTO
         public int? Id { get; set; } = null;
         public string Name { get; set; } = string.Empty;
         public string ShortName { get; set; } = string.Empty;
+        public string Color { get; set; } = "#bec5d1";
         public bool IsDefault { get; set; } = false;
     }
 

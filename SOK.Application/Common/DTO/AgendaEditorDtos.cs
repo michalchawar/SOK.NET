@@ -19,6 +19,10 @@ namespace SOK.Application.Common.DTO
         public string? ApartmentNumber { get; set; }
         public int? FloorNumber { get; set; }
         public string? SubmitterNotes { get; set; }
+        public int? ScheduleId { get; set; }
+        public string? ScheduleName { get; set; } = string.Empty;
+        public string? ScheduleShortName { get; set; } = string.Empty;
+        public string? ScheduleColor { get; set; } = string.Empty;
     }
 
     /// <summary>

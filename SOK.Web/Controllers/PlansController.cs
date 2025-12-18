@@ -105,7 +105,7 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
-            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault });
+            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault, Color = s.Color });
             var priests = model.Priests.Where(p => p.IsActive).Select(p => new PlanPriestDto() { Id = p.Id, DisplayName = p.DisplayName });
 
             PlanActionRequestDto request = new()
@@ -146,7 +146,8 @@ namespace SOK.Web.Controllers
                     Id = s.Id,
                     Name = s.Name,
                     ShortName = s.ShortName,
-                    IsDefault = s.Id == plan.DefaultScheduleId
+                    IsDefault = s.Id == plan.DefaultScheduleId,
+                    Color = s.Color
                 })]
             };
 
@@ -177,7 +178,7 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
-            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault });
+            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault, Color = s.Color });
             var priests = model.Priests.Where(p => p.IsActive).Select(p => new PlanPriestDto() { Id = p.Id, DisplayName = p.DisplayName });
 
             PlanActionRequestDto request = new()

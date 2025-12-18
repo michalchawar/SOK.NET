@@ -254,7 +254,7 @@ namespace SOK.Application.Services.Implementation
         {
             var visits = await _uow.Visit.GetAllAsync(
                 filter: v => v.AgendaId == agendaId,
-                includeProperties: "Submission.Address.Building.Street.Type,Submission.Submitter",
+                includeProperties: "Submission.Address.Building.Street.Type,Submission.Submitter,Schedule",
                 orderBy: v => v.OrdinalNumber ?? 0
             );
 
@@ -271,7 +271,11 @@ namespace SOK.Application.Services.Implementation
                 SubmitterName = $"{v.Submission.Submitter.Name} {v.Submission.Submitter.Surname}",
                 ApartmentNumber = (v.Submission.Address.ApartmentNumber?.ToString() ?? "") + (v.Submission.Address.ApartmentLetter ?? ""),
                 FloorNumber = null,
-                SubmitterNotes = v.Submission.SubmitterNotes
+                SubmitterNotes = v.Submission.SubmitterNotes,
+                ScheduleId = v.ScheduleId,
+                ScheduleName = v.Schedule?.Name,
+                ScheduleShortName = v.Schedule?.ShortName,
+                ScheduleColor = v.Schedule?.Color
             }).ToList();
         }
 

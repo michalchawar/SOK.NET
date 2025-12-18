@@ -104,7 +104,10 @@
 
                     <!-- Informacje o wizycie -->
                     <div class="flex-1">
-                        <div class="font-medium">{{ visit.submitterName }}</div>
+                        <div class="font-medium">
+                            {{ visit.submitterName }}
+                            <div class="badge badge-xs" :style="{ '--badge-color': visit.scheduleColor }">{{ visit.scheduleShortName }}</div>
+                        </div>
                         <div class="text-sm text-base-content/60">
                             <span v-if="visit.apartmentNumber">
                                 ok. <span class="font-semibold">--:--</span>
