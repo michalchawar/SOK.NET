@@ -38,7 +38,8 @@ namespace SOK.Application.Services.Interface
         public async Task<bool> SendConfirmationEmail(int submissionId, bool onlyQueue = false)
         {
             var submission = await _uow.Submission.GetAsync(
-                filter: s => s.Id == submissionId
+                filter: s => s.Id == submissionId,
+                includeProperties: "Submitter"
             );
 
             if (submission == null)
@@ -51,7 +52,8 @@ namespace SOK.Application.Services.Interface
         public async Task<string> PreviewConfirmationEmail(int submissionId)
         {
             var submission = await _uow.Submission.GetAsync(
-                filter: s => s.Id == submissionId
+                filter: s => s.Id == submissionId,
+                includeProperties: "Submitter"
             );
 
             if (submission == null)
@@ -73,7 +75,8 @@ namespace SOK.Application.Services.Interface
         public async Task<bool> SendVisitPlannedEmail(int submissionId, bool onlyQueue = false)
         {
             var submission = await _uow.Submission.GetAsync(
-                filter: s => s.Id == submissionId
+                filter: s => s.Id == submissionId,
+                includeProperties: "Submitter"
             );
 
             if (submission == null)
@@ -86,7 +89,8 @@ namespace SOK.Application.Services.Interface
         public async Task<string> PreviewVisitPlannedEmail(int submissionId)
         {
             var submission = await _uow.Submission.GetAsync(
-                filter: s => s.Id == submissionId
+                filter: s => s.Id == submissionId,
+                includeProperties: "Submitter"
             );
 
             if (submission == null)
