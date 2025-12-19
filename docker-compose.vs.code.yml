@@ -8,6 +8,12 @@
       - .:/src
       - /src/SOK.Web/bin
       - /src/SOK.Web/obj
+      - /src/SOK.Application/bin
+      - /src/SOK.Application/obj
+      - /src/SOK.Domain/bin
+      - /src/SOK.Domain/obj
+      - /src/SOK.Infrastructure/bin
+      - /src/SOK.Infrastructure/obj
     # command: dotnet watch run --urls=http://0.0.0.0:8080
     entrypoint: ["dotnet", "watch", "run", "--urls=http://0.0.0.0:8080", "--non-interactive", "--project", "/src/SOK.Web/SOK.Web.csproj"]
     environment:
