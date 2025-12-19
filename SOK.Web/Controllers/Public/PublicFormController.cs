@@ -223,8 +223,9 @@ namespace SOK.Web.Controllers
                 Status = submission.Visit.Status,
                 OrdinalNumber = submission.Visit.OrdinalNumber,
                 PlannedDate = submission.Visit.Agenda?.Day?.Date,
+                DateVisible = submission.Visit.Agenda?.ShowsAssignment ?? false,
                 EstimatedTime = null, // TODO: Oblicz przewidywaną godzinę na podstawie OrdinalNumber i StartHourOverride
-                Agenda = null // Agenda jest obiektem, nie stringiem - można dodać jej nazwę/opis jeśli potrzeba
+                TimeVisible = submission.Visit.Agenda?.ShowHours ?? false,
             };
 
             // Plan i harmonogram

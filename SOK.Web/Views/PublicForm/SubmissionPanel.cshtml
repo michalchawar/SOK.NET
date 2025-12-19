@@ -126,7 +126,8 @@
             <div class="space-y-4">
                 <!-- Status wizyty -->
                 <div class="text-center py-6">
-                    @if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Unplanned)
+                    @if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Unplanned
+                      || !Model.Visit.DateVisible)
                     {
                         <div class="flex flex-col items-center gap-4">
                             <i class="bi bi-clock-history text-6xl opacity-50"></i>
@@ -151,7 +152,7 @@
                                         <div class="stat-title">Data wizyty</div>
                                         <div class="stat-value text-3xl">@Model.Visit.PlannedDate.Value.ToString("dd.MM.yyyy")</div>
                                         
-                                        @if (Model.Visit.EstimatedTime.HasValue)
+                                        @if (Model.Visit.TimeVisible && Model.Visit.EstimatedTime.HasValue)
                                         {
                                             <div class="stat-desc">Przewidywana godzina: @Model.Visit.EstimatedTime.Value.ToString("HH:mm")</div>
                                         }
