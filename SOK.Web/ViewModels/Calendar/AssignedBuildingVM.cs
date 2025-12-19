@@ -8,6 +8,7 @@ namespace SOK.Web.ViewModels.Calendar
         public string BuildingNumber { get; set; } = string.Empty;
         public int SubmissionsTotal { get; set; }
         public int SubmissionsUnassigned { get; set; }
+        public int SubmissionsAssignedHere { get; set; }
     }
 
     public class ScheduleWithBuildingsVM
@@ -17,6 +18,7 @@ namespace SOK.Web.ViewModels.Calendar
         public List<AssignedBuildingVM> Buildings { get; set; } = new();
         public int TotalBuildings => Buildings.Count;
         public int TotalSubmissions => Buildings.Sum(b => b.SubmissionsTotal);
+        public int TotalSubmissionsHere => Buildings.Sum(b => b.SubmissionsAssignedHere);
     }
 
     public class DayAssignmentsVM
@@ -25,5 +27,6 @@ namespace SOK.Web.ViewModels.Calendar
         public List<ScheduleWithBuildingsVM> Schedules { get; set; } = new();
         public int TotalBuildingsAssigned => Schedules.Sum(s => s.TotalBuildings);
         public int TotalSubmissions => Schedules.Sum(s => s.TotalSubmissions);
+        public int TotalSubmissionsHere => Schedules.Sum(s => s.TotalSubmissionsHere);
     }
 }

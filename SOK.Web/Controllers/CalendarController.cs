@@ -161,7 +161,8 @@ namespace SOK.Web.Controllers
                         StreetName = b.StreetName,
                         BuildingNumber = b.BuildingNumber,
                         SubmissionsTotal = b.SubmissionsTotal,
-                        SubmissionsUnassigned = b.SubmissionsUnassigned
+                        SubmissionsUnassigned = b.SubmissionsUnassigned,
+                        SubmissionsAssignedHere = b.SubmissionsAssignedHere
                     })
                     .OrderBy(b => b.StreetName)
                     .ThenBy(b => int.TryParse(b.BuildingNumber, out var num) ? num : 0)

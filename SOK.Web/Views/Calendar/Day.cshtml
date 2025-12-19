@@ -1,8 +1,12 @@
+@using NUglify.Html
 @using SOK.Application.Common.Helpers
 @using SOK.Web.ViewModels.Calendar
 @model SOK.Domain.Entities.Parish.Day
 @{
     ViewData["Title"] = "Dzień kolędy - " + ViewData["DayDate"];
+    
+    var agendas = ViewData["Agendas"] as SOK.Web.ViewModels.Calendar.DayAgendasVM;
+    var assignments = ViewData["Assignments"] as SOK.Web.ViewModels.Calendar.DayAssignmentsVM;
 }
 
 <div class="container mx-auto p-4">
@@ -15,34 +19,22 @@
         </div>
         <div class="flex flex-col flex-wrap items-end gap-2">
             <div class="flex justify-end gap-2">
-                @if (ViewData["PreviousDayId"] != null)
-                {
-                    <a asp-action="Day" asp-route-id="@ViewData["PreviousDayId"]" class="btn btn-secondary btn-soft">
-                        <i class="bi bi-arrow-left"></i>
-                        Poprzedni dzień
-                    </a>
+                @{
+                    var previousDayId = ViewData["PreviousDayId"];
+                    var nextDayId = ViewData["NextDayId"];
                 }
-                else
-                {
-                    <button class="btn btn-secondary btn-soft" disabled>
-                        <i class="bi bi-arrow-left"></i>
-                        Poprzedni dzień
-                    </button>
-                }
-                @if (ViewData["NextDayId"] != null)
-                {
-                    <a asp-action="Day" asp-route-id="@ViewData["NextDayId"]" class="btn btn-accent btn-soft">
-                        Następny dzień
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                }
-                else
-                {
-                    <button class="btn btn-accent btn-soft" disabled>
-                        Następny dzień
-                        <i class="bi bi-arrow-right"></i>
-                    </button>
-                }
+                <a asp-action="@(previousDayId != null ? "Day" : "Index")" asp-route-id="@(previousDayId ?? "")" 
+                    class="btn btn-soft @(previousDayId != null ? "btn-secondary" : "")"
+                    disabled="@(previousDayId == null)">
+                    <i class="bi bi-arrow-left"></i>
+                    Poprzedni dzień
+                </a>
+                <a asp-action="@(nextDayId != null ? "Day" : "Index")" asp-route-id="@(nextDayId ?? "")" 
+                    class="btn btn-soft @(nextDayId != null ? "btn-accent" : "")"
+                    disabled="@(nextDayId == null)">
+                    Następny dzień
+                    <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
             <a asp-action="Index" class="btn btn-ghost">
                 <i class="bi bi-arrow-left"></i>
@@ -65,8 +57,7 @@
                     </div>
                     <div class="stat bg-primary/40 text-white rounded-lg">
                         <div class="stat-title">Wizyty</div>
-                        <div class="stat-value font-semibold text-3xl">@(Model.Agendas.Select(a =>
-                                                        a.Visits.Count).Sum())</div>
+                        <div class="stat-value font-semibold text-3xl">@(assignments?.TotalSubmissionsHere ?? 0)</div>
                         <div class="stat-desc whitespace-normal">zaplanowanych odwiedzin</div>
                     </div>
                     <div class="stat bg-base-200 rounded-lg">
@@ -76,20 +67,17 @@
                     </div>
                     <div class="stat bg-base-200 rounded-lg lg:col-span-2">
                         <div class="stat-title">Przypisane budynki</div>
-                        <div class="stat-value text-2xl">@(Model.BuildingsAssigned?.Count ?? 0)</div>
+                        <div class="stat-value text-2xl">@(assignments?.TotalBuildingsAssigned ?? 0)</div>
                         <div class="stat-desc whitespace-normal">budynków w planie</div>
                     </div>
                     <div class="stat bg-base-200 rounded-lg lg:col-span-2">
                         <div class="stat-title">Agendy</div>
-                        <div class="stat-value text-2xl">@(Model.Agendas?.Count ?? 0)</div>
+                        <div class="stat-value text-2xl">@(agendas?.Agendas.Count ?? 0)</div>
                         <div class="stat-desc whitespace-normal">harmonogramów księdza</div>
                     </div>
                 </div>
             </div>
 
-            @{
-                var agendas = ViewData["Agendas"] as SOK.Web.ViewModels.Calendar.DayAgendasVM;
-            }
             <div class="flex items-center">
                 <div class="text-nowrap text-2xl sm:text-lg font-medium">
                     Agendy
@@ -228,10 +216,6 @@
                     </div>
                 }
             </div>
-
-            @{
-                var assignments = ViewData["Assignments"] as SOK.Web.ViewModels.Calendar.DayAssignmentsVM;
-            }
             <div class="flex flex-col items-start gap-y-1.5 sm:flex-row sm:items-center">
                 <div class="text-nowrap text-2xl sm:text-lg font-medium">
                     Przypisania budynków
@@ -241,7 +225,7 @@
                     }
                 </div>
 
-                <div class="hidden sm:divider flex-1 my-0 px-3 self-auto"></div>
+                <div class="hidden sm:flex sm:divider flex-1 my-0 px-3 self-auto"></div>
                 
                 <button type="button" class="btn btn-primary" onclick="openAssignmentModal()">
                     <i class="bi bi-building-add"></i>
@@ -285,18 +269,28 @@
                                         @foreach (var street in buildingsByStreet)
                                         {
                                             <div class="border-l-4 border-primary pl-3">
-                                                <div class="font-medium text-sm mb-2">@street.Key.StreetName</div>
+                                                <div class="font-medium text-base mb-2">@street.Key.StreetName</div>
                                                 <div class="flex flex-wrap gap-2">
-                                                    @foreach (var building in street)
+                                                    @{
+                                                        var orderedBuildings = street
+                                                            .OrderBy(b => int.TryParse(
+                                                                string.Join(string.Empty, b.BuildingNumber.TakeWhile(c => Char.IsDigit(c))), out var num) ? 
+                                                                num : 
+                                                                0)
+                                                            .ThenBy(b => b.BuildingNumber);
+                                                    }
+                                                    @foreach (var building in orderedBuildings)
                                                     {
                                                         <div class="badge badge-lg gap-2 tooltip"
-                                                            data-tip="@building.SubmissionsTotal zgłoszeń (@building.SubmissionsUnassigned nieprzypisanych)">
+                                                            data-tip="@building.SubmissionsAssignedHere przypisanych dziś (@building.SubmissionsTotal wszystkich, @building.SubmissionsUnassigned nieprzypisanych)">
                                                             <i class="bi bi-building"></i>
-                                                            @building.BuildingNumber
-                                                            @if (building.SubmissionsTotal > 0)
+                                                            <span class="text-base font-semibold">@building.BuildingNumber</span>
+
+                                                            @if (building.SubmissionsAssignedHere > 0)
                                                             {
-                                                                <span
-                                                                    class="badge badge-sm badge-ghost">@building.SubmissionsTotal</span>
+                                                                <span class="badge badge-sm badge-ghost">
+                                                                    @building.SubmissionsAssignedHere
+                                                                </span>
                                                             }
                                                         </div>
                                                     }

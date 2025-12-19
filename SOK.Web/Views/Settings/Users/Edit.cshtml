@@ -4,6 +4,19 @@
 @{
     ViewData["Title"] = "Edytuj użytkownika";
     var allRoles = ViewData["AllRoles"] as List<Role> ?? new List<Role>();
+
+    string GetBadgeColorClass(Role role)
+    {
+        return role switch
+        {
+            Role.Administrator => "bg-red-500 border-red-500 text-white",
+            Role.Priest => "bg-purple-500 border-purple-500 text-white",
+            Role.SubmitSupport => "bg-blue-500 border-blue-500 text-white",
+            Role.VisitSupport => "bg-green-500 border-green-500 text-white",
+            Role.DefaultUser => "bg-gray-400 border-gray-400 text-white",
+            _ => "bg-gray-300 border-gray-300"
+        };
+    }
 }
 
 <div id="edit-user-app" class="min-h-full w-full flex flex-col items-center justify-center">
@@ -113,7 +126,7 @@
                                @(Model.SelectedRoles.Contains(role) ? "checked" : "") />
                         <i class="@role.GetRoleIcon() text-lg"></i>
                         <span class="label-text font-medium flex-1">@role.ToPolishName()</span>
-                        <span class="badge badge-xs @role.GetBadgeColorClass()">@role.ToString()</span>
+                        <span class="badge badge-xs @GetBadgeColorClass(role)">@role.ToString()</span>
                     </label>
                 }
             </div>

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@source "./wwwroot/**/*.js,./Views/**/*.cshtml,./wwwroot/css/roles-safelist.css";
+@source "./wwwroot/**/*.js,./Views/**/*.cshtml";
 @plugin "daisyui";
 
 @custom-variant dark ([data-theme="dark"] &);
