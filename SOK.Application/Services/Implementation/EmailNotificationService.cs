@@ -30,6 +30,7 @@ namespace SOK.Application.Services.Interface
         /// <inheritdoc />
         public async Task<bool> SendConfirmationEmail(Submission submission, bool onlyQueue = false)
         {
+            await EnsurePropertiesCreated();
             var email = new ConfirmationEmail(submission, ControlLinkBase);
             return await HandleEmailSending(email, submission, onlyQueue);
         }
@@ -59,6 +60,7 @@ namespace SOK.Application.Services.Interface
             if (submission == null)
                 throw new InvalidOperationException($"Submission with ID {submissionId} not found.");
 
+            await EnsurePropertiesCreated();
             var email = new ConfirmationEmail(submission, ControlLinkBase);
 
             return await RequestEmailPreview(email);
@@ -67,6 +69,7 @@ namespace SOK.Application.Services.Interface
         /// <inheritdoc />
         public async Task<bool> SendVisitPlannedEmail(Submission submission, bool onlyQueue = false)
         {
+            await EnsurePropertiesCreated();
             var email = new VisitPlannedEmail(submission, ControlLinkBase);
             return await HandleEmailSending(email, submission, onlyQueue);
         }
@@ -96,6 +99,7 @@ namespace SOK.Application.Services.Interface
             if (submission == null)
                 throw new InvalidOperationException($"Submission with ID {submissionId} not found.");
 
+            await EnsurePropertiesCreated();
             var email = new VisitPlannedEmail(submission, ControlLinkBase);
 
             return await RequestEmailPreview(email);
@@ -107,6 +111,7 @@ namespace SOK.Application.Services.Interface
             if (string.IsNullOrWhiteSpace(to) || !Regex.IsMatch(to, RegExpressions.EmailPattern))
                 return false;
 
+            await EnsurePropertiesCreated();
             var email = new InvalidEmailNotification(submission, to);
             return await HandleEmailSending(email, submission, onlyQueue);
         }
@@ -136,6 +141,7 @@ namespace SOK.Application.Services.Interface
             if (submission == null)
                 throw new InvalidOperationException($"Submission with ID {submissionId} not found.");
 
+            await EnsurePropertiesCreated();
             var email = new InvalidEmailNotification(submission, to);
 
             return await RequestEmailPreview(email);
@@ -152,6 +158,7 @@ namespace SOK.Application.Services.Interface
             if (submission == null)
                 throw new InvalidOperationException($"Submission with ID {submissionId} not found.");
 
+            await EnsurePropertiesCreated();
             var email = new DataChangeEmail(submission, ControlLinkBase, changes);
 
             return await RequestEmailPreview(email);
@@ -159,9 +166,6 @@ namespace SOK.Application.Services.Interface
 
         private async Task<bool> HandleEmailSending(EmailTypeBase email, Submission submission, bool onlyQueue)
         {
-            if (string.IsNullOrEmpty(ControlLinkBase))
-                await InitProperties();
-
             if (!SendEmails)
                 return false;
 
@@ -184,7 +188,7 @@ namespace SOK.Application.Services.Interface
         private async Task<string> RequestEmailPreview(EmailTypeBase email)
         {
             if (string.IsNullOrEmpty(ControlLinkBase))
-                await InitProperties();
+                await EnsurePropertiesCreated();
 
             try
             {
@@ -201,7 +205,7 @@ namespace SOK.Application.Services.Interface
             }
         }
 
-        private async Task InitProperties()
+        private async Task EnsurePropertiesCreated()
         {
             if (string.IsNullOrEmpty(ControlLinkBase))
             {
