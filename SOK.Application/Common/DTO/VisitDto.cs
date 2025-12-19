@@ -29,7 +29,7 @@ namespace SOK.Application.Common.DTO
             EstimatedTime = null;
             StartHour = visit.Agenda?.StartHourOverride ?? visit.Agenda?.Day.StartHour;
             EndHour = visit.Agenda?.EndHourOverride ?? visit.Agenda?.Day.EndHour;
-            DateVisible = visit.Agenda?.ShowsAssignment ?? false;
+            DateVisible = !visit.Agenda?.HideVisits ?? true;
             TimeVisible = visit.Agenda?.ShowHours ?? false;
             AgendaId = visit.Agenda?.Id;
 

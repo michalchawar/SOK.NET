@@ -109,6 +109,25 @@
                     <span>Brak ministrantów w systemie.</span>
                 </div>
             </div>
+
+            <!-- Ustawienia dodatkowe -->
+            <div class="grid grid-cols-1 gap-4">
+                <label class="label">
+                    <span class="label-text">Ustawienia agendy</span>
+                </label>
+                <div class="flex gap-2 items-center">
+                    <input v-model="form.showHours" type="checkbox" class="checkbox checkbox-primary" id="show-hours-checkbox" />
+                    <label class="label" for="show-hours-checkbox">
+                        Pokaż godziny w agendzie
+                    </label>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <input v-model="form.hideVisits" type="checkbox" class="checkbox checkbox-primary" id="hide-visits-checkbox" />
+                    <label class="label" for="hide-visits-checkbox">
+                        Ukryj wizyty przed zgłaszającymi (agenda niepubliczna)
+                    </label>
+                </div>
+            </div>
         </div>
 
         <!-- Akcje -->
@@ -156,7 +175,9 @@
                         startHour: null,
                         endHour: null,
                         priestId: null,
-                        ministerIds: []
+                        ministerIds: [],
+                        hideVisits: false,
+                        showHours: false
                     },
                     selectedMinisterId: null
                 };
@@ -198,7 +219,9 @@
                         startHour: null,
                         endHour: null,
                         priestId: null,
-                        ministerIds: []
+                        ministerIds: [],
+                        hideVisits: false,
+                        showHours: false
                     };
                     this.selectedMinisterId = null;
                 },
@@ -211,6 +234,8 @@
                         const data = await response.json();
                         this.priests = data.priests || [];
                         this.ministers = data.ministers || [];
+                        this.hideVisits = data.hideVisits || false;
+                        this.showHours = data.showHours || false;
                     } catch (error) {
                         console.error('Error loading modal data:', error);
                         alert('Nie udało się załadować danych modalu');
@@ -230,6 +255,8 @@
                         this.form.endHour = agenda.endHourOverride ? this.formatTimeForInput(agenda.endHourOverride) : null;
                         this.form.priestId = agenda.priest?.id || null;
                         this.form.ministerIds = agenda.ministers.map(m => m.id);
+                        this.form.hideVisits = agenda.hideVisits;
+                        this.form.showHours = agenda.showHours;
                     } catch (error) {
                         console.error('Error loading agenda:', error);
                         alert('Nie udało się załadować danych agendy');
@@ -274,7 +301,9 @@
                             startHourOverride: this.form.startHour || null,
                             endHourOverride: this.form.endHour || null,
                             priestId: this.form.priestId,
-                            ministerIds: this.form.ministerIds
+                            ministerIds: this.form.ministerIds,
+                            hideVisits: this.form.hideVisits,
+                            showHours: this.form.showHours
                         };
 
                         let response;

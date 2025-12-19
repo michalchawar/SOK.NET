@@ -56,6 +56,9 @@ namespace SOK.Application.Common.DTO
         public string? ApartmentNumber { get; set; }
         public int? FloorNumber { get; set; }
         public string? SubmitterNotes { get; set; }
+        public int NotesStatus { get; set; }
+        public string? AdminNotes { get; set; }
+        public string? AdminMessage { get; set; }
         public int? ScheduleId { get; set; }
         public string? ScheduleName { get; set; }
         public bool IsAssigned { get; set; }

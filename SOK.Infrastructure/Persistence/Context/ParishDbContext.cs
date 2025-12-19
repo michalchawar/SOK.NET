@@ -268,7 +268,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 if (visit.Agenda.Day != null)
                 {
                     visitDate = visit.Agenda.Day.Date.ToDateTime(TimeOnly.MinValue);
-                    dateVisibility = visit.Agenda.ShowsAssignment;
+                    dateVisibility = !visit.Agenda.HideVisits;
                 }
             }
 

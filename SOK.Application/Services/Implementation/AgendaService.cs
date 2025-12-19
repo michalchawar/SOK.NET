@@ -55,8 +55,8 @@ namespace SOK.Application.Services.Implementation
                 DayId = dto.DayId,
                 StartHourOverride = dto.StartHourOverride,
                 EndHourOverride = dto.EndHourOverride,
-                ShowsAssignment = false,
-                ShowHours = false
+                HideVisits = dto.HideVisits,
+                ShowHours = dto.ShowHours
             };
 
             // Dodaj przypisanych użytkowników
@@ -86,6 +86,8 @@ namespace SOK.Application.Services.Implementation
             // Aktualizuj pola
             agenda.StartHourOverride = dto.StartHourOverride;
             agenda.EndHourOverride = dto.EndHourOverride;
+            agenda.HideVisits = dto.HideVisits;
+            agenda.ShowHours = dto.ShowHours;
 
             // Przygotuj listę docelowych ID członków
             var targetMemberIds = new List<int>();
@@ -229,7 +231,7 @@ namespace SOK.Application.Services.Implementation
                 StartHourOverride = agenda.StartHourOverride,
                 EndHourOverride = agenda.EndHourOverride,
                 GatheredFunds = agenda.GatheredFunds,
-                ShowsAssignment = agenda.ShowsAssignment,
+                HideVisits = agenda.HideVisits,
                 ShowHours = agenda.ShowHours,
                 VisitsCount = agenda.Visits?.Count ?? 0,
                 Priest = priest == null ? null : new ParishMemberSimpleDto
@@ -335,6 +337,9 @@ namespace SOK.Application.Services.Implementation
                         ApartmentNumber = (s.Address.ApartmentNumber?.ToString() ?? "") + (s.Address.ApartmentLetter ?? ""),
                         FloorNumber = null,
                         SubmitterNotes = s.SubmitterNotes,
+                        NotesStatus = (int)s.NotesStatus,
+                        AdminNotes = s.AdminNotes,
+                        AdminMessage = s.AdminMessage,
                         ScheduleId = s.Visit?.ScheduleId,
                         ScheduleName = s.Visit?.Schedule?.Name,
                         IsAssigned = s.Visit?.AgendaId != null,

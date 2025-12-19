@@ -19,6 +19,10 @@ namespace SOK.Application.Common.DTO
         public int? PriestId { get; set; }
 
         public List<int> MinisterIds { get; set; } = new();
+
+        public bool HideVisits { get; set; }
+        
+        public bool ShowHours { get; set; }
     }
 
     /// <summary>
@@ -32,7 +36,7 @@ namespace SOK.Application.Common.DTO
         public TimeOnly? StartHourOverride { get; set; }
         public TimeOnly? EndHourOverride { get; set; }
         public float? GatheredFunds { get; set; }
-        public bool ShowsAssignment { get; set; }
+        public bool HideVisits { get; set; }
         public bool ShowHours { get; set; }
         public int VisitsCount { get; set; }
 

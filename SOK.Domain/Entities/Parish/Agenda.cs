@@ -43,11 +43,10 @@ namespace SOK.Domain.Entities.Parish
         public float? GatheredFunds { get; set; }
 
         /// <summary>
-        /// Określa, czy przypisania wizyt w tej agendzie mają być widoczne dla zgłaszających (niezalogowanych użytkowników).
-        /// Wartość automatycznie ustawiana jest na true na określony (w ustawieniach) czas przed rozpoczęciem agendy.
+        /// Określa, czy wizyty zapisane do tej agendy mają być ukryte dla zgłaszających (niezalogowanych użytkowników).
         /// </summary>
         [DefaultValue(false)]
-        public bool ShowsAssignment { get; set; } = false;
+        public bool HideVisits { get; set; } = false;
 
         /// <summary>
         /// Określa, czy przewidywane godziny wizyt w tej agendzie mają być widoczne dla zgłaszających (niezalogowanych użytkowników).

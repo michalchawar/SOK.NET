@@ -57,7 +57,7 @@
                     </div>
                     <div class="stat bg-primary/40 text-white rounded-lg">
                         <div class="stat-title">Wizyty</div>
-                        <div class="stat-value font-semibold text-3xl">@(assignments?.TotalSubmissionsHere ?? 0)</div>
+                        <div class="stat-value font-semibold text-3xl">@((agendas?.Agendas.Select(a => a.VisitsCount).Sum()) ?? 0)</div>
                         <div class="stat-desc whitespace-normal">zaplanowanych odwiedzin</div>
                     </div>
                     <div class="stat bg-base-200 rounded-lg">
@@ -159,19 +159,29 @@
                                         </div>
                                     </div>
                                     <div class="flex flex-col justify-start sm:justify-normal sm:text-end gap-1 sm:gap-4 text-base-content/70">
-                                        @if (agenda.ShowsAssignment)
-                                        {
-                                            <span class="badge badge-sm badge-success">
-                                                Opublikowano
-                                            </span>
-                                        }
-                                        @if (agenda.ShowHours)
-                                        {
-                                            <span class="badge badge-sm badge-info tooltip"
-                                                data-tip="Oznaczyłeś tę agendę jako ułożoną, zatem przewidywane godziny odwiedzin są widoczne dla zgłaszających.">
-                                                Godziny widoczne
-                                            </span>
-                                        }
+                                        <div class="flex gap-x-2 gap-y-1 items-baseline sm:flex-col sm:items-end">
+                                            @if (!agenda.ShowsAssignment)
+                                            {
+                                                <span class="badge badge-sm badge-error tooltip"
+                                                    data-tip="Ta agenda jest ukryta. Zgłaszający nie widzą informacji o przypisaniu do tej agendy, wyświetlany jest komunikat o oczekiwaniu na zaplanowanie wizyty.">
+                                                    Niepubliczna
+                                                </span>
+                                            }
+                                            @if (agenda.ShowHours)
+                                            {
+                                                <span class="badge badge-sm badge-ghost tooltip"
+                                                    data-tip="Oznaczyłeś tę agendę jako ułożoną, zatem przewidywane godziny odwiedzin są widoczne dla zgłaszających.">
+                                                    Godziny widoczne
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-sm badge-info tooltip"
+                                                    data-tip="Ta agenda nie jest jeszcze ułożona, zatem godziny odwiedzin nie są widoczne dla zgłaszających.">
+                                                    Godziny ukryte
+                                                </span>
+                                            }
+                                        </div>
                                         <div class="flex gap-x-1 items-baseline sm:flex-col sm:items-end">
                                             <span class="sm:text-sm">
                                                 <i class="bi bi-clock"></i>

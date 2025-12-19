@@ -30,7 +30,7 @@ namespace SOK.Web.ViewModels.Parish
         public VisitStatus Status { get; set; }
         public int? OrdinalNumber { get; set; }
         public DateOnly? PlannedDate { get; set; }
-        public bool DateVisible { get; set; } = false;
+        public bool DateVisible { get; set; } = true;
         public TimeOnly? EstimatedTime { get; set; }
         public bool TimeVisible { get; set; } = false;
     }

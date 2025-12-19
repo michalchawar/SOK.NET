@@ -190,7 +190,7 @@ namespace SOK.Web.Controllers
                     StartHourOverride = a.StartHourOverride,
                     EndHourOverride = a.EndHourOverride,
                     VisitsCount = a.VisitsCount,
-                    ShowsAssignment = a.ShowsAssignment,
+                    ShowsAssignment = !a.HideVisits,
                     ShowHours = a.ShowHours, 
                     GatheredFunds = a.GatheredFunds ?? 0f
                 }).ToList()
