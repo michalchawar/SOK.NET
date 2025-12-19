@@ -119,6 +119,14 @@ local.settings.json
 coverage*.json
 coverage*.xml
 coverage*.info
+
+# Node.js
 /SOK.Web/node_modules
+
+# Build artifacts
 /SOK.Web/wwwroot/css/site.min.css
 /SOK.Web/wwwroot/css/site.output.css
+
+# Vendor libraries (managed by npm)
+/SOK.Web/wwwroot/lib/vue/
+/SOK.Web/wwwroot/lib/bootstrap-icons/

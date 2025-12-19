@@ -1,0 +1,11 @@
+@* Vue.js script tag - automatically selects dev or prod version based on environment *@
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
+
+@if (HostEnvironment.IsDevelopment())
+{
+    <script src="~/lib/vue/vue.global.js" asp-append-version="true"></script>
+}
+else
+{
+    <script src="~/lib/vue/vue.global.prod.js" asp-append-version="true"></script>
+}

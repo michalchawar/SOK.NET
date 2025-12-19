@@ -13,6 +13,7 @@ WORKDIR /app
 
 # Kopiuj pliki package.json i package-lock.json
 COPY ["SOK.Web/package*.json", "./"]
+COPY ["SOK.Web/copy-libs.js", "./"]
 
 # Instaluj zależności Node.js (łącznie z devDependencies dla buildu)
 RUN npm ci
@@ -27,9 +28,6 @@ COPY ["SOK.Web/wwwroot/", "./wwwroot/"]
 # Buduj CSS
 RUN npx @tailwindcss/cli -i wwwroot/css/site.css -o wwwroot/css/site.min.css -m
 
-# Minifikuj JavaScript
-RUN npx terser wwwroot/js/site.js -c -m -o wwwroot/js/site.min.js && \
-    npx terser wwwroot/js/address-utilities.js -c -m -o wwwroot/js/address-utilities.min.js
 
 # Ten etap służy do kompilowania projektu usługi
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
@@ -39,9 +37,9 @@ COPY ["SOK.Web/SOK.Web.csproj", "SOK.Web/SOK.Web.csproj"]
 RUN dotnet restore "./SOK.Web/SOK.Web.csproj"
 COPY . .
 
-# Skopiuj zbudowany CSS i zminifikowane JS z etapu node-build
+# Skopiuj zbudowany CSS i biblioteki vendor z etapu node-build
 COPY --from=node-build /app/wwwroot/css/site.min.css /src/SOK.Web/wwwroot/css/
-COPY --from=node-build /app/wwwroot/js/*.min.js /src/SOK.Web/wwwroot/js/
+COPY --from=node-build /app/wwwroot/lib/ /src/SOK.Web/wwwroot/lib/
 
 WORKDIR /src/SOK.Web
 RUN dotnet build "./SOK.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build

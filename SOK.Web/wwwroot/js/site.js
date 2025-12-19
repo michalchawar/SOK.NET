@@ -3,6 +3,27 @@
 //
 /// <reference path="../lib/jquery/dist/jquery.js" />
 
+// Disable console in production
+// Sprawdza czy document.documentElement ma atrybut data-env="Development"
+(function() {
+    // Sprawdź środowisko z atrybutu HTML (zostanie ustawione w _Layout.cshtml)
+    const isProduction = document.documentElement.getAttribute('data-env') !== 'Development';
+    
+    if (isProduction) {
+        // Zachowaj console.error dla krytycznych błędów (opcjonalnie)
+        const originalError = console.error.bind(console);
+        
+        // Nadpisz wszystkie metody console (oprócz error)
+        console.log = function() {};
+        console.debug = function() {};
+        console.info = function() {};
+        console.warn = function() {};
+        
+        // Opcjonalnie: wyłącz też console.error (odkomentuj jeśli chcesz)
+        // console.error = function() {};
+    }
+})();
+
 const sidebarWidthClass = {
     collapsed: "w-16",
     expanded: "w-68"
