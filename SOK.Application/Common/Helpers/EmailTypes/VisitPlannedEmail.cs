@@ -11,7 +11,7 @@ namespace SOK.Application.Common.Helpers.EmailTypes
         private readonly string _controlLinkBase;
 
         public override string TemplateName => "visit_planned";
-        public override string DefaultSubject => "Zaplanowano wizytę";
+        public override string DefaultSubject => "Zaplanowaliśmy Twoją wizytę!";
         public override string To => _submission.Submitter.Email!;
         public override int Priority => 4;
 

@@ -35,6 +35,7 @@ namespace SOK.Web.Controllers.API
                     id = s.Id,
                     name = s.Name,
                     shortName = s.ShortName,
+                    color = s.Color,
                 }).ToList();
 
                 return Ok(new { schedules });

@@ -15,12 +15,15 @@ namespace SOK.Web.Controllers.Api
     public class EmailApiController : ControllerBase
     {
         private readonly IEmailService _emailService;
-        private readonly ISubmissionService _submissionService;
+        private readonly IEmailNotificationService _notificationService;
         private readonly IParishInfoService _parishInfoService;
-        public EmailApiController(IEmailService emailService, ISubmissionService submissionService, IParishInfoService parishInfoService)
+        public EmailApiController(
+            IEmailService emailService, 
+            IEmailNotificationService notificationService, 
+            IParishInfoService parishInfoService)
         {
             _emailService = emailService;
-            _submissionService = submissionService;
+            _notificationService = notificationService;
             _parishInfoService = parishInfoService;
 
             _emailService.SetSMTPTimeout(5000);
@@ -28,6 +31,12 @@ namespace SOK.Web.Controllers.Api
 
         [HttpPost("queue/confirmation")]
         public async Task<IActionResult> QueueEmail([FromBody] ConfirmationEmailRequest request)
+        {
+            return await QueueGenericEmail(request);
+        }
+
+        [HttpPost("queue/visit_planned")]
+        public async Task<IActionResult> QueueEmail([FromBody] VisitPlannedEmailRequest request)
         {
             return await QueueGenericEmail(request);
         }
@@ -45,6 +54,12 @@ namespace SOK.Web.Controllers.Api
 
         [HttpPost("preview/confirmation")]
         public async Task<IActionResult> PreviewEmail([FromBody] ConfirmationEmailRequest request)
+        {
+            return await PreviewGenericEmail(request);
+        }
+
+        [HttpPost("preview/visit_planned")]
+        public async Task<IActionResult> PreviewEmail([FromBody] VisitPlannedEmailRequest request)
         {
             return await PreviewGenericEmail(request);
         }
@@ -74,10 +89,13 @@ namespace SOK.Web.Controllers.Api
                 switch (request)
                 {
                     case ConfirmationEmailRequest confirmationRequest:
-                        sent = await _submissionService.SendConfirmationEmailAsync(confirmationRequest.SubmissionId);
+                        sent = await _notificationService.SendConfirmationEmail(confirmationRequest.SubmissionId);
+                        break;
+                    case VisitPlannedEmailRequest visitPlannedRequest:
+                        sent = await _notificationService.SendVisitPlannedEmail(visitPlannedRequest.SubmissionId);
                         break;
                     case InvalidEmailRequest invalidRequest:
-                        sent = await _submissionService.SendInvalidEmailAsync(invalidRequest.SubmissionId, invalidRequest.To);
+                        sent = await _notificationService.SendInvalidEmailNotification(invalidRequest.SubmissionId, invalidRequest.To);
                         break;
                     default:
                         return BadRequest(new { success = false, message = "Nieznany typ żądania email." });
@@ -105,13 +123,16 @@ namespace SOK.Web.Controllers.Api
                 switch (request)
                 {
                     case ConfirmationEmailRequest confirmationRequest:
-                        html = await _submissionService.PreviewConfirmationEmailAsync(confirmationRequest.SubmissionId);
+                        html = await _notificationService.PreviewConfirmationEmail(confirmationRequest.SubmissionId);
+                        break;
+                    case VisitPlannedEmailRequest visitPlannedRequest:
+                        html = await _notificationService.PreviewVisitPlannedEmail(visitPlannedRequest.SubmissionId);
                         break;
                     case InvalidEmailRequest invalidRequest:
-                        html = await _submissionService.PreviewInvalidEmailAsync(invalidRequest.SubmissionId, invalidRequest.To);
+                        html = await _notificationService.PreviewInvalidEmailNotification(invalidRequest.SubmissionId, invalidRequest.To);
                         break;
                     case DataChangeEmailRequest dataChangeRequest:
-                        html = await _submissionService.PreviewDataChangeEmailAsync(dataChangeRequest.SubmissionId, dataChangeRequest.Changes);
+                        html = await _notificationService.PreviewDataChangeEmail(dataChangeRequest.SubmissionId, dataChangeRequest.Changes);
                         break;
                     default:
                         return BadRequest(new { success = false, message = "Nieznany typ żądania email." });
@@ -166,6 +187,10 @@ namespace SOK.Web.Controllers.Api
     } 
 
     public class ConfirmationEmailRequest : EmailRequest
+    {
+    }
+
+    public class VisitPlannedEmailRequest : EmailRequest
     {
     }
 
