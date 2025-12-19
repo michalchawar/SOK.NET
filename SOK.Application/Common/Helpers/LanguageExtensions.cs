@@ -78,5 +78,53 @@ namespace SOK.Application.Common.Helpers
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+
+        
+        /// <summary>
+        /// Normalizuje polskie diakrytyki w łańcuchu znaków, zamieniając je na ich odpowiedniki bez znaków diakrytycznych.
+        /// </summary>
+        /// <param name="input">Łańcuch znaków do normalizacji.</param>
+        /// <returns>
+        /// Łańcuch znaków bez polskich znaków diakrytycznych.
+        /// </returns>
+        public static string NormalizePolishDiacritics(this string input)
+        {
+            var replacements = new Dictionary<char, char>
+            {
+                {'ą', 'a'},
+                {'ć', 'c'},
+                {'ę', 'e'},
+                {'ł', 'l'},
+                {'ń', 'n'},
+                {'ó', 'o'},
+                {'ś', 's'},
+                {'ź', 'z'},
+                {'ż', 'z'},
+                {'Ą', 'A'},
+                {'Ć', 'C'},
+                {'Ę', 'E'},
+                {'Ł', 'L'},
+                {'Ń', 'N'},
+                {'Ó', 'O'},
+                {'Ś', 'S'},
+                {'Ź', 'Z'},
+                {'Ż', 'Z'}
+            };
+
+            var output = new char[input.Length];
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (replacements.ContainsKey(input[i]))
+                {
+                    output[i] = replacements[input[i]];
+                }
+                else
+                {
+                    output[i] = input[i];
+                }
+            }
+
+            return new string(output);
+        }
     }
 }

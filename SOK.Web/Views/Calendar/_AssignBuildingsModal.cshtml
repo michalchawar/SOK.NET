@@ -1012,10 +1012,12 @@
                             data.agendaId = agendaId;
                         }
 
+                        // Jeśli wybrano deassignUnassigned, ustaw odpowiednią flagę
                         if (this.selectedAgendaId > 0 && this.deassignUnassigned) {
                             data.UnassignNotMatchingVisits = true;
                         }
 
+                        // Jeśli wybrano sendEmailsToAssigned, ustaw odpowiednią flagę
                         if (this.selectedAgendaId !== null && this.sendEmailsToAssigned) {
                             data.sendEmails = true;
                         }

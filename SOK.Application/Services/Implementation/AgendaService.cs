@@ -483,9 +483,26 @@ namespace SOK.Application.Services.Implementation
             if (agenda == null)
                 throw new ArgumentException("Agenda not found.");
 
-            int i = 1;
+            var visitIdsInOrder = agenda.Visits
+                .OrderBy(v => v.OrdinalNumber)
+                .Select(v => v.Id)
+                .ToList();
+
+            var transaction = await _uow.BeginTransactionAsync();
+            // Najpierw wyczyść wszystkie OrdinalNumber aby uniknąć konfliktów z unikalnym indeksem
             foreach (var visit in agenda.Visits)
             {
+                visit.OrdinalNumber = null;
+            }
+
+            await _uow.SaveAsync();
+
+            int i = 1;
+            foreach (var visitId in visitIdsInOrder)
+            {
+                var visit = agenda.Visits.FirstOrDefault(v => v.Id == visitId);
+                if (visit == null) continue;
+
                 if (!dto.VisitIds.Contains(visit.Id))
                 {
                     // Wizyta zostaje, przenumeruj
@@ -500,6 +517,7 @@ namespace SOK.Application.Services.Implementation
             }
 
             await _uow.SaveAsync();
+            await transaction.CommitAsync();
         }
         
         /// <summary>

@@ -198,8 +198,11 @@ namespace SOK.Application.Services.Implementation
 
             await using var transaction = await _uow.BeginTransactionAsync();
 
-            // Pobierz obiekt planu
-            Plan? plan = await _uow.Plan.GetAsync(p => p.Id == planDto.Id, tracked: true);
+            // Pobierz obiekt planu z relacją ActivePriests
+            Plan? plan = await _uow.Plan.GetAsync(
+                filter: p => p.Id == planDto.Id, 
+                includeProperties: "ActivePriests",
+                tracked: true);
             if (planDto.Id is null || plan is null)
                 throw new ArgumentException("Cannot update plan: plan with set id not found.");
 
@@ -209,7 +212,10 @@ namespace SOK.Application.Services.Implementation
 
             // Określ zbiór z ID-kami istniejących planów i pobierz je na jego podstawie
             var existingScheduleIds = planDto.Schedules.Where(s => s.Id is not null).Select(s => s.Id ?? -1);
-            var existingSchedules = await _uow.Schedule.GetAllAsync(s => existingScheduleIds.Contains(s.Id), includeProperties: "Plan");
+            var existingSchedules = await _uow.Schedule.GetAllAsync(
+                filter: s => existingScheduleIds.Contains(s.Id), 
+                includeProperties: "Plan",
+                tracked: true);
 
             // Dla każdego DTO harmonogramu określ, czy mamy je już w bazie (na podstawie pobranych) i odpowiednio zaktualizuj lub dodaj
             foreach (PlanScheduleDto newSchedule in planDto.Schedules)
@@ -221,7 +227,6 @@ namespace SOK.Application.Services.Implementation
                     schedule.ShortName = newSchedule.ShortName;
                     schedule.Color = newSchedule.Color;
                     schedule.Plan = plan;
-                    _uow.Schedule.Update(schedule);
                 }
                 else
                 {
@@ -236,7 +241,7 @@ namespace SOK.Application.Services.Implementation
                 }
 
                 if (newSchedule.IsDefault)
-                    plan.DefaultSchedule = schedule;
+                    plan.DefaultScheduleId = schedule.Id;
             }
 
             // Usuń harmonogramy, które nie występują w DTO
@@ -249,12 +254,14 @@ namespace SOK.Application.Services.Implementation
 
             await _uow.SaveAsync();
 
-            plan.ActivePriests.Clear();
-
+            // Przygotuj listę księży do aktualizacji
             var existingPriestIds = planDto.ActivePriests.Where(pm => pm.Id is not null).Select(pm => pm.Id ?? -1);
-            var existingPriests = await _uow.ParishMember.GetAllAsync(pm => existingPriestIds.Contains(pm.Id));
+            var existingPriests = await _uow.ParishMember.GetAllAsync(
+                filter: pm => existingPriestIds.Contains(pm.Id));
 
             await using var transactionCentral = await _uowCentral.BeginTransactionAsync();
+
+            var priestsToKeep = new List<ParishMember>();
 
             foreach (PlanPriestDto newPriest in planDto.ActivePriests)
             {
@@ -265,9 +272,24 @@ namespace SOK.Application.Services.Implementation
                     priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
                 }
 
-                // Dodaj użytkownika do planu
                 if (priest is not null)
+                    priestsToKeep.Add(priest);
+            }
+
+            // Usuń księży, którzy nie są w nowej liście
+            var priestsToRemove = plan.ActivePriests.Where(p => !priestsToKeep.Any(pk => pk.Id == p.Id)).ToList();
+            foreach (var priest in priestsToRemove)
+            {
+                plan.ActivePriests.Remove(priest);
+            }
+
+            // Dodaj nowych księży (tylko tych, którzy jeszcze nie są w kolekcji)
+            foreach (var priest in priestsToKeep)
+            {
+                if (!plan.ActivePriests.Any(p => p.Id == priest.Id))
+                {
                     plan.ActivePriests.Add(priest);
+                }
             }
 
             await _uow.SaveAsync();
