@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using NUglify.JavaScript;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Implementation;
 using SOK.Application.Services.Interface;
@@ -58,9 +59,14 @@ builder.Services.AddControllersWithViews();
 // Konfiguracja WebOptimizer
 builder.Services.AddWebOptimizer(pipeline =>
 {
-    // Bundle i minifikuj JavaScript
-    pipeline.AddJavaScriptBundle("/js/bundle.min.js", "js/site.js", "js/address-utilities.js");
-});
+    var jsSettings = new WebOptimizer.Processors.JsSettings
+    {
+        CodeSettings = new() { MinifyCode = !builder.Environment.IsDevelopment() }
+    };
+
+    // Bundle JavaScript
+    pipeline.AddJavaScriptBundle("/js/bundle.min.js", jsSettings, "/js/site.js", "/js/address-utilities.js");
+}, o => { o.AllowEmptyBundle = true;  o.EnableTagHelperBundling = true; });
 
 var app = builder.Build();
 

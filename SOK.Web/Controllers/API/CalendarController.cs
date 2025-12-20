@@ -133,7 +133,9 @@ namespace SOK.Web.Controllers.API
                     schedules = plan.Schedules.Select(s => new
                     {
                         id = s.Id,
-                        name = s.Name
+                        name = s.Name,
+                        shortName = s.ShortName,
+                        color = s.Color,
                     }).ToList(),
                     streets = streets.Select(s => new
                     {
@@ -255,6 +257,34 @@ namespace SOK.Web.Controllers.API
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "Wystąpił błąd podczas usuwania przypisania.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Aktualizuje przypisania budynków do dnia z obsługą flagi EnableAutoAssign.
+        /// </summary>
+        [HttpPost("update-assignments")]
+        public async Task<IActionResult> UpdateAssignments([FromBody] UpdateBuildingAssignmentsDto request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _buildingAssignmentService.UpdateBuildingAssignmentsAsync(
+                    request.DayId,
+                    request.Assignments,
+                    request.AgendaId,
+                    request.UnassignNotMatchingVisits,
+                    request.SendEmails
+                );
+                return Ok(new { success = true, message = "Przypisania zostały pomyślnie zaktualizowane." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Wystąpił błąd podczas aktualizacji przypisań.", details = ex.Message });
             }
         }
 

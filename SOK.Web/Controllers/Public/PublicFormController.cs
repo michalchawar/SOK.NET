@@ -29,6 +29,7 @@ namespace SOK.Web.Controllers
         private readonly IBuildingService _buildingService;
         private readonly ICurrentParishService _currentParishService;
         private readonly IPlanService _planService;
+        private readonly IVisitService _visitService;
 
         public PublicFormController(
             ISubmissionService submissionService,
@@ -37,7 +38,8 @@ namespace SOK.Web.Controllers
             IParishInfoService parishInfoService,
             IBuildingService buildingService,
             ICurrentParishService currentParishService,
-            IPlanService planService)
+            IPlanService planService,
+            IVisitService visitService)
         {
             _submissionService = submissionService;
             _scheduleService = scheduleService;
@@ -46,6 +48,7 @@ namespace SOK.Web.Controllers
             _buildingService = buildingService;
             _currentParishService = currentParishService;
             _planService = planService;
+            _visitService = visitService;
         }
 
         [HttpGet]
@@ -167,6 +170,36 @@ namespace SOK.Web.Controllers
 
             await PopulateNewSubmissionWebFormVM(model);
             return View(model);
+        }
+
+        [HttpGet]
+        [Route("check-auto-assign/{buildingId}")]
+        public async Task<IActionResult> CheckAutoAssignment(string parishUid, int buildingId)
+        {
+            if (!_currentParishService.IsParishSet())
+            {
+                return BadRequest();
+            }
+
+            Schedule? defaultSchedule = await _scheduleService.GetDefaultScheduleAsync();
+            if (defaultSchedule is null)
+            {
+                return Json(new { hasAutoAssign = false });
+            }
+
+            var assignmentDate = await _visitService.GetAutoAssignmentDate(buildingId, defaultSchedule.Id);
+
+            if (assignmentDate.HasValue)
+            {
+                return Json(new
+                {
+                    hasAutoAssign = true,
+                    date = assignmentDate.Value.ToString("yyyy-MM-dd"),
+                    dateFormatted = assignmentDate.Value.ToString("dd.MM.yyyy")
+                });
+            }
+
+            return Json(new { hasAutoAssign = false });
         }
 
         [HttpGet]

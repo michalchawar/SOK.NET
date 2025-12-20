@@ -58,20 +58,47 @@ namespace SOK.Web.Controllers
             var visitsStartDate = await _planService.GetDateTimeMetadataAsync(plan, PlanMetadataKeys.VisitsStartDate);
             var visitsEndDate = await _planService.GetDateTimeMetadataAsync(plan, PlanMetadataKeys.VisitsEndDate);
 
+            // Dla każdego dnia pobierz przypisane ulice pogrupowane według harmonogramów
+            var dayViewModels = new List<DayItemVM>();
+            foreach (var day in days)
+            {
+                // Pobierz budynki z przypisaniami dla tego dnia
+                var buildings = await _buildingAssignmentService.GetBuildingsForDayAsync(day.Id);
+                
+                // Pogrupuj według harmonogramów i wyciągnij unikalne ulice
+                var schedules = buildings
+                    .Where(b => b.IsAssignedToThisDay)
+                    .GroupBy(b => new { b.ScheduleId, b.ScheduleName, b.ScheduleColor })
+                    .Select(g => new ScheduleStreetsVM
+                    {
+                        ScheduleId = g.Key.ScheduleId,
+                        ScheduleName = g.Key.ScheduleName,
+                        ScheduleColor = g.Key.ScheduleColor,
+                        StreetNames = g.Select(b => b.StreetName)
+                            .Distinct()
+                            .OrderBy(s => s)
+                            .ToList()
+                    })
+                    .OrderBy(s => s.ScheduleName)
+                    .ToList();
+
+                dayViewModels.Add(new DayItemVM
+                {
+                    Id = day.Id,
+                    Date = day.Date,
+                    StartHour = day.StartHour,
+                    EndHour = day.EndHour,
+                    Schedules = schedules
+                });
+            }
+
             var viewModel = new CalendarIndexVM
             {
                 PlanId = plan.Id,
                 PlanName = plan.Name,
                 VisitsStartDate = visitsStartDate,
                 VisitsEndDate = visitsEndDate,
-                Days = days.Select(d => new DayItemVM
-                {
-                    Id = d.Id,
-                    Date = d.Date,
-                    StartHour = d.StartHour,
-                    EndHour = d.EndHour,
-                    BuildingsCount = d.BuildingsAssigned?.Count ?? 0
-                }).ToList()
+                Days = dayViewModels
             };
 
             return View(viewModel);
@@ -149,24 +176,68 @@ namespace SOK.Web.Controllers
             // Pogrupuj budynki według harmonogramów (tylko te przypisane do tego dnia)
             var assignedBuildings = buildings
                 .Where(b => b.IsAssignedToThisDay)
-                .GroupBy(b => new { b.ScheduleId, b.ScheduleName })
-                .Select(g => new ScheduleWithBuildingsVM
+                .GroupBy(b => new { b.ScheduleId, b.ScheduleName, b.ScheduleColor })
+                .Select(g =>
                 {
-                    ScheduleId = g.Key.ScheduleId,
-                    ScheduleName = g.Key.ScheduleName,
-                    Buildings = g.Select(b => new AssignedBuildingVM
+                    // Grupuj budynki według ulic
+                    var buildingsByStreet = g.GroupBy(b => new { b.StreetId, b.StreetName }).ToList();
+                    
+                    // Znajdź ulice, które mają wszystkie budynki przypisane
+                    var completeStreets = new List<CompleteStreetVM>();
+                    var partialBuildings = new List<AssignedBuildingVM>();
+                    
+                    foreach (var street in buildingsByStreet)
                     {
-                        BuildingId = b.BuildingId,
-                        StreetId = b.StreetId,
-                        StreetName = b.StreetName,
-                        BuildingNumber = b.BuildingNumber,
-                        SubmissionsTotal = b.SubmissionsTotal,
-                        SubmissionsUnassigned = b.SubmissionsUnassigned,
-                        SubmissionsAssignedHere = b.SubmissionsAssignedHere
-                    })
-                    .OrderBy(b => b.StreetName)
-                    .ThenBy(b => int.TryParse(b.BuildingNumber, out var num) ? num : 0)
-                    .ToList()
+                        // Pobierz wszystkie budynki z tej ulicy w tym harmonogramie
+                        var allBuildingsOnStreet = buildings
+                            .Where(b => b.ScheduleId == g.Key.ScheduleId && b.StreetId == street.Key.StreetId)
+                            .ToList();
+                        
+                        var assignedBuildingsOnStreet = street.ToList();
+                        
+                        // Sprawdź czy wszystkie budynki z ulicy są przypisane do tego dnia
+                        if (allBuildingsOnStreet.Count > 0 && 
+                            allBuildingsOnStreet.All(b => b.IsAssignedToThisDay))
+                        {
+                            // Cała ulica jest przypisana
+                            completeStreets.Add(new CompleteStreetVM
+                            {
+                                StreetId = street.Key.StreetId,
+                                StreetName = street.Key.StreetName,
+                                BuildingsCount = assignedBuildingsOnStreet.Count,
+                                SubmissionsTotal = assignedBuildingsOnStreet.Sum(b => b.SubmissionsTotal),
+                                SubmissionsAssignedHere = assignedBuildingsOnStreet.Sum(b => b.SubmissionsAssignedHere)
+                            });
+                        }
+                        else
+                        {
+                            // Tylko część budynków z ulicy jest przypisana
+                            partialBuildings.AddRange(assignedBuildingsOnStreet.Select(b => new AssignedBuildingVM
+                            {
+                                BuildingId = b.BuildingId,
+                                StreetId = b.StreetId,
+                                StreetName = b.StreetName,
+                                BuildingNumber = b.BuildingNumber,
+                                SubmissionsTotal = b.SubmissionsTotal,
+                                SubmissionsUnassigned = b.SubmissionsUnassigned,
+                                SubmissionsAssignedHere = b.SubmissionsAssignedHere
+                            }));
+                        }
+                    }
+                    
+                    return new ScheduleWithBuildingsVM
+                    {
+                        ScheduleId = g.Key.ScheduleId,
+                        ScheduleName = g.Key.ScheduleName,
+                        ScheduleColor = g.Key.ScheduleColor,
+                        Buildings = partialBuildings
+                            .OrderBy(b => b.StreetName)
+                            .ThenBy(b => int.TryParse(b.BuildingNumber, out var num) ? num : 0)
+                            .ToList(),
+                        CompleteStreets = completeStreets
+                            .OrderBy(s => s.StreetName)
+                            .ToList()
+                    };
                 })
                 .OrderBy(s => s.ScheduleName)
                 .ToList();

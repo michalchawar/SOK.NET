@@ -16,15 +16,19 @@ namespace SOK.Application.Services.Implementation
         private readonly IUnitOfWorkParish _uow;
         private readonly IEmailService _emailService;
         private readonly IParishInfoService _parishInfoService;
+        private readonly IVisitService _visitService;
 
         public SubmissionService(
             IUnitOfWorkParish uow, 
             IEmailService emailService,
-            IParishInfoService parishInfoService)
+            IParishInfoService parishInfoService,
+            IVisitService visitService
+            )
         {
             _uow = uow;
             _emailService = emailService;
             _parishInfoService = parishInfoService;
+            _visitService = visitService;
 
             _emailService.SetSMTPTimeout(3000);
         }
@@ -232,6 +236,31 @@ namespace SOK.Application.Services.Implementation
                 visit: true,
                 formSubmission: true
             )).FirstOrDefault()!;
+
+            // Sprawdź czy istnieje BuildingAssignment z włączonym auto-assign
+            var buildingAssignment = await _uow.BuildingAssignment.GetAsync(
+                filter: ba => 
+                    ba.BuildingId == building.Id &&
+                    ba.ScheduleId == schedule.Id &&
+                    ba.EnableAutoAssign,
+                tracked: false);
+
+            if (buildingAssignment != null)
+            {
+                try
+                {
+                    // Automatyczne przypisanie wizyty do odpowiedniej agendy w danym dniu
+                    await _visitService.AssignVisitToDay(
+                        visitId: submission.Visit.Id, 
+                        dayId: buildingAssignment.DayId, 
+                        sendEmail: false);
+                }
+                catch (Exception ex)
+                {
+                    // Logowanie błędu - ale nie przerywamy procesu tworzenia zgłoszenia
+                    Console.WriteLine($"Failed to auto-assign visit {submission.Visit.Id} to day {buildingAssignment.DayId}: {ex.Message}");
+                }
+            }
 
             // Wysyłanie emaila potwierdzającego (jeśli włączone)
             if (submissionDto.SendConfirmationEmail && !string.IsNullOrWhiteSpace(submitter.Email))

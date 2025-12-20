@@ -64,8 +64,39 @@ namespace SOK.Web.ViewModels.Parish
         public TimeOnly EndHour { get; set; }
 
         /// <summary>
-        /// Liczba przypisanych budynków.
+        /// Harmonogramy z przypisanymi ulicami dla tego dnia.
         /// </summary>
-        public int BuildingsCount { get; set; }
+        public List<ScheduleStreetsVM> Schedules { get; set; } = new();
+
+        /// <summary>
+        /// Czy dzień ma jakiekolwiek przypisania.
+        /// </summary>
+        public bool HasAssignments => Schedules.Any();
+    }
+
+    /// <summary>
+    /// ViewModel dla harmonogramu z przypisanymi ulicami.
+    /// </summary>
+    public class ScheduleStreetsVM
+    {
+        /// <summary>
+        /// Identyfikator harmonogramu.
+        /// </summary>
+        public int ScheduleId { get; set; }
+
+        /// <summary>
+        /// Nazwa harmonogramu.
+        /// </summary>
+        public string ScheduleName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Kolor harmonogramu (hex).
+        /// </summary>
+        public string ScheduleColor { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Lista nazw ulic przypisanych w tym harmonogramie (alfabetycznie).
+        /// </summary>
+        public List<string> StreetNames { get; set; } = new();
     }
 }

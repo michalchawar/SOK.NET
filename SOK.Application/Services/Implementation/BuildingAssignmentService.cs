@@ -62,7 +62,7 @@ namespace SOK.Application.Services.Implementation
                 .GroupBy(s => new 
                 { 
                     BuildingId = s.Address!.BuildingId, 
-                    ScheduleId = s.Visit?.ScheduleId 
+                    ScheduleId = s.Visit?.ScheduleId,
                 })
                 .Select(g => new
                 {
@@ -102,12 +102,14 @@ namespace SOK.Application.Services.Implementation
                         BuildingNumber = building.Number.ToString() + (building.Letter ?? ""),
                         ScheduleId = schedule.Id,
                         ScheduleName = schedule.Name,
+                        ScheduleColor = schedule.Color,
                         SubmissionsTotal = stats.Item1,
                         SubmissionsUnassigned = stats.Item2,
                         SubmissionsAssignedHere = stats.Item3,
                         IsAssignedToThisDay = isAssignedToThisDay,
                         IsAssignedToOtherDay = otherDayDates.Count > 0,
-                        AssignedDayDates = otherDayDates
+                        AssignedDayDates = otherDayDates,
+                        EnableAutoAssign = isAssignedToThisDay ? assignmentDict[key].EnableAutoAssign : false
                     });
                 }
             }
@@ -452,5 +454,109 @@ namespace SOK.Application.Services.Implementation
                 }
             }
         }
+
+        /// <inheritdoc />
+        public async Task UpdateBuildingAssignmentsAsync(
+            int dayId,
+            List<BuildingAssignmentItemDto> assignments,
+            int? agendaId = null,
+            bool unassignOthers = false,
+            bool sendEmails = false)
+        {
+            await using var transaction = await _uow.BeginTransactionAsync();
+
+            // Pobierz wszystkie istniejące przypisania dla tego dnia
+            var existingAssignments = await _uow.BuildingAssignment.GetAllAsync(
+                a => a.DayId == dayId);
+            
+            // Grupuj nowe przypisania według harmonogramu
+            var assignmentsBySchedule = assignments.GroupBy(a => a.ScheduleId);
+
+            // Dla każdego harmonogramu
+            foreach (var scheduleGroup in assignmentsBySchedule)
+            {
+                var scheduleId = scheduleGroup.Key;
+                var newAssignments = scheduleGroup.ToList();
+
+                // Usuń istniejące przypisania dla tego harmonogramu
+                var existingForSchedule = existingAssignments
+                    .Where(a => a.ScheduleId == scheduleId)
+                    .ToList();
+                
+                foreach (var assignment in existingForSchedule)
+                {
+                    _uow.BuildingAssignment.Remove(assignment);
+                }
+
+                // Dodaj nowe przypisania
+                foreach (var newAssignment in newAssignments)
+                {
+                    var assignment = new BuildingAssignment
+                    {
+                        DayId = dayId,
+                        BuildingId = newAssignment.BuildingId,
+                        ScheduleId = newAssignment.ScheduleId,
+                        EnableAutoAssign = newAssignment.EnableAutoAssign
+                    };
+                    _uow.BuildingAssignment.Add(assignment);
+                }
+
+                await _uow.SaveAsync();
+
+                // Jeśli unassignOthers jest true, odplanuj zgłoszenia w budynkach, które zostały usunięte z przypisań
+                if (unassignOthers)
+                {
+                    var newBuildingIds = newAssignments.Select(a => a.BuildingId).ToList();
+                    var removedBuildingIds = existingForSchedule
+                        .Where(a => !newBuildingIds.Contains(a.BuildingId))
+                        .Select(a => a.BuildingId)
+                        .ToList();
+
+                    if (removedBuildingIds.Any())
+                    {
+                        await UnassignSubmissionsAsync(dayId, scheduleId, removedBuildingIds);
+                    }
+                }
+            }
+
+            // Obsługa agendy - przypisz nieprzypisane zgłoszenia
+            if (agendaId.HasValue)
+            {
+                // Zbierz wszystkie buildingIds z wszystkich harmonogramów
+                var allBuildingIds = assignments.Select(a => a.BuildingId).Distinct().ToList();
+                var allScheduleIds = assignments.Select(a => a.ScheduleId).Distinct().ToList();
+
+                if (agendaId.Value == -1)
+                {
+                    // Utwórz nową agendę
+                    int newAgendaId = await CreateGenericAgendaAsync(dayId);
+                    
+                    // Przypisz dla każdego harmonogramu
+                    foreach (var scheduleId in allScheduleIds)
+                    {
+                        var buildingIdsForSchedule = assignments
+                            .Where(a => a.ScheduleId == scheduleId)
+                            .Select(a => a.BuildingId)
+                            .ToList();
+                        await AssignUnassignedSubmissionsToAgendaAsync(dayId, scheduleId, buildingIdsForSchedule, newAgendaId);
+                    }
+                }
+                else if (agendaId.Value > 0)
+                {
+                    // Przypisz do istniejącej agendy
+                    foreach (var scheduleId in allScheduleIds)
+                    {
+                        var buildingIdsForSchedule = assignments
+                            .Where(a => a.ScheduleId == scheduleId)
+                            .Select(a => a.BuildingId)
+                            .ToList();
+                        await AssignUnassignedSubmissionsToAgendaAsync(dayId, scheduleId, buildingIdsForSchedule, agendaId.Value, sendEmails);
+                    }
+                }
+            }
+
+            await transaction.CommitAsync();
+        }
     }
 }
+

@@ -13,6 +13,26 @@ namespace SOK.Application.Common.DTO
     );
 
     /// <summary>
+    /// DTO dla pojedynczego przypisania budynku z flagą EnableAutoAssign.
+    /// </summary>
+    public record BuildingAssignmentItemDto(
+        int BuildingId,
+        int ScheduleId,
+        bool EnableAutoAssign
+    );
+
+    /// <summary>
+    /// DTO dla aktualizacji przypisań budynków do dnia.
+    /// </summary>
+    public record UpdateBuildingAssignmentsDto(
+        int DayId,
+        List<BuildingAssignmentItemDto> Assignments,
+        int? AgendaId = null,
+        bool UnassignNotMatchingVisits = false,
+        bool SendEmails = false
+    );
+
+    /// <summary>
     /// DTO dla odpisywania budynku od dnia.
     /// </summary>
     public record UnassignBuildingDto(
@@ -113,12 +133,14 @@ namespace SOK.Application.Common.DTO
         public string BuildingNumber { get; set; } = string.Empty;
         public int ScheduleId { get; set; }
         public string ScheduleName { get; set; } = string.Empty;
+        public string ScheduleColor { get; set; } = string.Empty;
         public int SubmissionsTotal { get; set; }
         public int SubmissionsUnassigned { get; set; }
         public int SubmissionsAssignedHere { get; set; }
         public bool IsAssignedToThisDay { get; set; }
         public bool IsAssignedToOtherDay { get; set; }
         public List<DateOnly> AssignedDayDates { get; set; } = new();
+        public bool EnableAutoAssign { get; set; } = false;
     }
 
     /// <summary>

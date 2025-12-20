@@ -112,9 +112,10 @@ namespace SOK.Web.Controllers
                 if (model.UseCustomDate)
                     request.Created = new DateTime(model.SubmissionDate, new TimeOnly(hour: 7, minute: 0));
 
+                int? submissionId;
                 try
                 {
-                    await _submissionService.CreateSubmissionAsync(request);
+                    submissionId = await _submissionService.CreateSubmissionAsync(request);
                 }
                 catch (InvalidOperationException)
                 {
@@ -129,7 +130,19 @@ namespace SOK.Web.Controllers
                     return View(model);
                 }
 
-                TempData["success"] = "Twoje zgłoszenie zostało pomyślnie utworzone.";
+                // Sprawdź czy zgłoszenie zostało automatycznie zaplanowane
+                string successMessage = "Twoje zgłoszenie zostało pomyślnie utworzone.";
+                if (submissionId.HasValue)
+                {
+                    var submission = await _submissionService.GetSubmissionAsync(submissionId.Value);
+                    if (submission?.Visit?.Agenda?.Day?.Date != null)
+                    {
+                        var plannedDate = submission.Visit.Agenda.Day.Date.ToString("dd.MM.yyyy");
+                        successMessage += $" Wizyta została automatycznie zaplanowana na {plannedDate}.";
+                    }
+                }
+
+                TempData["success"] = successMessage;
                 return RedirectToAction(nameof(New), new { defaultDate = model.SubmissionDate, useCustomDate = model.UseCustomDate, method = model.Method });
             }
 

@@ -258,7 +258,8 @@
                     <div class="space-y-4 mt-4">
                         @foreach (var schedule in assignments.Schedules)
                         {
-                            <div class="card bg-base-300">
+                            <div class="card bg-base-300 border-l-4 border-l-(--schedule-color)"
+                                style="--schedule-color: @schedule.ScheduleColor;">
                                 <div class="card-body p-4">
                                     <div class="flex items-center justify-between mb-3">
                                         <div>
@@ -276,6 +277,28 @@
                                         .OrderBy(g => g.Key.StreetName);
                                     }
                                     <div class="space-y-3">
+                                        @if (schedule.CompleteStreets.Any())
+                                        {
+                                            <div class="border-l-4 border-accent pl-3">
+                                                <div class="font-medium text-base mb-2">Całe ulice</div>
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach (var street in schedule.CompleteStreets.OrderBy(s => s.StreetName))
+                                                    {
+                                                        <div class="badge badge-lg badge-accent gap-2 tooltip"
+                                                            data-tip="@street.BuildingsCount bram · @street.SubmissionsAssignedHere zgłoszeń przypisanych dziś (@street.SubmissionsTotal wszystkich)">
+                                                            <i class="bi bi-geo-alt-fill"></i>
+                                                            <span class="font-semibold">@street.StreetName</span>
+                                                            @if (street.SubmissionsAssignedHere > 0)
+                                                            {
+                                                                <span class="badge badge-sm badge-ghost">
+                                                                    @street.SubmissionsAssignedHere
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
                                         @foreach (var street in buildingsByStreet)
                                         {
                                             <div class="border-l-4 border-primary pl-3">
