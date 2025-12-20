@@ -256,7 +256,7 @@
 
                 // Callback po aktualizacji
                 window.onSubmissionUpdated = () => {
-                    this.loadSubmissions();
+                    this.fetchSubmissions(false, true);
                 };
 
                 // Przelicz pageSize przy zmianie rozmiaru okna
@@ -372,14 +372,17 @@
                     }
 
                     this.debounceTimeout = setTimeout(() => {
-                        this.fetchSubmissions(false);
+                        this.fetchSubmissions();
                     }, 250);
                 },
                 loadMoreSubmissions() {
                     this.currentPage++;
                     this.fetchSubmissions(true);
                 },
-                async fetchSubmissions(append = false) {
+                async fetchSubmissions(append = false, reload = false) {
+                    if (append && reload)
+                        reload = false;
+
                     if (append) {
                         this.isLoadingMore = true;
                     } else {
@@ -401,6 +404,11 @@
                         page: this.currentPage.toString(),
                         pageSize: this.pageSize.toString()
                     });
+
+                    if (reload) {
+                        params.set("page", "1");
+                        params.set("pageSize", this.loadedCount.toString());
+                    }
 
                     let response = await fetch(`/api/submissions?${params}`);
                     let data = await response.json();
