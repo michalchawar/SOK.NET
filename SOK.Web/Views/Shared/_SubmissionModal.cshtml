@@ -1052,6 +1052,11 @@
                             payload = {
                                 submissionId: this.data.id
                             };
+                        } else if (this.selectedEmailType === 'visit_planned') {
+                            endpoint = '/api/email/queue/visit_planned';
+                            payload = {
+                                submissionId: this.data.id
+                            };
                         } else if (this.selectedEmailType === 'invalid') {
                             endpoint = '/api/email/queue/invalid_email';
                             payload = {
