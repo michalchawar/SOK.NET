@@ -1,3 +1,4 @@
+@using SOK.Application.Common.Helpers
 @model SOK.Web.ViewModels.Parish.SubmissionPanelVM
 
 @{
@@ -151,6 +152,7 @@
                                     <div class="stat place-items-center">
                                         <div class="stat-title">Data wizyty</div>
                                         <div class="stat-value text-3xl">@Model.Visit.PlannedDate.Value.ToString("dd.MM.yyyy")</div>
+                                        <div class="stat-desc">@Model.Visit.PlannedDate.Value.DayOfWeek.GetPolishName()</div>
                                         
                                         @if (Model.Visit.TimeVisible && Model.Visit.EstimatedTime.HasValue)
                                         {
