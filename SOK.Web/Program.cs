@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using NUglify.JavaScript;
+using QuestPDF.Infrastructure;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Implementation;
 using SOK.Application.Services.Interface;
@@ -9,6 +10,9 @@ using SOK.Infrastructure.Identity;
 using SOK.Infrastructure.Persistence.Context;
 using SOK.Infrastructure.Provisioning;
 using SOK.Web.Middleware;
+
+// Konfiguracja licencji QuestPDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 

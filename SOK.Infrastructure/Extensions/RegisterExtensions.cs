@@ -65,6 +65,7 @@ namespace SOK.Infrastructure.Extensions
             services.AddScoped<IVisitService, VisitService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+            services.AddScoped<IPrintService, PrintService>();
 
             // Rejestracja serwisu w tle do wysyłania emaili
             services.AddHostedService<EmailSenderBackgroundService>();

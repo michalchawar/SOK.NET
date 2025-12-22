@@ -52,10 +52,11 @@
 
                             <!-- Przyciski -->
                             <div class="flex flex-row md:flex-col md:self-stretch gap-2 w-full md:w-auto md:min-w-1/3">
-                                <button class="grow btn btn-accent btn-soft text-lg font-medium md:w-full">
+                                <a asp-controller="Print" asp-action="Day" asp-route-id="@Model.UpcomingDay.DayId"
+                                    class="grow btn btn-accent btn-soft text-lg font-medium md:w-full">
                                     <i class="bi bi-printer text-xl"></i>
                                     Drukuj plan
-                                </button>
+                                </a>
                                 <a asp-controller="Calendar" asp-action="Day" asp-route-id="@Model.UpcomingDay.DayId"
                                     class="btn btn-soft md:w-full">
                                     <i class="bi bi-calendar-day"></i>
@@ -205,9 +206,10 @@
                                                 </div>
                                             </div>
                                             <div class="hidden md:flex flex-row gap-2 items-center justify-end">
-                                                <button class="btn btn-accent btn-soft">
+                                                <a asp-controller="Print" asp-action="Day" asp-route-id="@day.DayId"
+                                                    class="btn btn-accent btn-soft">
                                                     <i class="bi bi-printer"></i>
-                                                </button>
+                                                </a>
                                                 <a asp-controller="Calendar" asp-action="Day" asp-route-id="@day.DayId"
                                                     class="btn btn-soft">
                                                     <i class="bi bi-calendar-day"></i>
