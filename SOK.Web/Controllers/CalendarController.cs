@@ -11,13 +11,14 @@ using Microsoft.IdentityModel.Tokens;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using SOK.Web.ViewModels.Parish;
 using SOK.Web.ViewModels.Calendar;
 
 namespace SOK.Web.Controllers
 {
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest)]
     [ActivePage("Calendar")]
     public class CalendarController : Controller
     {

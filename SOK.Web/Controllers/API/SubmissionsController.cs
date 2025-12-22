@@ -7,13 +7,14 @@ using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
+using SOK.Web.Filters;
 using System.Linq.Expressions;
 
 namespace SOK.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest, Role.SubmitSupport)]
     public class SubmissionsController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;

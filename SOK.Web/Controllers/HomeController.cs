@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace SOK.Web.Controllers
 {
-    [Authorize]
+    [AuthorizeRoles]
     [ActivePage("Home")]
     public class HomeController : Controller
     {
@@ -78,11 +78,6 @@ namespace SOK.Web.Controllers
             };
 
             return View(viewModel);
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
         }
 
         public IActionResult Error()

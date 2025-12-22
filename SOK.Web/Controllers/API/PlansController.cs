@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Enums;
+using SOK.Web.Filters;
 
 namespace SOK.Web.Controllers.API
 {
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest, Role.SubmitSupport)]
     [ApiController]
     [Route("api/[controller]")]
     public class PlansController : ControllerBase

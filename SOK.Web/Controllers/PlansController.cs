@@ -10,12 +10,13 @@ using Microsoft.IdentityModel.Tokens;
 using SOK.Application.Common.DTO;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using SOK.Web.ViewModels.Parish;
 
 namespace SOK.Web.Controllers
 {
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest)]
     [ActivePage("Plans")]
     public class PlansController : Controller
     {

@@ -6,10 +6,12 @@ using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
+using SOK.Web.Filters;
 
 namespace SOK.Web.Controllers.Api
 {
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest, Role.SubmitSupport)]
     [ApiController]
     [Route("api/email")]
     public class EmailApiController : ControllerBase

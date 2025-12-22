@@ -24,11 +24,6 @@
     }
 })();
 
-const sidebarWidthClass = {
-    collapsed: "w-16",
-    expanded: "w-68"
-}
-
 const notifications = {
 
     _createNotification: function (type = this._types.default, text = '') {
@@ -144,19 +139,6 @@ function reflow(element) {
     void (element.offsetHeight);
 }
 
-function sidebarChangeState(event) {
-    let sidebar = $("#sidebar");
-    let button = $("#sidebar-expand-checkbox");
-
-    // Sidebar expanded
-    if (button.is(":checked")) {
-        sidebar.removeClass(sidebarWidthClass.collapsed).addClass(sidebarWidthClass.expanded);
-    }
-    // Sidebar collapsed
-    else {
-        sidebar.removeClass(sidebarWidthClass.expanded).addClass(sidebarWidthClass.collapsed);
-    }
-}
 
 window.getContrastColor = function(hexColor) {
     if (!hexColor) return '#000000';

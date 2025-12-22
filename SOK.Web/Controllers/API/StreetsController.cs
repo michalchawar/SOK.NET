@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Enums;
+using SOK.Web.Filters;
 
 namespace SOK.Web.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [AuthorizeRoles]
     public class StreetsController : ControllerBase
     {
         private readonly IStreetService _streetService;

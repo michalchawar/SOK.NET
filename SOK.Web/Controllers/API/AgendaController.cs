@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SOK.Application.Common.DTO;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Enums;
+using SOK.Web.Filters;
 using System.ComponentModel.DataAnnotations;
 
 namespace SOK.Web.Controllers.API
 {
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest)]
     [Route("api/[controller]")]
     [ApiController]
     public class AgendaController : ControllerBase

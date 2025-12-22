@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
+using SOK.Domain.Enums;
+using SOK.Web.Filters;
 
 namespace SOK.Web.Controllers.Api
 {
-    [Authorize]
     [ApiController]
     [Route("api/settings")]
+    [AuthorizeRoles]
     public class SettingsApiController : ControllerBase
     {
         private readonly IParishInfoService _parishInfoService;
@@ -28,6 +30,7 @@ namespace SOK.Web.Controllers.Api
         }
 
         [HttpPut("update")]
+        [AuthorizeRoles(Role.Administrator, Role.Priest)]
         public async Task<IActionResult> UpdateSetting([FromBody] UpdateSettingRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Key))
@@ -47,6 +50,7 @@ namespace SOK.Web.Controllers.Api
         }
 
         [HttpPut("update-batch")]
+        [AuthorizeRoles(Role.Administrator, Role.Priest)]
         public async Task<IActionResult> UpdateSettings([FromBody] UpdateSettingsRequest request)
         {
             if (request.Settings == null || request.Settings.Count == 0)
