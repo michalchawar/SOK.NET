@@ -39,21 +39,14 @@
                                 <h3 class="card-title text-lg">@day.Date.ToString("dd.MM.yyyy")</h3>
                                 <p class="text-sm text-base-content/70">@day.Date.DayOfWeek.GetPolishName()</p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                @if (day.Date.DayOfWeek == DayOfWeek.Sunday)
-                                {
-                                    <span class="badge [--badge-color:var(--color-teal-800)]">Niedziela</span>
-                                }
-                                else if (day.Date.DayOfWeek == DayOfWeek.Saturday)
-                                {
-                                    <span class="badge [--badge-color:var(--color-slate-500)]">Sobota</span>
-                                }
-                                <a asp-controller="Print" asp-action="Day" asp-route-id="@day.Id"
-                                    class="btn btn-xs btn-accent btn-soft"
-                                    onclick="event.stopPropagation();">
-                                    <i class="bi bi-printer"></i>
-                                </a>
-                            </div>
+                            @if (day.Date.DayOfWeek == DayOfWeek.Sunday)
+                            {
+                                <span class="badge [--badge-color:var(--color-teal-800)]">Niedziela</span>
+                            }
+                            else if (day.Date.DayOfWeek == DayOfWeek.Saturday)
+                            {
+                                <span class="badge [--badge-color:var(--color-slate-500)]">Sobota</span>
+                            }
                         </div>
 
                         <!-- Godziny -->
