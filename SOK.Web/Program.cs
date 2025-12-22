@@ -45,7 +45,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromHours(6);
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        
+        // Konfiguracja czasu życia w zależności od isPersistent (Remember Me)
+        options.Events.OnSigningIn = context =>
+        {
+            if (!context.Properties.IsPersistent)
+            {
+                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1);
+            }
+            else
+            {
+                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+            }
+            return Task.CompletedTask;
+        };
     });
 
 // Rejestracja fabryki do tworzenia obiektu ClaimsPrincipal z dodatkowymi danymi
