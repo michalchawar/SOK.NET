@@ -1,148 +1,411 @@
 ﻿@using SOK.Application.Common.Helpers
+@using SOK.Domain.Enums
 @model SOK.Web.ViewModels.Home.DashboardVM
 @{
     ViewData["Title"] = "Przegląd";
+    var isAdminOrPriest = User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest));
+    var isSubmitSupport = User.IsInRole(nameof(Role.SubmitSupport));
+    var userName = User.FindFirst("DisplayName")?.Value ?? "Użytkowniku";
 }
 
-<div class="container mx-auto p-4">
-    <!-- Kafelek ze statystykami zgłoszeń -->
-    <div class="card bg-base-100 shadow-xl mb-8">
-        <div class="card-body">
-            <h2 class="card-title text-2xl mb-6">Zgłoszenia</h2>
-    
-            <!-- Główne statystyki -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Łącznie -->
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-title">Łącznie</div>
-                    <div class="stat-value text-primary">@Model.SubmissionsStats.TotalCount</div>
-                    <div class="stat-desc flex items-center gap-2">
-                        @if (Model.SubmissionsStats.TotalLast24h > 0)
-                        {
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                            </svg>
-                            <span class="text-success"><span class="font-semibold">+@Model.SubmissionsStats.TotalLast24h</span>
-                                w ciągu 24h</span>
-                        }
-                        else
-                        {
-                            <span>Brak nowych w ciągu 24h</span>
-                        }
-                    </div>
-                </div>
-    
-                <!-- Zgłoszenia internetowe -->
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-title">Zgłoszenia internetowe</div>
-                    <div class="stat-value text-secondary">@Model.SubmissionsStats.WebFormCount</div>
-                    <div class="stat-desc flex items-center gap-2">
-                        @if (Model.SubmissionsStats.WebFormLast24h > 0)
-                        {
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                            </svg>
-                            <span class="text-success"><span
-                                    class="font-semibold">+@Model.SubmissionsStats.WebFormLast24h</span> w ciągu 24h</span>
-                        }
-                        else
-                        {
-                            <span>Brak nowych w ciągu 24h</span>
-                        }
-                    </div>
-                </div>
-    
-                <!-- Pozostałe zgłoszenia -->
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-title">Pozostałe</div>
-                    <div class="stat-value text-accent">@Model.SubmissionsStats.OtherCount</div>
-                    <div class="stat-desc flex items-center gap-2">
-                        @if (Model.SubmissionsStats.OtherLast24h > 0)
-                        {
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                            </svg>
-                            <span class="text-success"><span class="font-semibold">+@Model.SubmissionsStats.OtherLast24h</span>
-                                w ciągu 24h</span>
-                        }
-                        else
-                        {
-                            <span>Brak nowych w ciągu 24h</span>
-                        }
-                    </div>
-                </div>
-            </div>
-    
-            <!-- Wykres kolumnowy -->
-            <div>
-                <h3 class="text-lg font-semibold mb-4">Zgłoszenia z ostatnich 30 dni</h3>
-                <div class="flex items-end justify-between h-64 gap-1">
-                    @foreach (var (day, index) in Model.DailySubmissions.WithIndex())
-                    {
-                        var maxHeight = Model.DailySubmissions.Max(d => d.TotalCount);
-                        var heightPercent = maxHeight > 0 ? (day.TotalCount * 100.0 / maxHeight) : 0;
-                        var webFormHeightPercent = maxHeight > 0 ? (day.WebFormCount * 100.0 / maxHeight) : 0;
-                        var otherHeightPercent = maxHeight > 0 ? (day.OtherCount * 100.0 / maxHeight) : 0;
-                        var afterHalf = index >= Model.DailySubmissions.Count / 2;
-    
-                        <div class="h-full flex-1 flex flex-col justify-end gap-1.5">
-                            @if (day.TotalCount > 0)
-                            {
-                                <div class="w-full relative" style="height: @(heightPercent)%;">
-                                    @if (day.WebFormCount > 0)
-                                    {
-                                        <div class="tooltip rounded-t absolute top-0 bg-secondary w-full
-                                                    @(afterHalf ? "tooltip-left" : "tooltip-right")
-                                                    hover:ring-2 ring-secondary transition-shadow"
-                                            style="height: @(webFormHeightPercent * 100 / heightPercent)%;">
-                                            <div class="tooltip-content flex flex-col items-start">
-                                                <p class="font-bold">@day.Date.ToString("dd.MM.yyyy")</p>
-                                                <p class="font-medium">Internetowe: @day.WebFormCount</p>
-                                                <p class="text-xs">Łącznie: @day.TotalCount</p>
-                                            </div>
+<div class="container mx-auto space-y-5 p-4">
+    @if (isAdminOrPriest)
+    {
+        <!-- Kafelki dla administratorów i księży -->
+        <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] items-start gap-6">
+            <!-- Kafelek z najbliższym dniem kolędowym -->
+            @if (Model.UpcomingDay != null)
+            {
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body gap-3">
+                        <h2 class="card-title text-2xl mb-4">
+                            <i class="bi bi-calendar-event text-3xl"></i>
+                            Najbliższa kolęda
+                        </h2>
+
+                        <!-- Informacje o dniu -->
+                        <div class="flex flex-col md:flex-row gap-3 md:items-center">
+                            <div class="grow bg-base-200 rounded-lg px-4 py-6">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="text-sm text-base-content/70">
+                                            @Model.UpcomingDay.Date.DayOfWeek.GetPolishName().ToLower()
+                                        </p>
+                                        <h3 class="text-3xl font-bold">
+                                            @Model.UpcomingDay.Date.ToString(
+                                            "d", new System.Globalization.CultureInfo("pl-PL")
+                                                                            )
+                                        </h3>
+                                        <div class="badge badge-primary mt-2">
+                                            @Model.UpcomingDay.TotalVisitsPlanned @(LanguageExtensions.GetDeclination(Model.UpcomingDay.TotalVisitsPlanned, "wizyta", "wizyty", "wizyt"))
                                         </div>
-                                    }
-                                    @if (day.OtherCount > 0)
-                                    {
-                                        <div class="tooltip only:rounded-t absolute bottom-0 bg-accent w-full
-                                                    @(afterHalf ? "tooltip-left" : "tooltip-right")
-                                                    hover:ring-2 ring-accent transition-shadow"
-                                            style="height: @(otherHeightPercent * 100 / heightPercent)%;">
-                                            <div class="tooltip-content flex flex-col items-start">
-                                                <p class="font-bold">@day.Date.ToString("dd.MM.yyyy")</p>
-                                                <p class="font-medium">Inne: @day.OtherCount</p>
-                                                <p class="text-xs">Łącznie: @day.TotalCount</p>
-                                            </div>
+                                    </div>
+
+                                    <div class="text-right">
+                                        <div class="flex flex-col items-end gap-0">
+                                            <div class="text-2xl font-bold">@Model.UpcomingDay.StartHour.ToString("HH:mm")</div>
+                                            <div class="text-sm">do @Model.UpcomingDay.EndHour.ToString("HH:mm")</div>
                                         </div>
-                                    }
+                                    </div>
                                 </div>
+                            </div>
+
+                            <!-- Przyciski -->
+                            <div class="flex flex-row md:flex-col md:self-stretch gap-2 w-full md:w-auto md:min-w-1/3">
+                                <button class="grow btn btn-accent btn-soft text-lg font-medium md:w-full">
+                                    <i class="bi bi-printer text-xl"></i>
+                                    Drukuj plan
+                                </button>
+                                <a asp-controller="Calendar" asp-action="Day" asp-route-id="@Model.UpcomingDay.DayId"
+                                    class="btn btn-soft md:w-full">
+                                    <i class="bi bi-calendar-day"></i>
+                                    Zobacz dzień
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="divider my-0">
+                            Agendy
+                        </div>
+
+                        <!-- Agendy -->
+                        <div class="grid grid-cols-1 gap-4 items-start
+                            @(Model.UpcomingDay.Agendas.Count > 1 ? "md:grid-cols-2" : "")">
+                            @if (Model.UpcomingDay.Agendas.Any())
+                            {
+                                @foreach ((var agenda, int index) in Model.UpcomingDay.Agendas.WithIndex())
+                                {
+                                    <a asp-controller="Calendar" asp-action="AgendaEditor" asp-route-id="@agenda.AgendaId"
+                                        class="block bg-base-200 hover:bg-base-300 rounded-lg p-4 transition-colors border border-base-300 hover:border-primary">
+                                        <div class="flex justify-between items-start gap-4">
+                                            <div class="flex flex-col gap-0">
+                                                <div class="text-xl font-semibold mb-2">
+                                                    Ksiądz <span class="font-semibold">@(index + 1)</span>
+                                                </div>
+                                                <!-- Ksiądz -->
+                                                <div class="flex items-baseline gap-2 mb-1">
+                                                    <i class="bi bi-person-fill text-lg"></i>
+                                                    @if (!string.IsNullOrEmpty(agenda.PriestName))
+                                                    {
+                                                        <span class="font-semibold">@agenda.PriestName</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-warning italic">Brak przypisanego księdza</span>
+                                                    }
+                                                </div>
+
+                                                <!-- Ministranci -->
+                                                <div class="flex items-baseline gap-2 text-sm">
+                                                    <i class="bi bi-people text-base-content/70"></i>
+                                                    @if (agenda.MinisterNames.Any())
+                                                    {
+                                                        <span class="text-base-content/80">@string.Join(", ",
+                                                            agenda.MinisterNames)</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-warning/80 italic">Brak ministrantów</span>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <div class="flex flex-col items-end gap-2">
+                                                <div class="badge badge-primary text-nowrap">
+                                                    @agenda.VisitsCount @(LanguageExtensions.GetDeclination(agenda.VisitsCount, "wizyta", "wizyty", "wizyt"))
+                                                </div>
+                                                <!-- Ulice według harmonogramów -->
+                                                @if (agenda.ScheduleStreets.Any())
+                                                {
+                                                    <div class="mt-3 space-y-1.5">
+                                                        @foreach (var schedule in agenda.ScheduleStreets)
+                                                        {
+                                                            <div class="flex items-baseline justify-end gap-2">
+                                                                <div class="flex-1 text-end min-w-0">
+                                                                    <div class="text-xs text-base-content/80 break-words">
+                                                                        @string.Join(", ", schedule.StreetNames)
+                                                                    </div>
+                                                                </div>
+                                                                <div class="size-3 rounded-full mt-1 flex-shrink-0"
+                                                                    style="background-color: @schedule.ScheduleColor;">
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </a>
+                                }
                             }
                             else
                             {
-                                <div class="w-full bg-base-300 rounded-t" style="height: 2px;"></div>
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <span>Brak agend dla tego dnia</span>
+                                </div>
                             }
                         </div>
-                    }
-                </div>
-    
-                <!-- Legenda -->
-                <div class="flex justify-center gap-6 mt-6">
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-secondary rounded"></div>
-                        <span class="text-sm">Internetowe</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-accent rounded"></div>
-                        <span class="text-sm">Inne</span>
+                </div>
+
+                <!-- Kafelek z listą wszystkich dni -->
+                <div class="card bg-base-100 shadow-xl h-0 min-h-full">
+                    <div class="card-body h-full overflow-y-auto">
+                        <h2 class="card-title text-2xl mb-4">
+                            <i class="bi bi-view-list text-3xl"></i>
+                            Wszystkie dni kolędy
+                        </h2>
+
+                        @if (Model.AllDays.Any())
+                        {
+                            <div class="overflow-y-auto max-h-full" id="calendar-days-list">
+                                <ul class="list gap-y-1">
+                                    @foreach (var day in Model.AllDays)
+                                    {
+                                        <li class="list-row p-3 rounded-lg border transition-colors
+                                            @(day.IsUpcoming ? "bg-primary/10 border-primary" : day.IsPast ? 
+                                                "bg-base-200/50 border-base-300 opacity-60" : 
+                                                "bg-base-200 border-base-300")
+                                            @(day.IsUpcoming ? "upcoming-day" : "")">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex flex-col gap-0 justify-start opacity-60">
+                                                    <div class="text-xs">
+                                                        @day.Date.DayOfWeek.GetPolishName().ToLower()
+                                                    </div>
+                                                    <div class="text-2xl font-light tabular-nums">
+                                                        @day.Date.ToString("dd.MM")
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="list-col-grow flex flex-col gap-1 items-center justify-center">
+                                                <div class="badge badge-sm badge-soft
+                                                    @(day.IsPast ? "badge-success tooltip tooltip-bottom" : "badge-primary")"
+                                                    data-tip="@(day.IsPast ? 
+                                                        $"Zaplanowane: {day.VisitsPlanned} / Odwiedzone: {day.VisitsCompleted}" : 
+                                                        null)">
+                                                    @if (day.IsPast && day.VisitsCompleted > 0)
+                                                    {
+                                                        <span>
+                                                            @day.VisitsCompleted @(LanguageExtensions.GetDeclination(
+                                                                day.VisitsCompleted, "wizyta", "wizyty", "wizyt"))
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>
+                                                            @day.VisitsPlanned @(LanguageExtensions.GetDeclination(
+                                                                day.VisitsPlanned, "wizyta", "wizyty", "wizyt"))
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <div class="badge badge-sm badge-soft">
+                                                    @day.AgendasCount @(LanguageExtensions.GetDeclination(
+                                                        day.AgendasCount, "ksiądz", "księży", "księży"))
+                                                </div>
+                                            </div>
+                                            <div class="hidden md:flex flex-row gap-2 items-center justify-end">
+                                                <button class="btn btn-accent btn-soft">
+                                                    <i class="bi bi-printer"></i>
+                                                </button>
+                                                <a asp-controller="Calendar" asp-action="Day" asp-route-id="@day.DayId"
+                                                    class="btn btn-soft">
+                                                    <i class="bi bi-calendar-day"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const upcomingDay = document.querySelectorAll('.upcoming-day').item(0);
+                                    const container = document.getElementById('calendar-days-list');
+                                    if (upcomingDay && container) {
+                                        const offset = upcomingDay.offsetTop - container.offsetTop - 20;
+                                        container.scrollTop = offset;
+                                    }
+                                });
+                            </script>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle-fill"></i>
+                                <span>Brak zaplanowanych dni kolędowych</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="lg:col-span-2">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Brak aktywnego planu kolędowego. Przejdź do zarządzania planami aby utworzyć lub aktywować
+                            plan.</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Kafelek powitalny dla innych ról -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body text-center">
+                <h2 class="card-title text-3xl justify-center mb-2">
+                    <i class="bi bi-person-circle text-4xl"></i>
+                    Witaj, @userName!
+                </h2>
+                <p class="text-base-content/70">
+                    Dziękujemy za korzystanie z systemu organizacji kolędy.
+                </p>
+            </div>
+        </div>
+    }
+
+    <!-- Kafelek ze statystykami zgłoszeń (dla Admin, Priest, SubmitSupport) -->
+    @if (isAdminOrPriest || isSubmitSupport)
+    {
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">
+                    <i class="bi bi-graph-up-arrow text-3xl"></i>
+                    Statystyki zgłoszeń
+                </h2>
+
+                <!-- Główne statystyki -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Łącznie -->
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Łącznie</div>
+                        <div class="stat-value text-primary">@Model.SubmissionsStats.TotalCount</div>
+                        <div class="stat-desc flex items-center gap-2">
+                            @if (Model.SubmissionsStats.TotalLast24h > 0)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                <span class="text-success"><span class="font-semibold">+@Model.SubmissionsStats.TotalLast24h</span>
+                                    w ciągu 24h</span>
+                            }
+                            else
+                            {
+                                <span>Brak nowych w ciągu 24h</span>
+                            }
+                        </div>
+                    </div>
+                    <!-- Zgłoszenia internetowe -->
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Zgłoszenia internetowe</div>
+                        <div class="stat-value text-secondary">@Model.SubmissionsStats.WebFormCount</div>
+                        <div class="stat-desc flex items-center gap-2">
+                            @if (Model.SubmissionsStats.WebFormLast24h > 0)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                <span class="text-success"><span
+                                        class="font-semibold">+@Model.SubmissionsStats.WebFormLast24h</span> w ciągu 24h</span>
+                            }
+                            else
+                            {
+                                <span>Brak nowych w ciągu 24h</span>
+                            }
+                        </div>
+                    </div>
+                    <!-- Pozostałe zgłoszenia -->
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Pozostałe</div>
+                        <div class="stat-value text-accent">@Model.SubmissionsStats.OtherCount</div>
+                        <div class="stat-desc flex items-center gap-2">
+                            @if (Model.SubmissionsStats.OtherLast24h > 0)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                <span class="text-success"><span class="font-semibold">+@Model.SubmissionsStats.OtherLast24h</span>
+                                    w ciągu 24h</span>
+                            }
+                            else
+                            {
+                                <span>Brak nowych w ciągu 24h</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <!-- Wykres kolumnowy -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Zgłoszenia z ostatnich 30 dni</h3>
+                    <div class="flex items-end justify-between h-64 gap-1">
+                        @foreach (var (day, index) in Model.DailySubmissions.WithIndex())
+                        {
+                            var maxHeight = Model.DailySubmissions.Max(d => d.TotalCount);
+                            var heightPercent = maxHeight > 0 ? (day.TotalCount * 100.0 / maxHeight) : 0;
+                            var webFormHeightPercent = maxHeight > 0 ? (day.WebFormCount * 100.0 / maxHeight) : 0;
+                            var otherHeightPercent = maxHeight > 0 ? (day.OtherCount * 100.0 / maxHeight) : 0;
+                            var afterHalf = index >= Model.DailySubmissions.Count / 2;
+                            <div class="h-full flex-1 flex flex-col justify-end gap-1.5">
+                                @if (day.TotalCount > 0)
+                                {
+                                    <div class="w-full relative" style="height: @(heightPercent)%;">
+                                        @if (day.WebFormCount > 0)
+                                        {
+                                            <div class="tooltip rounded-t absolute top-0 bg-secondary w-full
+                                                                                            @(afterHalf ? "tooltip-left" : "tooltip-right")
+                                                                                            hover:ring-2 ring-secondary transition-shadow"
+                                                style="height: @(webFormHeightPercent * 100 / heightPercent)%;">
+                                                <div class="tooltip-content flex flex-col items-start">
+                                                    <p class="font-bold">@day.Date.ToString("dd.MM.yyyy")</p>
+                                                    <p class="font-medium">Internetowe: @day.WebFormCount</p>
+                                                    <p class="text-xs">Łącznie: @day.TotalCount</p>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (day.OtherCount > 0)
+                                        {
+                                            <div class="tooltip only:rounded-t absolute bottom-0 bg-accent w-full
+                                                                                            @(afterHalf ? "tooltip-left" : "tooltip-right")
+                                                                                            hover:ring-2 ring-accent transition-shadow"
+                                                style="height: @(otherHeightPercent * 100 / heightPercent)%;">
+                                                <div class="tooltip-content flex flex-col items-start">
+                                                    <p class="font-bold">@day.Date.ToString("dd.MM.yyyy")</p>
+                                                    <p class="font-medium">Inne: @day.OtherCount</p>
+                                                    <p class="text-xs">Łącznie: @day.TotalCount</p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="w-full bg-base-300 rounded-t" style="height: 2px;"></div>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <!-- Legenda -->
+                    <div class="flex justify-center gap-6 mt-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-secondary rounded"></div>
+                            <span class="text-sm">Internetowe</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-accent rounded"></div>
+                            <span class="text-sm">Inne</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    }
 </div>

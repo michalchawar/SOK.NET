@@ -16,11 +16,22 @@ namespace SOK.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ISubmissionService _submissionService;
+        private readonly IPlanService _planService;
+        private readonly IAgendaService _agendaService;
+        private readonly IVisitService _visitService;
 
-        public HomeController(ILogger<HomeController> logger, ISubmissionService submissionService)
+        public HomeController(
+            ILogger<HomeController> logger, 
+            ISubmissionService submissionService,
+            IPlanService planService,
+            IAgendaService agendaService,
+            IVisitService visitService)
         {
             _logger = logger;
             _submissionService = submissionService;
+            _planService = planService;
+            _agendaService = agendaService;
+            _visitService = visitService;
         }
 
         public async Task<IActionResult> Index()
@@ -28,6 +39,7 @@ namespace SOK.Web.Controllers
             DateTime now = DateTime.UtcNow;
             DateTime last24h = now.AddHours(-24);
             DateOnly last30Days = DateOnly.FromDateTime(now.AddDays(-29));
+            DateOnly today = DateOnly.FromDateTime(now);
 
             // Pobierz wszystkie zgłoszenia z metodą zgłoszenia
             var submissions = (await _submissionService.GetSubmissionsPaginated(
@@ -71,10 +83,107 @@ namespace SOK.Web.Controllers
                 .Select(date => dailyData.FirstOrDefault(d => d.Date == date) ?? new DailySubmissionsVM { Date = date })
                 .ToList();
 
+            // Pobierz dane o kolędzie (tylko dla administratorów i księży)
+            UpcomingDayVM? upcomingDay = null;
+            List<CalendarDayVM> calendarDays = new();
+
+            if (User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest)))
+            {
+                var activePlan = await _planService.GetActivePlanAsync();
+                if (activePlan != null)
+                {
+                    var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
+                    var sortedDays = days.OrderBy(d => d.Date).ToList();
+
+                    // Znajdź najbliższy dzień (dziś lub w przyszłości)
+                    var upcomingDayEntity = sortedDays.FirstOrDefault(d => d.Date >= today);
+
+                    if (upcomingDayEntity != null)
+                    {
+                        // Pobierz agendy dla tego dnia
+                        var agendas = await _agendaService.GetAgendasForDayAsync(upcomingDayEntity.Id);
+                        var totalVisitsPlanned = agendas.Sum(a => a.VisitsCount);
+
+                        var agendaCards = new List<AgendaCardVM>();
+                        foreach (var agenda in agendas)
+                        {
+                            // Pobierz wizyty dla tej agendy aby znaleźć ulice
+                            var visits = await _agendaService.GetAgendaVisitsAsync(agenda.Id);
+                            
+                            // Pogrupuj według harmonogramów
+                            var scheduleStreets = visits
+                                .Where(v => v.StreetName != null && v.ScheduleId != null)
+                                .GroupBy(v => new { v.ScheduleId, v.ScheduleName, v.ScheduleColor })
+                                .Select(g => new ScheduleStreetsCardVM
+                                {
+                                    ScheduleName = g.Key.ScheduleName ?? string.Empty,
+                                    ScheduleColor = g.Key.ScheduleColor ?? string.Empty,
+                                    StreetNames = g.Select(v => v.StreetName)
+                                        .Distinct()
+                                        .OrderBy(s => s)
+                                        .ToList()
+                                })
+                                .OrderBy(s => s.ScheduleName)
+                                .ToList();
+
+                            agendaCards.Add(new AgendaCardVM
+                            {
+                                AgendaId = agenda.Id,
+                                PriestName = agenda.Priest?.DisplayName,
+                                MinisterNames = agenda.Ministers.Select(m => m.DisplayName).ToList(),
+                                VisitsCount = agenda.VisitsCount,
+                                ScheduleStreets = scheduleStreets
+                            });
+                        }
+
+                        upcomingDay = new UpcomingDayVM
+                        {
+                            DayId = upcomingDayEntity.Id,
+                            Date = upcomingDayEntity.Date,
+                            StartHour = upcomingDayEntity.StartHour,
+                            EndHour = upcomingDayEntity.EndHour,
+                            TotalVisitsPlanned = totalVisitsPlanned,
+                            Agendas = agendaCards
+                        };
+                    }
+
+                    // Przygotuj listę wszystkich dni
+                    foreach (var day in sortedDays)
+                    {
+                        var dayAgendas = await _agendaService.GetAgendasForDayAsync(day.Id);
+                        var visitsPlanned = dayAgendas.Sum(a => a.VisitsCount);
+                        
+                        // Policz wizyty odbyte (dla dni które minęły)
+                        int visitsCompleted = 0;
+                        if (day.Date < today)
+                        {
+                            foreach (var agenda in dayAgendas)
+                            {
+                                var visits = await _agendaService.GetAgendaVisitsAsync(agenda.Id);
+                                visitsCompleted += visits.Count(v => v.Status == VisitStatus.Visited);
+                            }
+                        }
+
+                        calendarDays.Add(new CalendarDayVM
+                        {
+                            DayId = day.Id,
+                            Date = day.Date,
+                            VisitsPlanned = visitsPlanned,
+                            VisitsCompleted = visitsCompleted,
+                            AgendasCount = dayAgendas.Count,
+                            IsPast = day.Date < today,
+                            IsUpcoming = upcomingDayEntity != null && day.Id == upcomingDayEntity.Id
+                        });
+                    }
+                }
+            }
+
             var viewModel = new DashboardVM
             {
                 SubmissionsStats = stats,
-                DailySubmissions = completeData
+                DailySubmissions = completeData,
+                UpcomingDay = upcomingDay,
+                AllDays = calendarDays
             };
 
             return View(viewModel);

@@ -265,6 +265,7 @@ namespace SOK.Application.Services.Implementation
                 Id = v.Id,
                 SubmissionId = v.SubmissionId,
                 OrdinalNumber = v.OrdinalNumber,
+                Status = v.Status,
                 BuildingId = v.Submission.Address.BuildingId,
                 BuildingNumber = v.Submission.Address.Building.Number.ToString() + (v.Submission.Address.Building.Letter ?? ""),
                 StreetId = v.Submission.Address.Building.StreetId,

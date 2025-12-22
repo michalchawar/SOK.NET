@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SOK.Domain.Enums;
 
 namespace SOK.Application.Common.DTO
 {
@@ -10,6 +11,7 @@ namespace SOK.Application.Common.DTO
         public int Id { get; set; }
         public int SubmissionId { get; set; }
         public int? OrdinalNumber { get; set; }
+        public VisitStatus Status { get; set; }
         public int BuildingId { get; set; }
         public string BuildingNumber { get; set; } = string.Empty;
         public int StreetId { get; set; }

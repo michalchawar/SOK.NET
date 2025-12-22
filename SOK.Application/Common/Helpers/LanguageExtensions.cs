@@ -126,5 +126,33 @@ namespace SOK.Application.Common.Helpers
 
             return new string(output);
         }
+
+        /// <summary>
+        /// Zwraca odpowiednią formę odmiany rzeczownika w języku polskim na podstawie podanej liczby.
+        /// </summary>
+        /// <param name="number">Liczba, na podstawie której ma zostać wybrana odpowiednia forma odmiany.</param>
+        /// <param name="form1">Forma dla liczby 1 (np. "wizyta").</param>
+        /// <param name="form2">Forma dla liczb 2-4 (np. "wizyty").</param>
+        /// <param name="form5">Forma dla liczb 5 i więcej (np. "wizyt").</param>
+        /// <returns>Odpowiednia forma odmiany rzeczownika.</returns>
+        public static string GetDeclination(int number, string form1, string form2, string form5)
+        {
+            int n = Math.Abs(number) % 100;
+            int n1 = n % 10;
+
+            if (n > 10 && n < 20)
+            {
+                return form5;
+            }
+            if (n1 > 1 && n1 < 5)
+            {
+                return form2;
+            }
+            if (n1 == 1)
+            {
+                return form1;
+            }
+            return form5;
+        }
     }
 }
