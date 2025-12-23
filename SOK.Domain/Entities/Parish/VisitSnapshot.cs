@@ -35,6 +35,11 @@ namespace SOK.Domain.Entities.Parish
         /// Może być null, tylko gdy Status jest równy VisitStatus.Withdrawn.
         /// </summary>
         public string? ScheduleName { get; set; } = null;
+        
+        /// <summary>
+        /// Identyfikator agendy, do której przypisana była wizyta w momencie utworzenia snapshotu (opcjonalny).
+        /// </summary>
+        public int? AgendaId { get; set; }
 
         /// <summary>
         /// Data wizyty w momencie utworzenia snapshotu (jeśli dotyczy).
