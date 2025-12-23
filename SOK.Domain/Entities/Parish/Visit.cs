@@ -29,6 +29,11 @@ namespace SOK.Domain.Entities.Parish
         public VisitStatus Status { get; set; } = VisitStatus.Unplanned;
 
         /// <summary>
+        /// Liczba osób przyjmujących wizytę.
+        /// </summary>
+        public int? PeopleCount { get; set; }
+
+        /// <summary>
         /// Identyfikator agendy, do której przypisana jest wizyta (opcjonalny).
         /// </summary>
         public int? AgendaId { get; set; }

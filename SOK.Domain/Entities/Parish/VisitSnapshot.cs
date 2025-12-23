@@ -29,6 +29,11 @@ namespace SOK.Domain.Entities.Parish
         /// </summary>
         [DefaultValue(VisitStatus.Unplanned)]
         public VisitStatus Status { get; set; } = VisitStatus.Unplanned;
+        
+        /// <summary>
+        /// Liczba osób przyjmujących wizytę w momencie utworzenia snapshotu.
+        /// </summary>
+        public int? PeopleCount { get; set; }
 
         /// <summary>
         /// Nazwa harmonogramu, do którego przypisana była wizyta w momencie utworzenia snapshotu.
