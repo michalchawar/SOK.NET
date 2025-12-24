@@ -161,7 +161,6 @@ window.getContrastColor = function(hexColor) {
 window.declinateWord = function(count, singular, pluralFew, pluralMany) {
     const mod10 = count % 10;
     const mod100 = count % 100;
-    console.log("declinating");
 
     if (mod10 === 1 && mod100 !== 11) {
         return singular;

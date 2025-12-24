@@ -48,7 +48,7 @@ namespace SOK.Web.Controllers
                 .Select(s => new
                 {
                     s.SubmitTime,
-                    s.FormSubmission.Method
+                    Method = s.FormSubmission?.Method ?? SubmitMethod.NotRegistered
                 }).ToList();
 
             var stats = new SubmissionsStatsVM
@@ -86,6 +86,7 @@ namespace SOK.Web.Controllers
             // Pobierz dane o kolędzie (tylko dla administratorów i księży)
             UpcomingDayVM? upcomingDay = null;
             List<CalendarDayVM> calendarDays = new();
+            List<MinisterAgendaVM> ministerAgendas = new();
 
             if (User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest)))
             {
@@ -178,12 +179,60 @@ namespace SOK.Web.Controllers
                 }
             }
 
+            // Pobierz agendy dla ministranta (tylko dla roli VisitSupport)
+            if (User.IsInRole(nameof(Role.VisitSupport)))
+            {
+                var userIdClaim = User.FindFirst("ParishMemberId")?.Value;
+                if (userIdClaim != null && int.TryParse(userIdClaim, out int userId))
+                {
+                    var activePlan = await _planService.GetActivePlanAsync();
+                    if (activePlan != null)
+                    {
+                        var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
+                        
+                        // Pobierz tylko dni przyszłe lub dzisiejsze
+                        var upcomingDays = days
+                            .Where(d => d.Date >= today)
+                            .OrderBy(d => d.Date)
+                            .Take(10) // Ostatnich 10 dni
+                            .ToList();
+
+                        foreach (var day in upcomingDays)
+                        {
+                            var agendas = await _agendaService.GetAgendasForDayAsync(day.Id);
+                            
+                            // Filtruj agendy gdzie ministrant jest przypisany
+                            var ministerAgendaEntities = agendas.Where(a => 
+                                a.Ministers.Any(m => m.Id == userId)).ToList();
+
+                            foreach (var agenda in ministerAgendaEntities)
+                            {
+                                ministerAgendas.Add(new MinisterAgendaVM
+                                {
+                                    AgendaId = agenda.Id,
+                                    AgendaUniqueId = agenda.UniqueId,
+                                    AccessToken = agenda.AccessToken,
+                                    Date = day.Date,
+                                    StartHour = day.StartHour,
+                                    EndHour = day.EndHour,
+                                    PriestName = agenda.Priest?.DisplayName,
+                                    VisitsCount = agenda.VisitsCount,
+                                    ShowHours = agenda.ShowHours,
+                                    IsPast = day.Date < today
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
             var viewModel = new DashboardVM
             {
                 SubmissionsStats = stats,
                 DailySubmissions = completeData,
                 UpcomingDay = upcomingDay,
-                AllDays = calendarDays
+                AllDays = calendarDays,
+                MinisterAgendas = ministerAgendas
             };
 
             return View(viewModel);

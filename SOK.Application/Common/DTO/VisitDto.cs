@@ -33,7 +33,9 @@ namespace SOK.Application.Common.DTO
             TimeVisible = visit.Agenda?.ShowHours ?? false;
             AgendaId = visit.Agenda?.Id;
 
-            Schedule = visit.Status != VisitStatus.Withdrawn ? new ScheduleDto(visit.Schedule!) : null!;
+            Schedule = visit.Status != VisitStatus.Withdrawn && visit.Schedule is not null ? 
+                new ScheduleDto(visit.Schedule) : 
+                null!;
         }
     }
 }

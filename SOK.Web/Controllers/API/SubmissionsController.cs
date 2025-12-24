@@ -23,6 +23,7 @@ namespace SOK.Web.Controllers.API
         private readonly IBuildingService _buildingService;
         private readonly IEmailService _emailService;
         private readonly IParishInfoService _parishInfoService;
+        private readonly IVisitTimeEstimationService _visitTimeEstimationService;
 
         public SubmissionsController(
             ISubmissionService submissionService, 
@@ -30,7 +31,8 @@ namespace SOK.Web.Controllers.API
             IScheduleService scheduleService,
             IBuildingService buildingService,
             IEmailService emailService,
-            IParishInfoService parishInfoService)
+            IParishInfoService parishInfoService,
+            IVisitTimeEstimationService visitTimeEstimationService)
         {
             _submissionService = submissionService;
             _planService = planService;
@@ -38,6 +40,7 @@ namespace SOK.Web.Controllers.API
             _buildingService = buildingService;
             _emailService = emailService;
             _parishInfoService = parishInfoService;
+            _visitTimeEstimationService = visitTimeEstimationService;
         }
 
         // GET: api/<SubmissionsController>
@@ -91,6 +94,7 @@ namespace SOK.Web.Controllers.API
             }
 
             SubmissionDto result = new SubmissionDto(submission);
+            result.Visit.EstimatedTime = await _visitTimeEstimationService.CalculateEstimatedTimeAsync(submission.Id);
 
             return Ok(result);
         }

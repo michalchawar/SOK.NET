@@ -55,4 +55,26 @@ namespace SOK.Application.Common.Helpers
         /// </summary>
         public const string DefaultEndTimeSunday = "DefaultEndTimeSunday";
     }
+
+    /// <summary>
+    /// Statyczna klasa definiująca dostępne metadane dla ParishMember (księdza).
+    /// </summary>
+    public static class ParishMemberMetadataKeys
+    {
+        /// <summary>
+        /// Jednostka czasowa dla księdza - liczba minut na jedną wizytę (domyślnie 10).
+        /// </summary>
+        public const string MinutesPerVisit = "MinutesPerVisit";
+    }
+
+    /// <summary>
+    /// Statyczna klasa definiująca dostępne metadane dla Agendy.
+    /// </summary>
+    public static class AgendaMetadataKeys
+    {
+        /// <summary>
+        /// Jednostka czasowa dla agendy - liczba minut na jedną wizytę (nadpisuje wartość księdza).
+        /// </summary>
+        public const string MinutesPerVisit = "MinutesPerVisit";
+    }
 }

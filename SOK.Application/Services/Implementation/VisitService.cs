@@ -151,5 +151,36 @@ namespace SOK.Application.Services.Implementation
 
             return buildingAssignment?.Day?.Date;
         }
+
+        /// <inheritdoc />
+        public async Task UpdateVisitStatusAsync(int visitId, VisitStatus status, int? peopleCount)
+        {
+            var visit = await _uow.Visit.GetAsync(
+                filter: v => v.Id == visitId,
+                tracked: true
+            );
+
+            if (visit == null)
+                throw new ArgumentException($"Visit with ID {visitId} not found.");
+
+            // Jeśli ustawiamy nowy status Pending (trwająca), przenieś poprzedni Pending na Visited
+            if (status == VisitStatus.Pending && visit.AgendaId.HasValue)
+            {
+                var previousPending = await _uow.Visit.GetAsync(
+                    filter: v => v.AgendaId == visit.AgendaId && v.Status == VisitStatus.Pending && v.Id != visitId,
+                    tracked: true
+                );
+
+                if (previousPending != null)
+                {
+                    previousPending.Status = VisitStatus.Visited;
+                }
+            }
+
+            visit.Status = status;
+            visit.PeopleCount = peopleCount;
+
+            await _uow.SaveAsync();
+        }
     }
 }

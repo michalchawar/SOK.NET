@@ -61,7 +61,7 @@
                                 </button>
                             </li>
                             <li>
-                                <a :href="`${parishUid}/submissions/panel/${data?.uniqueId}?accessToken=${data?.accessToken}`"
+                                <a :href="`/${parishUid}/submissions/panel/${data?.uniqueId}?accessToken=${data?.accessToken}`"
                                     target="_blank" :disabled="data === null">
                                     <i class="bi bi-file-person"></i> Panel zgłoszenia
                                 </a>
@@ -319,6 +319,35 @@
                                                         class="bi bi-calendar-check-fill text-3xl text-success/75"></i>
                                                     <span class="text-xl font-semibold">Zaplanowana</span>
                                                 </div>
+                                                <div v-if="data.visit.status === 2"
+                                                    class="flex items-center justify-start gap-2">
+                                                    <span class="loading loading-spinner loading-lg text-warning"></span>
+                                                    <span class="text-xl font-semibold">W trakcie</span>
+                                                </div>
+                                                <div v-if="data.visit.status === 3"
+                                                    class="flex items-center justify-start gap-2">
+                                                    <i
+                                                        class="bi bi-calendar-check text-3xl text-base-content/75"></i>
+                                                    <span class="text-xl font-semibold">Zakończona</span>
+                                                </div>
+                                                <div v-if="data.visit.status === 4"
+                                                    class="flex items-center justify-start gap-2">
+                                                    <i
+                                                        class="bi bi-calendar2-x text-3xl text-error/75"></i>
+                                                    <span class="text-xl font-semibold">Nieprzyjęta</span>
+                                                </div>
+                                                <div v-if="data.visit.status === 5"
+                                                    class="flex items-center justify-start gap-2">
+                                                    <i
+                                                        class="bi bi-backspace-fill text-3xl text-info/75"></i>
+                                                    <span class="text-xl font-semibold">Wycofana</span>
+                                                </div>
+                                                <div v-if="data.visit.status === 6"
+                                                    class="flex items-center justify-start gap-2">
+                                                    <i
+                                                        class="bi bi-arrow-counterclockwise text-3xl text-warning/75"></i>
+                                                    <span class="text-xl font-semibold">Wstrzymana</span>
+                                                </div>
                                                 <div class="text-end">
                                                     <p class="text-sm opacity-80">
                                                         {{ formatDateWeekDay(data.visit.plannedDate) }}
@@ -326,8 +355,11 @@
                                                     <p class="text-lg font-semibold">
                                                         {{ formatDate(data.visit.plannedDate) }}
                                                     </p>
-                                                    <p class="text-sm opacity-70">
-                                                        {{ data.visit.ordinalNumber }} na liście
+                                                    <p v-if="!data.visit.timeVisible" class="text-sm opacity-70">
+                                                        Godziny nie są widoczne dla zgłaszającego
+                                                    </p>
+                                                    <p v-else class="text-sm opacity-70">
+                                                        ok. {{ new Date('1900-01-01T' + data.visit.estimatedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
                                                     </p>
                                                 </div>
                                             </div>

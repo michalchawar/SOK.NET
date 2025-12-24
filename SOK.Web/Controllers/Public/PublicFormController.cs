@@ -30,6 +30,7 @@ namespace SOK.Web.Controllers
         private readonly ICurrentParishService _currentParishService;
         private readonly IPlanService _planService;
         private readonly IVisitService _visitService;
+        private readonly IVisitTimeEstimationService _visitTimeEstimationService;
 
         public PublicFormController(
             ISubmissionService submissionService,
@@ -39,7 +40,8 @@ namespace SOK.Web.Controllers
             IBuildingService buildingService,
             ICurrentParishService currentParishService,
             IPlanService planService,
-            IVisitService visitService)
+            IVisitService visitService,
+            IVisitTimeEstimationService visitTimeEstimationService)
         {
             _submissionService = submissionService;
             _scheduleService = scheduleService;
@@ -48,6 +50,8 @@ namespace SOK.Web.Controllers
             _buildingService = buildingService;
             _currentParishService = currentParishService;
             _planService = planService;
+            _visitService = visitService;
+            _visitTimeEstimationService = visitTimeEstimationService;
             _visitService = visitService;
         }
 
@@ -251,13 +255,18 @@ namespace SOK.Web.Controllers
             };
 
             // Dane wizyty
+            var estimatedTimeRange = submission.Visit.AgendaId.HasValue 
+                ? await _visitTimeEstimationService.CalculateDynamicTimeRangeAsync(submission.Visit.Id)
+                : null;
+
             vm.Visit = new VisitInfoVM
             {
                 Status = submission.Visit.Status,
                 OrdinalNumber = submission.Visit.OrdinalNumber,
                 PlannedDate = submission.Visit.Agenda?.Day?.Date,
                 DateVisible = !submission.Visit.Agenda?.HideVisits ?? true,
-                EstimatedTime = null, // TODO: Oblicz przewidywaną godzinę na podstawie OrdinalNumber i StartHourOverride
+                EstimatedTime = estimatedTimeRange?.Start,
+                EstimatedTimeEnd = estimatedTimeRange?.End,
                 TimeVisible = submission.Visit.Agenda?.ShowHours ?? false,
             };
 

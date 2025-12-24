@@ -26,6 +26,10 @@
             </p>
         </div>
         <div class="flex flex-col items-end gap-2">
+            <a href="/VisitControl?agendaUniqueId=@Model.UniqueId&accessToken=@Model.AccessToken" class="btn btn-success">
+                <i class="bi bi-play-circle"></i>
+                Przeprowadź wizytę
+            </a>
             <a asp-action="Day" asp-route-id="@Model.DayId" class="btn btn-ghost">
                 <i class="bi bi-arrow-left"></i>
                 Powrót do dnia
@@ -101,7 +105,7 @@
 
                     <!-- Numer porządkowy -->
                     <div class="badge badge-lg font-bold">
-                        {{ visit.apartmentNumber }}
+                        {{ visit.apartmentNumber }}{{ visit.apartmentLetter }}
                     </div>
 
                     <!-- Informacje o wizycie -->
@@ -114,8 +118,8 @@
                             </div>
                         </div>
                         <div class="text-sm text-base-content/60">
-                            <span v-if="visit.apartmentNumber">
-                                ok. <span class="font-semibold">--:--</span>
+                            <span v-if="visit.estimatedTime">
+                                ok. <span class="font-semibold">{{ new Date('1900-01-01T' + visit.estimatedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
                             </span>
                         </div>
                         <div v-if="visit.submitterNotes" class="text-xs text-base-content/50 mt-1 italic">

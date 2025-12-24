@@ -12,12 +12,18 @@ namespace SOK.Application.Services.Implementation
         private readonly IUnitOfWorkParish _uow;
         private readonly IParishMemberService _parishMemberService;
         private readonly IEmailNotificationService _notificationService;
+        private readonly IVisitTimeEstimationService _timeEstimationService;
 
-        public AgendaService(IUnitOfWorkParish uow, IParishMemberService parishMemberService, IEmailNotificationService notificationService)
+        public AgendaService(
+            IUnitOfWorkParish uow, 
+            IParishMemberService parishMemberService, 
+            IEmailNotificationService notificationService,
+            IVisitTimeEstimationService timeEstimationService)
         {
             _uow = uow;
             _parishMemberService = parishMemberService;
             _notificationService = notificationService;
+            _timeEstimationService = timeEstimationService;
         }
 
         /// <inheritdoc />
@@ -64,6 +70,12 @@ namespace SOK.Application.Services.Implementation
 
             _uow.Agenda.Add(agenda);
             await _uow.SaveAsync();
+
+            // Zapisz metadane jednostki czasowej jeśli podane
+            if (dto.MinutesPerVisit.HasValue)
+            {
+                await SetIntMetadataAsync(agenda, Common.Helpers.AgendaMetadataKeys.MinutesPerVisit, dto.MinutesPerVisit.Value);
+            }
 
             return agenda.Id;
         }
@@ -125,6 +137,17 @@ namespace SOK.Application.Services.Implementation
             }
 
             await _uow.SaveAsync();
+
+            // Aktualizuj metadane jednostki czasowej
+            if (dto.MinutesPerVisit.HasValue)
+            {
+                await SetIntMetadataAsync(agenda, Common.Helpers.AgendaMetadataKeys.MinutesPerVisit, dto.MinutesPerVisit.Value);
+            }
+            else
+            {
+                // Jeśli null, usuń metadane (użyj wartości księdza)
+                await DeleteMetadataAsync(agenda, Common.Helpers.AgendaMetadataKeys.MinutesPerVisit);
+            }
         }
 
         /// <inheritdoc />
@@ -223,17 +246,31 @@ namespace SOK.Application.Services.Implementation
             var priest = agenda.AssignedMembers.FirstOrDefault(m => activePriestIds.Contains(m.Id));
             var ministers = agenda.AssignedMembers.Where(m => !activePriestIds.Contains(m.Id)).ToList();
             
+            // Ustal godziny (override lub domyślne z dnia)
+            var startHour = agenda.StartHourOverride ?? day?.StartHour ?? TimeOnly.MinValue;
+            var endHour = agenda.EndHourOverride ?? day?.EndHour ?? TimeOnly.MaxValue;
+
+            // Pobierz metadane jednostki czasowej
+            var minutesPerVisit = GetIntMetadataAsync(agenda, Common.Helpers.AgendaMetadataKeys.MinutesPerVisit)
+                .GetAwaiter().GetResult();
+            
             return new AgendaDto
             {
                 Id = agenda.Id,
                 UniqueId = agenda.UniqueId,
+                AccessToken = agenda.AccessToken,
                 DayId = agenda.DayId,
+                PlanId = day?.PlanId ?? 0,
+                Date = day?.Date ?? DateOnly.MinValue,
+                StartHour = startHour,
+                EndHour = endHour,
                 StartHourOverride = agenda.StartHourOverride,
                 EndHourOverride = agenda.EndHourOverride,
                 GatheredFunds = agenda.GatheredFunds,
                 HideVisits = agenda.HideVisits,
                 ShowHours = agenda.ShowHours,
                 VisitsCount = agenda.Visits?.Count ?? 0,
+                AssignedPriestName = priest?.DisplayName,
                 Priest = priest == null ? null : new ParishMemberSimpleDto
                 {
                     Id = priest.Id,
@@ -245,7 +282,8 @@ namespace SOK.Application.Services.Implementation
                         Id = m.Id,
                         DisplayName = m.DisplayName
                     })
-                    .ToList()
+                    .ToList(),
+                MinutesPerVisit = minutesPerVisit
             };
         }
 
@@ -260,25 +298,35 @@ namespace SOK.Application.Services.Implementation
                 orderBy: v => v.OrdinalNumber ?? 0
             );
 
+            // Oblicz czasy dla wszystkich wizyt na raz
+            var visitIds = visits.Select(v => v.Id).ToList();
+            var estimatedTimes = await _timeEstimationService.CalculateEstimatedTimesForAllVisitsAsync(agendaId, visitIds);
+
             return visits.Select(v => new AgendaVisitDto
             {
-                Id = v.Id,
+                VisitId = v.Id,
                 SubmissionId = v.SubmissionId,
                 OrdinalNumber = v.OrdinalNumber,
                 Status = v.Status,
+                PeopleCount = v.PeopleCount,
                 BuildingId = v.Submission.Address.BuildingId,
                 BuildingNumber = v.Submission.Address.Building.Number.ToString() + (v.Submission.Address.Building.Letter ?? ""),
+                BuildingLetter = v.Submission.Address.Building.Letter,
+                ApartmentNumber = v.Submission.Address.ApartmentNumber,
+                ApartmentLetter = v.Submission.Address.ApartmentLetter,
+                DeclaredPeopleCount = null, // TODO: dodaj do Submitter jeśli będzie pole
+                AdminNotes = v.Submission.AdminNotes,
                 StreetId = v.Submission.Address.Building.StreetId,
                 StreetTypeAbbrev = v.Submission.Address.Building.Street.Type.Abbreviation ?? "",
                 StreetName = v.Submission.Address.Building.Street.Name,
                 SubmitterName = $"{v.Submission.Submitter.Name} {v.Submission.Submitter.Surname}",
-                ApartmentNumber = (v.Submission.Address.ApartmentNumber?.ToString() ?? "") + (v.Submission.Address.ApartmentLetter ?? ""),
                 FloorNumber = null,
                 SubmitterNotes = v.Submission.SubmitterNotes,
                 ScheduleId = v.ScheduleId,
                 ScheduleName = v.Schedule?.Name,
                 ScheduleShortName = v.Schedule?.ShortName,
-                ScheduleColor = v.Schedule?.Color
+                ScheduleColor = v.Schedule?.Color,
+                EstimatedTime = estimatedTimes.ContainsKey(v.Id) ? estimatedTimes[v.Id] : null
             }).ToList();
         }
 
@@ -773,6 +821,161 @@ namespace SOK.Application.Services.Implementation
                 return numberComparison;
 
             return string.Compare(letter1, letter2, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // === Metody przeprowadzania wizyty ===
+
+        /// <inheritdoc />
+        public async Task<AgendaDto?> GetAgendaByUniqueIdAsync(Guid uniqueId)
+        {
+            var agenda = await _uow.Agenda.GetAsync(
+                filter: a => a.UniqueId == uniqueId,
+                includeProperties: "AssignedMembers,Day,Visits"
+            );
+
+            if (agenda == null)
+                return null;
+
+            return MapToDto(agenda);
+        }
+
+        /// <inheritdoc />
+        public async Task AssignPriestToAgendaAsync(int agendaId, int priestId)
+        {
+            var agenda = await _uow.Agenda.GetAsync(
+                filter: a => a.Id == agendaId,
+                includeProperties: "AssignedMembers,Day.Plan.ActivePriests",
+                tracked: true
+            );
+
+            if (agenda == null)
+                throw new ArgumentException("Agenda not found.");
+
+            // Sprawdź czy ksiądz istnieje - najpierw szukaj w już załadowanych encjach
+            var priest = agenda.Day.Plan.ActivePriests.FirstOrDefault(p => p.Id == priestId) 
+                      ?? agenda.AssignedMembers.FirstOrDefault(m => m.Id == priestId);
+            
+            // Jeśli nie ma w załadowanych, pobierz bez śledzenia i sprawdź istnienie
+            if (priest == null)
+            {
+                var priestExists = await _uow.ParishMember.GetAsync(
+                    filter: pm => pm.Id == priestId,
+                    tracked: false
+                );
+                
+                if (priestExists == null)
+                    throw new ArgumentException("Priest not found.");
+                
+                // Użyj referencji bez pełnego ładowania - EF przypisze przez Id
+                priest = priestExists;
+            }
+
+            // Pobierz listę ID księży z planu
+            var activePriestIds = agenda.Day.Plan.ActivePriests.Select(p => p.Id).ToHashSet();
+
+            // Usuń poprzedniego księża jeśli był (który jest na liście ActivePriests)
+            var oldPriest = agenda.AssignedMembers.FirstOrDefault(m => activePriestIds.Contains(m.Id));
+            if (oldPriest != null)
+            {
+                agenda.AssignedMembers.Remove(oldPriest);
+            }
+
+            // Dodaj nowego księża jeśli jeszcze go nie ma
+            if (!agenda.AssignedMembers.Any(m => m.Id == priestId))
+            {
+                agenda.AssignedMembers.Add(priest);
+            }
+
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task UpdateGatheredFundsAsync(int agendaId, float gatheredFunds)
+        {
+            var agenda = await _uow.Agenda.GetAsync(
+                filter: a => a.Id == agendaId,
+                tracked: true
+            );
+
+            if (agenda == null)
+                throw new ArgumentException("Agenda not found.");
+
+            agenda.GatheredFunds = gatheredFunds;
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task InsertVisitToAgendaAsync(int agendaId, int submissionId)
+        {
+            // Pobierz agendę wraz z wizytami jako śledzone
+            var agenda = await _uow.Agenda.GetAsync(
+                filter: a => a.Id == agendaId,
+                includeProperties: "Visits.Submission.Address.Building.Street",
+                tracked: true
+            );
+
+            if (agenda == null)
+                throw new ArgumentException("Agenda not found.");
+
+            // Pobierz wizytę dla zgłoszenia wraz z pełnymi danymi adresu
+            var visit = await _uow.Visit.GetAsync(
+                filter: v => v.SubmissionId == submissionId,
+                includeProperties: "Submission.Address.Building.Street",
+                tracked: true
+            );
+
+            if (visit == null)
+                throw new ArgumentException("Visit not found.");
+
+            // Pobierz aktualną listę wizyt posortowaną według numeru porządkowego
+            var visitList = agenda.Visits.OrderBy(v => v.OrdinalNumber).ToList();
+
+            // Wyznacz odpowiednią pozycję używając tej samej logiki co przy przypisywaniu wizyt
+            int insertPosition = GetAdequatePosition(visit, visitList);
+
+            // Wstaw wizytę w odpowiednie miejsce na liście
+            visitList.Insert(insertPosition, visit);
+
+            // Zaktualizuj numery porządkowe dla wszystkich wizyt w agedzie
+            for (int i = 0; i < visitList.Count; i++)
+            {
+                visitList[i].OrdinalNumber = i + 1;
+            }
+
+            // Przypisz wizytę do agendy
+            visit.AgendaId = agendaId;
+            visit.Status = VisitStatus.Planned;
+
+            await _uow.SaveAsync();
+        }
+
+        // === Metody metadanych ===
+
+        /// <inheritdoc />
+        public async Task<int?> GetIntMetadataAsync(Agenda agenda, string metadataKey)
+        {
+            string? value = await _uow.ParishInfo.GetMetadataAsync(agenda, metadataKey);
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (int.TryParse(value, out int result))
+                return result;
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task SetIntMetadataAsync(Agenda agenda, string metadataKey, int value)
+        {
+            await _uow.ParishInfo.SetMetadataAsync(agenda, metadataKey, value.ToString());
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMetadataAsync(Agenda agenda, string metadataKey)
+        {
+            await _uow.ParishInfo.DeleteMetadataAsync(agenda, metadataKey);
+            await _uow.SaveAsync();
         }
     }
 }

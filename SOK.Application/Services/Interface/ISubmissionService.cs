@@ -123,5 +123,31 @@ namespace SOK.Application.Services.Interface
         /// Jeśli w bazie nie ma żadnego zgłoszenia, zwracane jest <see cref="null"/>.
         /// </remarks>
         Task<Submission?> GetRandomSubmissionAsync();
+
+        /// <summary>
+        /// Znajduje zgłoszenie na podstawie adresu.
+        /// </summary>
+        /// <param name="buildingId">Identyfikator budynku.</param>
+        /// <param name="apartmentNumber">Numer mieszkania.</param>
+        /// <param name="apartmentLetter">Litera mieszkania.</param>
+        /// <returns>Zgłoszenie lub null jeśli nie znaleziono.</returns>
+        Task<Submission?> FindSubmissionByAddressAsync(int buildingId, int? apartmentNumber, string? apartmentLetter);
+
+        /// <summary>
+        /// Dodaje tekst do AdminNotes zgłoszenia.
+        /// </summary>
+        /// <param name="submissionId">Identyfikator zgłoszenia.</param>
+        /// <param name="text">Tekst do dodania.</param>
+        Task AppendAdminNotesAsync(int submissionId, string text);
+
+        /// <summary>
+        /// Tworzy nowe zgłoszenie podczas przeprowadzania wizyty (z generycznymi danymi).
+        /// </summary>
+        /// <param name="buildingId">Identyfikator budynku.</param>
+        /// <param name="apartmentNumber">Numer mieszkania.</param>
+        /// <param name="apartmentLetter">Litera mieszkania.</param>
+        /// <param name="scheduleId">Identyfikator harmonogramu.</param>
+        /// <returns>Identyfikator utworzonego zgłoszenia.</returns>
+        Task<int> CreateSubmissionDuringVisitAsync(int buildingId, int? apartmentNumber, string? apartmentLetter, int scheduleId);
     }
 }

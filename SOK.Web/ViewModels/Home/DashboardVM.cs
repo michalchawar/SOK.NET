@@ -8,6 +8,7 @@ namespace SOK.Web.ViewModels.Home
         public List<DailySubmissionsVM> DailySubmissions { get; set; } = new();
         public UpcomingDayVM? UpcomingDay { get; set; }
         public List<CalendarDayVM> AllDays { get; set; } = new();
+        public List<MinisterAgendaVM> MinisterAgendas { get; set; } = new();
     }
 
     public class SubmissionsStatsVM
@@ -63,5 +64,19 @@ namespace SOK.Web.ViewModels.Home
         public int AgendasCount { get; set; }
         public bool IsPast { get; set; }
         public bool IsUpcoming { get; set; }
+    }
+
+    public class MinisterAgendaVM
+    {
+        public int AgendaId { get; set; }
+        public Guid AgendaUniqueId { get; set; }
+        public string AccessToken { get; set; } = string.Empty;
+        public DateOnly Date { get; set; }
+        public TimeOnly StartHour { get; set; }
+        public TimeOnly EndHour { get; set; }
+        public string? PriestName { get; set; }
+        public int VisitsCount { get; set; }
+        public bool ShowHours { get; set; }
+        public bool IsPast { get; set; }
     }
 }

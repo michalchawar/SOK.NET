@@ -82,6 +82,7 @@ namespace SOK.Application.Services.Implementation
                     page: page,
                     submitter: true,
                     address: true,
+                    visit: true,
                     formSubmission: true)];
 
             return result;
@@ -245,7 +246,7 @@ namespace SOK.Application.Services.Implementation
                     ba.EnableAutoAssign,
                 tracked: false);
 
-            if (buildingAssignment != null)
+            if (buildingAssignment != null && !submissionDto.DisableAutoAssignment)
             {
                 try
                 {
@@ -327,6 +328,73 @@ namespace SOK.Application.Services.Implementation
         public async Task<Submission?> GetRandomSubmissionAsync()
         {
             return await _uow.Submission.GetRandomAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<Submission?> FindSubmissionByAddressAsync(int buildingId, int? apartmentNumber, string? apartmentLetter)
+        {
+            var address = await _uow.Address.GetAsync(
+                filter: a => a.BuildingId == buildingId &&
+                            a.ApartmentNumber == apartmentNumber &&
+                            a.ApartmentLetter == apartmentLetter,
+                tracked: false
+            );
+
+            if (address == null)
+                return null;
+
+            var submission = await _uow.Submission.GetAsync(
+                filter: s => s.AddressId == address.Id,
+                includeProperties: "Visit.Agenda.Day",
+                tracked: false
+            );
+
+            return submission;
+        }
+
+        /// <inheritdoc />
+        public async Task AppendAdminNotesAsync(int submissionId, string text)
+        {
+            var submission = await _uow.Submission.GetAsync(
+                filter: s => s.Id == submissionId,
+                tracked: true
+            );
+
+            if (submission == null)
+                throw new ArgumentException($"Submission with ID {submissionId} not found.");
+
+            submission.AdminNotes = (submission.AdminNotes ?? "") + text;
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<int> CreateSubmissionDuringVisitAsync(int buildingId, int? apartmentNumber, string? apartmentLetter, int scheduleId)
+        {
+            // Utwórz zgłoszenie z danymi
+            int? submissionId = await CreateSubmissionAsync(new SubmissionCreationRequestDto
+            {
+                Building = new Building { Id = buildingId },
+                ApartmentNumber = apartmentNumber,
+                ApartmentLetter = apartmentLetter,
+                Schedule = new Schedule { Id = scheduleId },
+                AdminNotes = "Dodano podczas przeprowadzania wizyty danego dnia.",
+                Submitter = new Submitter
+                {
+                    Name = "(-)",
+                    Surname = "(-)",
+                    Email = null,
+                    Phone = null
+                },
+                Method = SubmitMethod.DuringVisits,
+                Created = DateTime.Now,
+                SendConfirmationEmail = false,
+                DisableAutoAssignment = true
+            });
+
+            if (submissionId == null)
+                throw new InvalidOperationException("Failed to create submission during visit.");
+
+            return submissionId.Value;
         }
     }
 }

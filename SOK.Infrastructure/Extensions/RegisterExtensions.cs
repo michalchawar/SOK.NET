@@ -63,6 +63,7 @@ namespace SOK.Infrastructure.Extensions
             services.AddScoped<IBuildingAssignmentService, BuildingAssignmentService>();
             services.AddScoped<IAgendaService, AgendaService>();
             services.AddScoped<IVisitService, VisitService>();
+            services.AddScoped<IVisitTimeEstimationService, VisitTimeEstimationService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
             services.AddScoped<IPrintService, PrintService>();

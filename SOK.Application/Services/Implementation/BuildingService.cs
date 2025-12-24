@@ -1,3 +1,4 @@
+using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -101,6 +102,25 @@ namespace SOK.Application.Services.Implementation
 
                 throw;
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<List<BuildingSimpleDto>> GetAllBuildingsAsync()
+        {
+            var buildings = await _uow.Building.GetAllAsync(
+                includeProperties: "Street.Type,Street.City"
+            );
+
+            return buildings.Select(b => new BuildingSimpleDto
+            {
+                Id = b.Id,
+                Number = b.Number,
+                Letter = b.Letter,
+                StreetId = b.StreetId,
+                StreetName = b.Street.Name,
+                StreetType = b.Street.Type.Abbreviation ?? "",
+                CityName = b.Street.City.Name
+            }).ToList();
         }
     }
 }

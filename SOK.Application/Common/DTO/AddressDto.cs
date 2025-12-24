@@ -35,4 +35,19 @@ namespace SOK.Application.Common.DTO
             CityName = address.CityName ?? string.Empty;
         }
     }
+
+    /// <summary>
+    /// Uproszczone DTO budynku z danymi adresowymi.
+    /// </summary>
+    public class BuildingSimpleDto
+    {
+        public int Id { get; set; }
+        public int? Number { get; set; }
+        public string? Letter { get; set; }
+        public int StreetId { get; set; }
+        public string StreetName { get; set; } = string.Empty;
+        public string StreetType { get; set; } = string.Empty;
+        public string CityName { get; set; } = string.Empty;
+    }
 }
+

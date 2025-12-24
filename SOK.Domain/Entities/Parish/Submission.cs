@@ -131,5 +131,17 @@ namespace SOK.Domain.Entities.Parish
             if (submitTime.HasValue)
                 SubmitTime = submitTime.Value;
         }
+
+        /// <summary>
+        /// Konstruktor tworzący zgłoszenie powiązane z planem przez ID.
+        /// </summary>
+        /// <param name="planId">ID planu, do którego należy zgłoszenie.</param>
+        public Submission(int planId, DateTime? submitTime = null)
+        {
+            PlanId = planId;
+
+            if (submitTime.HasValue)
+                SubmitTime = submitTime.Value;
+        }
     }
 }

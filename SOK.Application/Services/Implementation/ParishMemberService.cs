@@ -284,5 +284,34 @@ namespace SOK.Application.Services.Implementation
 
             return password.ToString();
         }
+
+        // === Metody metadanych ===
+
+        /// <inheritdoc />
+        public async Task<int?> GetIntMetadataAsync(ParishMember member, string metadataKey)
+        {
+            string? value = await _uow.ParishInfo.GetMetadataAsync(member, metadataKey);
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (int.TryParse(value, out int result))
+                return result;
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task SetIntMetadataAsync(ParishMember member, string metadataKey, int value)
+        {
+            await _uow.ParishInfo.SetMetadataAsync(member, metadataKey, value.ToString());
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMetadataAsync(ParishMember member, string metadataKey)
+        {
+            await _uow.ParishInfo.DeleteMetadataAsync(member, metadataKey);
+            await _uow.SaveAsync();
+        }
     }
 }

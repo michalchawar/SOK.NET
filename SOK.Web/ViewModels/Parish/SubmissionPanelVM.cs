@@ -32,6 +32,7 @@ namespace SOK.Web.ViewModels.Parish
         public DateOnly? PlannedDate { get; set; }
         public bool DateVisible { get; set; } = true;
         public TimeOnly? EstimatedTime { get; set; }
+        public TimeOnly? EstimatedTimeEnd { get; set; }
         public bool TimeVisible { get; set; } = false;
     }
 

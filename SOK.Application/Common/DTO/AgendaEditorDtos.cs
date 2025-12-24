@@ -8,23 +8,29 @@ namespace SOK.Application.Common.DTO
     /// </summary>
     public class AgendaVisitDto
     {
-        public int Id { get; set; }
+        public int VisitId { get; set; }
         public int SubmissionId { get; set; }
         public int? OrdinalNumber { get; set; }
         public VisitStatus Status { get; set; }
+        public int? PeopleCount { get; set; }
         public int BuildingId { get; set; }
         public string BuildingNumber { get; set; } = string.Empty;
+        public string? BuildingLetter { get; set; }
+        public int? ApartmentNumber { get; set; }
+        public string? ApartmentLetter { get; set; }
+        public int? DeclaredPeopleCount { get; set; }
+        public string? AdminNotes { get; set; }
         public int StreetId { get; set; }
         public string StreetTypeAbbrev { get; set; } = string.Empty;
         public string StreetName { get; set; } = string.Empty;
         public string SubmitterName { get; set; } = string.Empty;
-        public string? ApartmentNumber { get; set; }
         public int? FloorNumber { get; set; }
         public string? SubmitterNotes { get; set; }
         public int? ScheduleId { get; set; }
         public string? ScheduleName { get; set; } = string.Empty;
         public string? ScheduleShortName { get; set; } = string.Empty;
         public string? ScheduleColor { get; set; } = string.Empty;
+        public TimeOnly? EstimatedTime { get; set; }
     }
 
     /// <summary>

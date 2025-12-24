@@ -100,5 +100,60 @@ namespace SOK.Application.Services.Interface
         /// </summary>
         /// <param name="dto">Dane przeniesienia.</param>
         // Task ReassignVisitsToAgendaAsync(ReassignVisitsToAgendaDto dto);
+
+        // === Metody przeprowadzania wizyty ===
+
+        /// <summary>
+        /// Pobiera agendę na podstawie UniqueId (do autoryzacji).
+        /// </summary>
+        /// <param name="uniqueId">UniqueId agendy.</param>
+        /// <returns>Szczegóły agendy lub null jeśli nie znaleziono.</returns>
+        Task<AgendaDto?> GetAgendaByUniqueIdAsync(Guid uniqueId);
+
+        /// <summary>
+        /// Przypisuje księża do agendy.
+        /// </summary>
+        /// <param name="agendaId">Identyfikator agendy.</param>
+        /// <param name="priestId">Identyfikator księża.</param>
+        Task AssignPriestToAgendaAsync(int agendaId, int priestId);
+
+        /// <summary>
+        /// Aktualizuje kwotę zebranych funduszy w agendzie.
+        /// </summary>
+        /// <param name="agendaId">Identyfikator agendy.</param>
+        /// <param name="gatheredFunds">Kwota zebranych funduszy.</param>
+        Task UpdateGatheredFundsAsync(int agendaId, float gatheredFunds);
+
+        /// <summary>
+        /// Wstawia nową wizytę do agendy w odpowiedniej pozycji zgodnie z zasadami sortowania.
+        /// </summary>
+        /// <param name="agendaId">Identyfikator agendy.</param>
+        /// <param name="submissionId">Identyfikator zgłoszenia.</param>
+        Task InsertVisitToAgendaAsync(int agendaId, int submissionId);
+
+        // === Metody metadanych ===
+
+        /// <summary>
+        /// Pobiera wartość liczbową metadanych dla agendy.
+        /// </summary>
+        /// <param name="agenda">Agenda.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        /// <returns>Wartość liczbowa lub null.</returns>
+        Task<int?> GetIntMetadataAsync(Agenda agenda, string metadataKey);
+
+        /// <summary>
+        /// Ustawia wartość liczbową metadanych dla agendy.
+        /// </summary>
+        /// <param name="agenda">Agenda.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        /// <param name="value">Wartość do zapisania.</param>
+        Task SetIntMetadataAsync(Agenda agenda, string metadataKey, int value);
+
+        /// <summary>
+        /// Usuwa metadane dla agendy.
+        /// </summary>
+        /// <param name="agenda">Agenda.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        Task DeleteMetadataAsync(Agenda agenda, string metadataKey);
     }
 }

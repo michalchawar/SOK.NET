@@ -1,5 +1,6 @@
 using SOK.Application.Common.DTO;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 
 namespace SOK.Application.Services.Interface
 {
@@ -28,5 +29,13 @@ namespace SOK.Application.Services.Interface
         /// <param name="scheduleId">Identyfikator harmonogramu.</param>
         /// <returns>Datę dnia jeśli istnieje auto-assign, w przeciwnym razie null.</returns>
         Task<DateOnly?> GetAutoAssignmentDate(int buildingId, int scheduleId);
+
+        /// <summary>
+        /// Aktualizuje status wizyty i liczbę osób.
+        /// </summary>
+        /// <param name="visitId">Identyfikator wizyty.</param>
+        /// <param name="status">Nowy status wizyty.</param>
+        /// <param name="peopleCount">Liczba osób (opcjonalnie).</param>
+        Task UpdateVisitStatusAsync(int visitId, VisitStatus status, int? peopleCount);
     }
 }

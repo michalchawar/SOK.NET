@@ -255,6 +255,82 @@
     }
     else
     {
+        <!-- Kafelek z nadchodzącymi kolędami dla ministrantów -->
+        @if (User.IsInRole(nameof(Role.VisitSupport)) && Model.MinisterAgendas.Any())
+        {
+            <div class="card bg-base-100 shadow-xl mb-6">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">
+                        <i class="bi bi-calendar-check text-3xl"></i>
+                        Twoje nadchodzące kolędy
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach (var agenda in Model.MinisterAgendas)
+                        {
+                            <div class="card bg-base-200 border border-base-300">
+                                <div class="card-body p-4">
+                                    <!-- Data i godziny -->
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div>
+                                            <p class="text-sm text-base-content/70">
+                                                @agenda.Date.DayOfWeek.GetPolishName().ToLower()
+                                            </p>
+                                            <h3 class="text-2xl font-bold">
+                                                @agenda.Date.ToString("d", new System.Globalization.CultureInfo("pl-PL"))
+                                            </h3>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold">@agenda.StartHour.ToString("HH:mm")</div>
+                                            <div class="text-sm">do @agenda.EndHour.ToString("HH:mm")</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Informacje -->
+                                    <div class="space-y-2">
+                                        <!-- Ksiądz -->
+                                        <div class="flex items-center gap-2 text-sm">
+                                            <i class="bi bi-person-fill"></i>
+                                            @if (!string.IsNullOrEmpty(agenda.PriestName))
+                                            {
+                                                <span>@agenda.PriestName</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-warning italic">Brak przypisanego księdza</span>
+                                            }
+                                        </div>
+
+                                        <!-- Liczba wizyt -->
+                                        <div class="flex items-center gap-2 text-sm">
+                                            <i class="bi bi-house-door-fill"></i>
+                                            <span>@agenda.VisitsCount @(LanguageExtensions.GetDeclination(agenda.VisitsCount, "wizyta", "wizyty", "wizyt"))</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Przycisk do przeprowadzania wizyty -->
+                                    @if (agenda.ShowHours && !agenda.IsPast)
+                                    {
+                                        <div class="card-actions justify-end mt-4">
+                                            <a href="/VisitControl?agendaUniqueId=@agenda.AgendaUniqueId&accessToken=@agenda.AccessToken"
+                                               class="btn btn-primary btn-sm">
+                                                <i class="bi bi-play-circle"></i>
+                                                Przeprowadź wizytę
+                                            </a>
+                                        </div>
+                                    }
+                                    else if (agenda.IsPast)
+                                    {
+                                        <div class="badge badge-ghost badge-sm mt-4">Kolęda zakończona</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Kafelek powitalny dla innych ról -->
         <div class="card bg-base-100 shadow-xl mb-8">
             <div class="card-body text-center">

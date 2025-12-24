@@ -327,7 +327,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 VisitId = visit.Id,
                 OrdinalNumber = (short)(originalValues.GetValue<int?>(nameof(Visit.OrdinalNumber)) ?? 0),
                 Status = originalValues.GetValue<VisitStatus>(nameof(Visit.Status)),
-                PeopleCount = originalValues.GetValue<int>(nameof(Visit.PeopleCount)),
+                PeopleCount = originalValues.GetValue<int?>(nameof(Visit.PeopleCount)),
                 ScheduleName = visit.Schedule?.Name,
                 AgendaId = originalValues.GetValue<int?>(nameof(Visit.AgendaId)),
                 Date = visitDate,

@@ -6,6 +6,8 @@ namespace SOK.Domain.Enums
         PaperForm,
         WebForm,
         Phone,
-        Stationary
+        Stationary,
+        Email,
+        DuringVisits
     }
 }

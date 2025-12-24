@@ -110,6 +110,40 @@
                 </div>
             </div>
 
+            <!-- Jednostka czasowa -->
+            <div class="flex flex-col gap-1">
+                <label class="label">
+                    <span class="label-text">Jednostka czasowa (minuty na wizytę)</span>
+                </label>
+                <div class="flex items-center gap-4">
+                    <input 
+                        v-model.number="form.minutesPerVisit" 
+                        type="range" 
+                        min="3" 
+                        max="20" 
+                        class="range range-primary flex-1" 
+                        :step="1" />
+                    <div class="badge badge-lg badge-primary font-bold min-w-[4rem]">
+                        {{ form.minutesPerVisit || defaultMinutesPerVisit }} min
+                    </div>
+                </div>
+                <label class="label">
+                    <span class="text-xs text-base-content/60">
+                        Jeśli puste, używa wartości księdza 
+                        <span v-if="priestMinutesPerVisit">({{ priestMinutesPerVisit }} min)</span>
+                        lub domyślnej (10 min)
+                    </span>
+                </label>
+                <button 
+                    v-if="form.minutesPerVisit" 
+                    type="button" 
+                    class="btn btn-sm btn-ghost self-start"
+                    @@click="form.minutesPerVisit = null">
+                    <i class="bi bi-x-circle"></i>
+                    Użyj wartości księdza
+                </button>
+            </div>
+
             <!-- Ustawienia dodatkowe -->
             <div class="grid grid-cols-1 gap-4">
                 <label class="label">
@@ -177,9 +211,12 @@
                         priestId: null,
                         ministerIds: [],
                         hideVisits: false,
-                        showHours: false
+                        showHours: false,
+                        minutesPerVisit: null
                     },
-                    selectedMinisterId: null
+                    selectedMinisterId: null,
+                    defaultMinutesPerVisit: 10,
+                    priestMinutesPerVisit: null
                 };
             },
             computed: {
@@ -188,6 +225,16 @@
                 },
                 availableMinisters() {
                     return this.ministers.filter(m => !this.form.ministerIds.includes(m.id));
+                }
+            },
+            watch: {
+                'form.priestId': async function(newPriestId) {
+                    // Gdy zmienia się ksiądz, pobierz jego jednostkę czasową
+                    if (newPriestId) {
+                        await this.loadPriestMinutesPerVisit(newPriestId);
+                    } else {
+                        this.priestMinutesPerVisit = null;
+                    }
                 }
             },
             methods: {
@@ -221,9 +268,11 @@
                         priestId: null,
                         ministerIds: [],
                         hideVisits: false,
-                        showHours: false
+                        showHours: false,
+                        minutesPerVisit: null
                     };
                     this.selectedMinisterId = null;
+                    this.priestMinutesPerVisit = null;
                 },
                 async loadModalData() {
                     this.loading = true;
@@ -257,6 +306,12 @@
                         this.form.ministerIds = agenda.ministers.map(m => m.id);
                         this.form.hideVisits = agenda.hideVisits;
                         this.form.showHours = agenda.showHours;
+                        this.form.minutesPerVisit = agenda.minutesPerVisit || null;
+                        
+                        // Załaduj jednostkę czasową księdza jeśli przypisany
+                        if (this.form.priestId) {
+                            await this.loadPriestMinutesPerVisit(this.form.priestId);
+                        }
                     } catch (error) {
                         console.error('Error loading agenda:', error);
                         alert('Nie udało się załadować danych agendy');
@@ -303,7 +358,8 @@
                             priestId: this.form.priestId,
                             ministerIds: this.form.ministerIds,
                             hideVisits: this.form.hideVisits,
-                            showHours: this.form.showHours
+                            showHours: this.form.showHours,
+                            minutesPerVisit: this.form.minutesPerVisit
                         };
 
                         let response;
@@ -354,6 +410,20 @@
                     } catch (error) {
                         console.error('Error deleting agenda:', error);
                         alert('Wystąpił błąd podczas usuwania agendy');
+                    }
+                },
+                async loadPriestMinutesPerVisit(priestId) {
+                    try {
+                        const response = await fetch(`/api/parish-member/${priestId}/minutes-per-visit`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.priestMinutesPerVisit = data.minutesPerVisit;
+                        } else {
+                            this.priestMinutesPerVisit = null;
+                        }
+                    } catch (error) {
+                        console.error('Error loading priest minutes per visit:', error);
+                        this.priestMinutesPerVisit = null;
                     }
                 }
             },

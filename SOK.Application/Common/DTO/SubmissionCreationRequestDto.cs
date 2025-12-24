@@ -21,5 +21,6 @@ namespace SOK.Application.Common.DTO
         public string? IPAddress { get; set; } = null;
 
         public bool SendConfirmationEmail { get; set; } = false;
+        public bool DisableAutoAssignment { get; set; } = false;
     }
 }

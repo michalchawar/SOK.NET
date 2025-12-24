@@ -209,5 +209,30 @@ namespace SOK.Application.Services.Interface
         /// lista wszystkich planów.
         /// </returns>
         Task<IEnumerable<Plan>> GetAllPlansAsync();
+
+        // === Metody metadanych ===
+
+        /// <summary>
+        /// Pobiera wartość liczbową metadanych dla użytkownika.
+        /// </summary>
+        /// <param name="member">Członek parafii.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        /// <returns>Wartość liczbowa lub null.</returns>
+        Task<int?> GetIntMetadataAsync(ParishMember member, string metadataKey);
+
+        /// <summary>
+        /// Ustawia wartość liczbową metadanych dla użytkownika.
+        /// </summary>
+        /// <param name="member">Członek parafii.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        /// <param name="value">Wartość do zapisania.</param>
+        Task SetIntMetadataAsync(ParishMember member, string metadataKey, int value);
+
+        /// <summary>
+        /// Usuwa metadane dla użytkownika.
+        /// </summary>
+        /// <param name="member">Członek parafii.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        Task DeleteMetadataAsync(ParishMember member, string metadataKey);
     }
 }

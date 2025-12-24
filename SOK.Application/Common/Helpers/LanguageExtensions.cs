@@ -154,5 +154,24 @@ namespace SOK.Application.Common.Helpers
             }
             return form5;
         }
+
+        /// <summary>
+        /// Zaokrągla obiekt <see cref="TimeOnly"/> do najbliższej wielokrotności <paramref name="n"/> minut.
+        /// </summary>
+        /// <param name="timeOnly">Obiekt <see cref="TimeOnly"/> do zaokrąglenia.</param>
+        /// <param name="n">Liczba minut, do której ma zostać zaokrąglony obiekt <see cref="TimeOnly"/>.</param>
+        /// <param name="roundDown">Określa, czy zaokrąglenie ma być w dół (domyślnie w górę).</param>
+        /// <returns>Zaokrąglony obiekt <see cref="TimeOnly"/>.</returns>
+        public static TimeOnly RoundTo(this TimeOnly timeOnly, int n, bool roundDown = false)
+        {
+            if (roundDown)
+            {
+                return TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(n * Math.Floor(timeOnly.ToTimeSpan().TotalMinutes / n)));
+            }
+            else
+            {
+                return TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(n * Math.Ceiling(timeOnly.ToTimeSpan().TotalMinutes / n)));
+            }
+        }
     }
 }

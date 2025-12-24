@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using SOK.Domain.Interfaces;
 
 namespace SOK.Domain.Entities.Parish
 {
@@ -8,7 +9,7 @@ namespace SOK.Domain.Entities.Parish
     /// Agenda grupuje wizyty przypisane do konkretnego dnia i użytkownika (np. księdza lub osoby wspierającej).
     /// Pozwala na zarządzanie harmonogramem, przypisaniami budynków oraz użytkowników.
     /// </summary>
-    public class Agenda
+    public class Agenda : IEntityMetadata
     {
         /// <summary>
         /// Unikalny identyfikator agendy (klucz główny).
