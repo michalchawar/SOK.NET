@@ -406,7 +406,7 @@
                 },
                 canStart() {
                     // Sprawdź czy jest 15 min przed czasem rozpoczęcia
-                    const now = new Date("2025-12-27T13:45:00");
+                    const now = Date.now();
                     const startTime = new Date('@Model.Date.ToString("yyyy-MM-dd")' + 'T' + '@Model.StartHour.ToString("HH:mm:ss")');
 
                     return now >= new Date(startTime.getTime() - 15 * 60000);
