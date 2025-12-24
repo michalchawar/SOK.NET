@@ -8,7 +8,7 @@ namespace SOK.Application.Common.DTO
     /// </summary>
     public class AgendaVisitDto
     {
-        public int VisitId { get; set; }
+        public int Id { get; set; }
         public int SubmissionId { get; set; }
         public int? OrdinalNumber { get; set; }
         public VisitStatus Status { get; set; }

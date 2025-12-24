@@ -304,7 +304,7 @@ namespace SOK.Application.Services.Implementation
 
             return visits.Select(v => new AgendaVisitDto
             {
-                VisitId = v.Id,
+                Id = v.Id,
                 SubmissionId = v.SubmissionId,
                 OrdinalNumber = v.OrdinalNumber,
                 Status = v.Status,

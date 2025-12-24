@@ -56,7 +56,7 @@ namespace SOK.Web.Controllers
                 AssignedPriestName = agenda.AssignedPriestName,
                 Visits = visits.Select(v => new VisitControlItemViewModel
                 {
-                    VisitId = v.VisitId,
+                    VisitId = v.Id,
                     SubmissionId = v.SubmissionId,
                     Status = v.Status,
                     PeopleCount = v.PeopleCount,
