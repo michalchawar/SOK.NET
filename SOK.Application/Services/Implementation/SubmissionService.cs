@@ -210,7 +210,7 @@ namespace SOK.Application.Services.Implementation
                 City = street.City.Name,
                 Method = submissionDto.Method,
                 IP = submissionDto.IPAddress ?? "",
-                Author = submissionDto.Author,
+                AuthorId = submissionDto.Author?.Id ?? null,
                 Submission = submission
             };
             submission.FormSubmission = fs;
