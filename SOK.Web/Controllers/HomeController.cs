@@ -19,19 +19,22 @@ namespace SOK.Web.Controllers
         private readonly IPlanService _planService;
         private readonly IAgendaService _agendaService;
         private readonly IVisitService _visitService;
+        private readonly IParishMemberService _parishMemberService;
 
         public HomeController(
             ILogger<HomeController> logger, 
             ISubmissionService submissionService,
             IPlanService planService,
             IAgendaService agendaService,
-            IVisitService visitService)
+            IVisitService visitService,
+            IParishMemberService parishMemberService)
         {
             _logger = logger;
             _submissionService = submissionService;
             _planService = planService;
             _agendaService = agendaService;
             _visitService = visitService;
+            _parishMemberService = parishMemberService;
         }
 
         public async Task<IActionResult> Index()
@@ -182,13 +185,16 @@ namespace SOK.Web.Controllers
             // Pobierz agendy dla ministranta (tylko dla roli VisitSupport)
             if (User.IsInRole(nameof(Role.VisitSupport)))
             {
-                var userIdClaim = User.FindFirst("ParishMemberId")?.Value;
-                if (userIdClaim != null && int.TryParse(userIdClaim, out int userId))
+                var parishMember = await _parishMemberService.GetParishMemberAsync(User);
+
+                if (parishMember != null)
                 {
+                    var userId = parishMember.Id;
+
                     var activePlan = await _planService.GetActivePlanAsync();
                     if (activePlan != null)
                     {
-                        var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
+                    var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
                         
                         // Pobierz tylko dni przyszłe lub dzisiejsze
                         var upcomingDays = days

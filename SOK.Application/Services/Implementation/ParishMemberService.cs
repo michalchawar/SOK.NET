@@ -37,8 +37,8 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<ParishMember?> GetParishMemberAsync(ClaimsPrincipal userClaim)
         {
-            bool parishMemberFound = int.TryParse(_userManager.GetUserId(userClaim), out int userId);
-            return parishMemberFound ? await _uow.ParishMember.GetAsync(pm => pm.Id == userId) : null;
+            string? userUid = _userManager.GetUserId(userClaim);
+            return userUid != null ? await _uow.ParishMember.GetAsync(pm => pm.CentralUserId.ToString() == userUid) : null;
         }
 
         /// <inheritdoc />
