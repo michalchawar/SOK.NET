@@ -240,7 +240,7 @@
     </div>
 
     <!-- Panel rozpoczęcia/zakończenia -->
-    <div v-else-if="!visitStarted || !nextVisitId" id="visit-start-end-panel"
+    <div v-else id="visit-start-end-panel"
         class="fixed bottom-0 left-0 right-0 bg-base-200 border-t border-base-300 z-50">
         <div class="container mx-auto px-4 py-4 text-center">
             <button v-if="!visitStarted && canStart" 
