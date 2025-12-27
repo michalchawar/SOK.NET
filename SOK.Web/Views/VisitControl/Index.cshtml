@@ -449,6 +449,8 @@
             },
             methods: {
                 updateCurrentVisit() {
+                    if (!this.canStart) return;
+
                     // Pending = wizyta trwająca (ostatnio przyjęta)
                     const pending = this.visits.find(v => v.Status === @((int)VisitStatus.Pending));
                     this.pendingVisitId = pending ? pending.VisitId : null;
