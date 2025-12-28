@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -236,27 +237,48 @@ namespace SOK.Application.Services.Implementation
                 return;
             }
 
-            // Grupuj wizyty według ulicy, a następnie według bramy
-            var streetGroups = visits
-                .GroupBy(v => v.Submission.Address.StreetName ?? "Nieznana ulica")
-                .Select(streetGroup => new
+            // Grupuj wizyty według sąsiadujących ulic, a następnie według sąsiadujących bram
+            var streetGroups = new List<streetEntryDto>();
+            
+            for (int i = 0; i < visits.Count; i++)
+            {
+                var currentVisit = visits[i];
+                var streetName = currentVisit.Submission.Address.StreetName ?? "Nieznana ulica";
+                
+                // Sprawdź czy to nowa ulica (lub pierwsza wizyta)
+                if (i == 0 || streetName != (string)streetGroups.Last().StreetName)
                 {
-                    StreetName = streetGroup.Key,
-                    Buildings = streetGroup
-                        .GroupBy(v => new
-                        {
-                            BuildingNumber = v.Submission.Address.BuildingNumber,
-                            BuildingLetter = v.Submission.Address.BuildingLetter
-                        })
-                        .Select(buildingGroup => new
-                        {
-                            BuildingNumber = buildingGroup.Key.BuildingNumber,
-                            BuildingLetter = buildingGroup.Key.BuildingLetter,
-                            Visits = buildingGroup.ToList()
-                        })
-                        .ToList()
-                })
-                .ToList();
+                    // Rozpocznij nową grupę ulicy
+                    streetGroups.Add(new streetEntryDto
+                    {
+                        StreetName = streetName,
+                        Buildings = new List<buildingEntryDto>()
+                    });
+                }
+                
+                var currentStreetGroup = streetGroups.Last();
+                var buildingNumber = currentVisit.Submission.Address.BuildingNumber;
+                var buildingLetter = currentVisit.Submission.Address.BuildingLetter;
+                
+                // Sprawdź czy to nowy budynek (lub pierwszy w tej grupie ulic)
+                if (currentStreetGroup.Buildings.Count == 0 ||
+                    buildingNumber != currentStreetGroup.Buildings.Last().BuildingNumber ||
+                    buildingLetter != currentStreetGroup.Buildings.Last().BuildingLetter)
+                {
+                    // Rozpocznij nową grupę budynku
+                    currentStreetGroup.Buildings.Add(new buildingEntryDto
+                    {
+                        BuildingNumber = buildingNumber,
+                        BuildingLetter = buildingLetter,
+                        Visits = new List<Visit> { currentVisit }
+                    });
+                }
+                else
+                {
+                    // Dodaj wizytę do istniejącej grupy budynku
+                    currentStreetGroup.Buildings.Last().Visits.Add(currentVisit);
+                }
+            }
 
             column.Item().Table(table =>
             {
@@ -426,6 +448,19 @@ namespace SOK.Application.Services.Implementation
                 DayOfWeek.Sunday => "niedziela",
                 _ => dayOfWeek.ToString()
             };
+        }
+
+        private class streetEntryDto
+        {
+            public string StreetName { get; set; } = string.Empty;
+            public List<buildingEntryDto> Buildings { get; set; } = new List<buildingEntryDto>();
+        }
+
+        private class buildingEntryDto
+        {
+            public int? BuildingNumber { get; set; }
+            public string? BuildingLetter { get; set; }
+            public List<Visit> Visits { get; set; } = new List<Visit>();
         }
     }
 }
