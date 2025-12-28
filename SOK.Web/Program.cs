@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using NUglify.JavaScript;
 using QuestPDF.Infrastructure;
 using SOK.Application.Common.Interface;
@@ -24,6 +25,12 @@ builder.Services.AddScoped<ICurrentParishService, CurrentParishService>();
 
 // Rejestracja kontekstów baz danych
 builder.Services.RegisterDatabaseContexts(builder.Configuration).MigrateCentralDatabase();
+
+// Konfiguracja Data Protection - klucze przechowywane w centralnej bazie danych
+// Zapewnia to utrzymanie sesji użytkowników po restarcie kontenerów
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<CentralDbContext>()
+    .SetApplicationName("SOK.NET");
 
 // Rejestracja repozytoriów
 builder.Services.RegisterRepositories();
