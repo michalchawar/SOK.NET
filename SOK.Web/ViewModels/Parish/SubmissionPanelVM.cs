@@ -34,6 +34,7 @@ namespace SOK.Web.ViewModels.Parish
         public TimeOnly? EstimatedTime { get; set; }
         public TimeOnly? EstimatedTimeEnd { get; set; }
         public bool TimeVisible { get; set; } = false;
+        public bool IsDynamicTimeRange { get; set; } = false;
     }
 
     public class PlanScheduleInfoVM

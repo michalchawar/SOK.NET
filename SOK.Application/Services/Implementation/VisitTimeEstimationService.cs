@@ -181,7 +181,10 @@ namespace SOK.Application.Services.Implementation
 
             // Oblicz datę i godzinę rozpoczęcia agendy
             var agendaStartDateTime = new DateTime(agenda.Day.Date, agenda.StartHourOverride ?? agenda.Day.StartHour);
-            var now = DateTime.Now;
+            
+            // Użyj czasu polskiego (UTC+1/UTC+2 zależnie od DST)
+            var polandTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, polandTimeZone);
 
             // Sprawdź, czy agenda już się rozpoczęła (są wizyty ze statusem Visited lub Pending)
             var hasStarted = now >= agendaStartDateTime.AddMinutes(-15) && 

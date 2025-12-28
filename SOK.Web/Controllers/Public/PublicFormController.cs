@@ -30,6 +30,7 @@ namespace SOK.Web.Controllers
         private readonly ICurrentParishService _currentParishService;
         private readonly IPlanService _planService;
         private readonly IVisitService _visitService;
+        private readonly IAgendaService _agendaService;
         private readonly IVisitTimeEstimationService _visitTimeEstimationService;
 
         public PublicFormController(
@@ -41,6 +42,7 @@ namespace SOK.Web.Controllers
             ICurrentParishService currentParishService,
             IPlanService planService,
             IVisitService visitService,
+            IAgendaService agendaService,
             IVisitTimeEstimationService visitTimeEstimationService)
         {
             _submissionService = submissionService;
@@ -51,8 +53,8 @@ namespace SOK.Web.Controllers
             _currentParishService = currentParishService;
             _planService = planService;
             _visitService = visitService;
+            _agendaService = agendaService;
             _visitTimeEstimationService = visitTimeEstimationService;
-            _visitService = visitService;
         }
 
         [HttpGet]
@@ -259,6 +261,25 @@ namespace SOK.Web.Controllers
                 ? await _visitTimeEstimationService.CalculateDynamicTimeRangeAsync(submission.Visit.Id)
                 : null;
 
+            // Sprawdź czy czas jest dynamiczny (agenda rozpoczęta)
+            var isDynamic = false;
+            if (submission.Visit.Agenda != null && estimatedTimeRange.HasValue)
+            {
+                var agendaStartDateTime = new DateTime(submission.Visit.Agenda.Day.Date, 
+                    submission.Visit.Agenda.StartHourOverride ?? submission.Visit.Agenda.Day.StartHour);
+                var polandTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, polandTimeZone);
+                
+                var visits = await _agendaService.GetAgendaVisitsAsync(submission.Visit.Agenda.Id);
+
+                isDynamic = now >= agendaStartDateTime.AddMinutes(-15) && 
+                    visits.Any(v => 
+                        v.Status == VisitStatus.Visited || 
+                        v.Status == VisitStatus.Rejected || 
+                        v.Status == VisitStatus.Suspended || 
+                        v.Status == VisitStatus.Pending);
+            }
+
             vm.Visit = new VisitInfoVM
             {
                 Status = submission.Visit.Status,
@@ -268,6 +289,7 @@ namespace SOK.Web.Controllers
                 EstimatedTime = estimatedTimeRange?.Start,
                 EstimatedTimeEnd = estimatedTimeRange?.End,
                 TimeVisible = submission.Visit.Agenda?.ShowHours ?? false,
+                IsDynamicTimeRange = isDynamic
             };
 
             // Plan i harmonogram
