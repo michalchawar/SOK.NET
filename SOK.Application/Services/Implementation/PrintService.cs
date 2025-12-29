@@ -202,13 +202,23 @@ namespace SOK.Application.Services.Implementation
                     .FontColor(Colors.Black);
             });
 
-            // Imię księdza (jeśli przypisany)
+            // Imię księdza (zakładamy że pierwszy przypisany członek to ksiądz)
             var priest = agenda.AssignedMembers.FirstOrDefault();
             if (priest != null && !string.IsNullOrEmpty(priest.DisplayName))
             {
                 column.Item().Text(priest.DisplayName)
                     .FontSize(11)
                     .FontColor(Colors.Black);
+            }
+
+            // Ministranci (wszyscy poza pierwszym członkiem)
+            var visitSupport = agenda.AssignedMembers.Skip(1).Where(m => !string.IsNullOrEmpty(m.DisplayName)).ToList();
+            if (visitSupport.Any())
+            {
+                var ministranciNames = string.Join(", ", visitSupport.Select(m => m.DisplayName));
+                column.Item().Text($"Ministranci: {ministranciNames}")
+                    .FontSize(9)
+                    .FontColor(Colors.Grey.Darken2);
             }
 
             column.Item().PaddingVertical(0.4f, Unit.Centimetre);
