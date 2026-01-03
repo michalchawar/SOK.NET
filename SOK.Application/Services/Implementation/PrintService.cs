@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.ViewComponents;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using SOK.Application.Common.DTO;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -56,7 +57,16 @@ namespace SOK.Application.Services.Implementation
             if (agenda == null)
                 throw new ArgumentException($"Agenda with ID {agendaId} not found.");
 
-            return GenerateAgendaDocument(agenda, agendaIndex);
+            // Pobierz użytkowników przed generowaniem PDF
+            var assignedUserIds = agenda.AssignedMembers.Select(am => am.CentralUserId).ToList();
+            var users = await _uow.ParishMember.GetPaginatedAsync(
+                filter: pm => assignedUserIds.Contains(pm.Id),
+                pageSize: assignedUserIds.Count,
+                page: 1,
+                roles: true
+            );
+
+            return GenerateAgendaDocument(agenda, agendaIndex, users.ToList());
         }
 
         /// <inheritdoc />
@@ -81,7 +91,20 @@ namespace SOK.Application.Services.Implementation
             // Sortuj agendy według Id (kolejność tworzenia)
             var sortedAgendas = agendas.OrderBy(a => a.Id).ToList();
 
-            return GenerateDayDocument(sortedAgendas);
+            // Pobierz wszystkich użytkowników przypisanych do agend przed generowaniem PDF
+            var allAssignedUserIds = sortedAgendas
+                .SelectMany(a => a.AssignedMembers.Select(am => am.CentralUserId))
+                .Distinct()
+                .ToList();
+
+            var allUsers = await _uow.ParishMember.GetPaginatedAsync(
+                filter: pm => allAssignedUserIds.Contains(pm.Id),
+                pageSize: allAssignedUserIds.Count,
+                page: 1,
+                roles: true
+            );
+
+            return GenerateDayDocument(sortedAgendas, allUsers.ToList());
         }
 
         private async Task<Agenda?> GetAgendaWithDetailsAsync(int agendaId)
@@ -92,7 +115,7 @@ namespace SOK.Application.Services.Implementation
             );
         }
 
-        private byte[] GenerateAgendaDocument(Agenda agenda, int agendaIndex)
+        private byte[] GenerateAgendaDocument(Agenda agenda, int agendaIndex, List<UserDto> users)
         {
             var document = Document.Create(container =>
             {
@@ -105,9 +128,9 @@ namespace SOK.Application.Services.Implementation
                         multiColumn.Spacing(1, Unit.Centimetre);
                         multiColumn.Columns(2);
                         
-                        multiColumn.Content().Column(async column =>
+                        multiColumn.Content().Column(column =>
                         {
-                            await RenderAgendaContent(column, agenda, agendaIndex);
+                            RenderAgendaContent(column, agenda, agendaIndex, users);
                         });
                     });
                 });
@@ -116,7 +139,7 @@ namespace SOK.Application.Services.Implementation
             return document.GeneratePdf();
         }
 
-        private byte[] GenerateDayDocument(List<Agenda> agendas)
+        private byte[] GenerateDayDocument(List<Agenda> agendas, List<UserDto> allUsers)
         {
             var document = Document.Create(container =>
             {
@@ -133,9 +156,9 @@ namespace SOK.Application.Services.Implementation
                             multiColumn.Spacing(1, Unit.Centimetre);
                             multiColumn.Columns(2);
 
-                            multiColumn.Content().Column(async column =>
+                            multiColumn.Content().Column(column =>
                             {
-                                await RenderAgendaContent(column, agenda, agendaIndex);
+                                RenderAgendaContent(column, agenda, agendaIndex, allUsers);
                             });
                         });
                     });
@@ -156,7 +179,7 @@ namespace SOK.Application.Services.Implementation
             page.DefaultTextStyle(x => x.FontFamily("Lato"));
         }
 
-        private async Task RenderAgendaContent(ColumnDescriptor column, Agenda agenda, int agendaIndex)
+        private void RenderAgendaContent(ColumnDescriptor column, Agenda agenda, int agendaIndex, List<UserDto> allUsers)
         {
             var date = agenda.Day.Date;
             var polishCulture = new CultureInfo("pl-PL");
@@ -202,15 +225,9 @@ namespace SOK.Application.Services.Implementation
                     .FontColor(Colors.Black);
             });
 
-            // Pobierz IDs użytkowników przypisanych do agendy
+            // Filtruj użytkowników dla tej agendy
             var assignedUserIds = agenda.AssignedMembers.Select(am => am.CentralUserId).ToList();
-            
-            var users = await _uow.ParishMember.GetPaginatedAsync(
-                filter: pm => assignedUserIds.Contains(pm.Id),
-                pageSize: assignedUserIds.Count,
-                page: 1,
-                roles: true
-            );
+            var users = allUsers.Where(u => assignedUserIds.Contains(u.CentralId)).ToList();
 
             // Imię księdza (zakładamy że pierwszy przypisany członek to ksiądz)
             var priest = users.FirstOrDefault(u => u.Roles.Contains(Role.Priest));
