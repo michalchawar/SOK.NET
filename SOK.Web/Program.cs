@@ -60,7 +60,7 @@ builder.Services.ConfigureApplicationCookie(options =>
         {
             if (!context.Properties.IsPersistent)
             {
-                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1);
+                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(7);
             }
             else
             {
