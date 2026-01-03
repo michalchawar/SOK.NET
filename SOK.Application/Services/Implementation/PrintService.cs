@@ -202,9 +202,12 @@ namespace SOK.Application.Services.Implementation
                     .FontColor(Colors.Black);
             });
 
+            // Pobierz IDs użytkowników przypisanych do agendy
+            var assignedUserIds = agenda.AssignedMembers.Select(am => am.CentralUserId).ToList();
+            
             var users = await _uow.ParishMember.GetPaginatedAsync(
-                filter: pm => agenda.AssignedMembers.Any(am => am.CentralUserId == pm.Id),
-                pageSize: agenda.AssignedMembers.Count,
+                filter: pm => assignedUserIds.Contains(pm.Id),
+                pageSize: assignedUserIds.Count,
                 page: 1,
                 roles: true
             );
