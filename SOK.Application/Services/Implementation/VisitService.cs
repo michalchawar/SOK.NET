@@ -178,7 +178,9 @@ namespace SOK.Application.Services.Implementation
             }
 
             visit.Status = status;
-            visit.PeopleCount = peopleCount;
+
+            if (peopleCount.HasValue)
+                visit.PeopleCount = peopleCount.Value;
 
             await _uow.SaveAsync();
         }
