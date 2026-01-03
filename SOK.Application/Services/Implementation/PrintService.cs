@@ -105,9 +105,9 @@ namespace SOK.Application.Services.Implementation
                         multiColumn.Spacing(1, Unit.Centimetre);
                         multiColumn.Columns(2);
                         
-                        multiColumn.Content().Column(column =>
+                        multiColumn.Content().Column(async column =>
                         {
-                            RenderAgendaContent(column, agenda, agendaIndex);
+                            await RenderAgendaContent(column, agenda, agendaIndex);
                         });
                     });
                 });
@@ -133,9 +133,9 @@ namespace SOK.Application.Services.Implementation
                             multiColumn.Spacing(1, Unit.Centimetre);
                             multiColumn.Columns(2);
 
-                            multiColumn.Content().Column(column =>
+                            multiColumn.Content().Column(async column =>
                             {
-                                RenderAgendaContent(column, agenda, agendaIndex);
+                                await RenderAgendaContent(column, agenda, agendaIndex);
                             });
                         });
                     });
@@ -156,7 +156,7 @@ namespace SOK.Application.Services.Implementation
             page.DefaultTextStyle(x => x.FontFamily("Lato"));
         }
 
-        private void RenderAgendaContent(ColumnDescriptor column, Agenda agenda, int agendaIndex)
+        private async Task RenderAgendaContent(ColumnDescriptor column, Agenda agenda, int agendaIndex)
         {
             var date = agenda.Day.Date;
             var polishCulture = new CultureInfo("pl-PL");
@@ -202,8 +202,15 @@ namespace SOK.Application.Services.Implementation
                     .FontColor(Colors.Black);
             });
 
+            var users = await _uow.ParishMember.GetPaginatedAsync(
+                filter: pm => agenda.AssignedMembers.Any(am => am.CentralUserId == pm.Id),
+                pageSize: agenda.AssignedMembers.Count,
+                page: 1,
+                roles: true
+            );
+
             // Imię księdza (zakładamy że pierwszy przypisany członek to ksiądz)
-            var priest = agenda.AssignedMembers.FirstOrDefault();
+            var priest = users.FirstOrDefault(u => u.Roles.Contains(Role.Priest));
             if (priest != null && !string.IsNullOrEmpty(priest.DisplayName))
             {
                 column.Item().Text(priest.DisplayName)
@@ -212,13 +219,16 @@ namespace SOK.Application.Services.Implementation
             }
 
             // Ministranci (wszyscy poza pierwszym członkiem)
-            var visitSupport = agenda.AssignedMembers.Skip(1).Where(m => !string.IsNullOrEmpty(m.DisplayName)).ToList();
+            var visitSupport = users
+                .Where(u => u.Roles.Contains(Role.VisitSupport))
+                .Where(m => !string.IsNullOrEmpty(m.DisplayName))
+                .ToList();
             if (visitSupport.Any())
             {
                 var ministranciNames = string.Join(", ", visitSupport.Select(m => m.DisplayName));
                 column.Item().Text($"Ministranci: {ministranciNames}")
                     .FontSize(9)
-                    .FontColor(Colors.Grey.Darken2);
+                    .FontColor(Colors.Grey.Darken4);
             }
 
             column.Item().PaddingVertical(0.4f, Unit.Centimetre);

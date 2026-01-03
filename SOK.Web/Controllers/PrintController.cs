@@ -11,10 +11,12 @@ namespace SOK.Web.Controllers
     public class PrintController : Controller
     {
         private readonly IPrintService _printService;
+        private readonly IPlanService _planService;
 
-        public PrintController(IPrintService printService)
+        public PrintController(IPrintService printService, IPlanService planService)
         {
             _printService = printService;
+            _planService = planService;
         }
 
         /// <summary>
@@ -57,8 +59,10 @@ namespace SOK.Web.Controllers
             try
             {
                 var pdfBytes = await _printService.GenerateDayPdfAsync(id);
-                
-                var fileName = $"Plan_Dnia.pdf";
+
+                var day = await _planService.GetDayAsync(id);
+                string dateString = day?.Date.ToString("yyyyMMdd") ?? "?";
+                var fileName = $"Plan_Dnia_{dateString}.pdf";
 
                 return File(pdfBytes, "application/pdf", fileName);
             }
