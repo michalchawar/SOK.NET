@@ -176,6 +176,19 @@
                             }
                         </div>
                     }
+                    else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Suspended)
+                    {
+                        <div class="flex flex-col items-center gap-4">
+                            <h3 class="text-xl font-semibold text-warning">
+                                <span class="loading loading-spinner loading-lg me-2"></span>
+                                Wizyta została wstrzymana.
+                            </h3>
+                            <p class="opacity-70">
+                                Jest to tymczasowa sytuacja — prawdopodobnie coś się opóźniło lub mocno pozmieniało.
+                                Sprawdź swoją skrzynkę mailową, możliwe, że skontaktowaliśmy się z Tobą w tej sprawie.
+                            </p>
+                        </div>
+                    }
                     else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Pending)
                     {
                         <div class="flex flex-col items-center gap-4">
