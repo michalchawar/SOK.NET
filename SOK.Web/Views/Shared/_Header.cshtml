@@ -1,0 +1,39 @@
+<div class="navbar bg-base-300 shadow-sm">
+    <div class="navbar-start">
+        <label for="sidebar-drawer" class="btn btn-square btn-ghost drawer-button lg:hidden">
+            <i class="bi bi-list text-2xl"></i>
+        </label>
+    </div>
+    <div class="navbar-center">
+        <h2 class="text-xl font-bold">@(ViewData["Title"] ?? "SOK")</h2>
+    </div>
+    <div class="navbar-end">
+        <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost">
+                <span class="hidden font-normal sm:inline">Witaj, <span
+                        class="font-semibold">@Context.User.FindFirst("DisplayName")!.Value</span></span>
+                <i class="bi bi-person-circle text-xl"></i>
+            </div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-52 p-2 shadow-lg">
+                <li>
+                    <div class="flex items-center justify-left">
+                        <label class="swap swap-rotate">
+                            <input type="checkbox" id="theme-toggle" />
+                            <i class="bi bi-sun-fill swap-off text-xl"></i>
+                            <i class="bi bi-moon-fill swap-on text-xl"></i>
+                        </label>
+                        <label for="theme-toggle" id="theme-label" class="cursor-pointer">
+                            Tryb ciemny
+                        </label>
+                    </div>
+                </li>
+                <li>
+                    <a asp-controller="Account" asp-action="Logout">
+                        <i class="bi bi-box-arrow-right text-xl"></i>
+                        Wyloguj
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

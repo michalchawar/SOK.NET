@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Common.Interface;
@@ -19,6 +22,7 @@ namespace SOK.Application.Services.Implementation
         private readonly IParishInfoService _parishInfoService;
         private readonly EmailTemplateService _templateService;
         private readonly ILogger<EmailService> _logger;
+        private int _timeoutMs = 30000; // Domyślny timeout SMTP w milisekundach
 
         public EmailService(
             IUnitOfWorkParish uow,
@@ -29,6 +33,14 @@ namespace SOK.Application.Services.Implementation
             _parishInfoService = parishInfoService;
             _templateService = new EmailTemplateService();
             _logger = logger;
+        }
+
+        public void SetSMTPTimeout(int timeoutMs)
+        {
+            if (timeoutMs <= 0)
+                throw new ArgumentOutOfRangeException(nameof(timeoutMs), "Timeout musi być większy niż 0 ms.");
+
+            _timeoutMs = timeoutMs;
         }
 
         /// <inheritdoc />
@@ -124,6 +136,18 @@ namespace SOK.Application.Services.Implementation
                     return null;
                 }
 
+                // Dodaj prefiks do tematu
+                var shouldPrependPlanName = await _parishInfoService.GetValueAsync(InfoKeys.Email.PrependPlanNameToSubject);
+                if (shouldPrependPlanName?.ToLower() == "true")
+                {
+                    Plan? plan = await _uow.Plan.GetAsync(p => p.Id == submission.PlanId, tracked: false);
+                    string? planName = plan?.Name;
+                    if (!string.IsNullOrWhiteSpace(planName))
+                    {
+                        subject = $"{planName} - {subject}";
+                    }
+                }
+
                 // Pobierz globalnych odbiorców BCC z ustawień
                 var globalBccString = await _parishInfoService.GetValueAsync(InfoKeys.Email.BccRecipients);
                 var globalBccList = new List<string>();
@@ -174,10 +198,13 @@ namespace SOK.Application.Services.Implementation
 
                 if (createdEmail != null)
                 {
-                    // Jeśli forceSend, próbuj wysłać od razu
+                    // Jeśli forceSend, próbuj wysłać od razu w tle
+                    // Jeśli forceSend, próbuj wysłać od razu w tle
                     if (forceSend)
                     {
-                        await SendEmailAsync(createdEmail.Id);
+                        // Uruchom wysyłanie w tle, nie czekając na rezultat,
+                        // aby uniknąć blokowania w przypadku problemów z serwerem SMTP.
+                        _ = await SendEmailAsync(createdEmail.Id);
                     }
 
                     return createdEmail.Id;
@@ -195,6 +222,7 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<bool> SendEmailAsync(int emailLogId)
         {
+            SmtpSettings? smtpSettings = null;
             try
             {
                 var emailLog = await _uow.EmailLog.GetAsync(e => e.Id == emailLogId, tracked: true);
@@ -211,12 +239,14 @@ namespace SOK.Application.Services.Implementation
                 }
 
                 // Pobierz ustawienia SMTP
-                var smtpSettings = await GetSmtpSettingsAsync();
+                smtpSettings = await GetSmtpSettingsAsync();
                 if (smtpSettings == null)
                 {
                     _logger.LogError("SMTP settings not configured");
                     return false;
                 }
+
+                _logger.LogInformation($"Attempting to send email {emailLogId} via SMTP: {smtpSettings.Host}:{smtpSettings.Port}, SSL: {smtpSettings.EnableSsl}, User: {smtpSettings.Username}");
 
                 // Deserializuj odbiorców
                 var receivers = JsonSerializer.Deserialize<List<EmailRecipient>>(emailLog.Receiver) ?? new List<EmailRecipient>();
@@ -257,26 +287,62 @@ namespace SOK.Application.Services.Implementation
                     return false;
                 }
 
-                // Wyślij email
-                using var smtpClient = new SmtpClient(smtpSettings.Host, smtpSettings.Port)
-                {
-                    Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password),
-                    EnableSsl = smtpSettings.EnableSsl
-                };
+                // Konwertuj MailMessage na MimeMessage
+                var mimeMessage = MimeMessage.CreateFromMailMessage(mailMessage);
 
-                await smtpClient.SendMailAsync(mailMessage);
+                // Wyślij email używając MailKit
+                using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
+                smtpClient.Timeout = this._timeoutMs;
+
+                _logger.LogInformation($"Connecting to SMTP server {smtpSettings.Host}:{smtpSettings.Port} to send email with logId {emailLogId}...");
+                try
+                {
+                    // Określ typ połączenia SSL na podstawie portu
+                    var secureSocketOptions = smtpSettings.Port == 465 
+                        ? SecureSocketOptions.SslOnConnect  // Implicit SSL dla portu 465
+                        : (smtpSettings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+
+                    await smtpClient.ConnectAsync(smtpSettings.Host, smtpSettings.Port, secureSocketOptions);
+
+                    // Uwierzytelnienie jeśli podano dane logowania
+                    if (!string.IsNullOrEmpty(smtpSettings.Username))
+                    {
+                        await smtpClient.AuthenticateAsync(smtpSettings.Username, smtpSettings.Password);
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"No username provided, skipping authentication");
+                    }
+
+                    await smtpClient.SendAsync(mimeMessage);
+                    await smtpClient.DisconnectAsync(true);
+                } 
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error during SendMailAsync for emailLogId {emailLogId}. SMTP Details - Host: {smtpSettings?.Host}, Port: {smtpSettings?.Port}, EnableSsl: {smtpSettings?.EnableSsl}");
+                    return false;
+                }
 
                 // Zaktualizuj status
                 emailLog.Sent = true;
                 emailLog.SentTimestamp = DateTime.UtcNow;
                 await _uow.SaveAsync();
 
-                _logger.LogInformation($"Email {emailLogId} sent successfully");
                 return true;
+            }
+            catch (SmtpException ex)
+            {
+                _logger.LogError(ex, $"SMTP error sending email {emailLogId}. StatusCode: {ex.StatusCode}, Host: {smtpSettings?.Host}:{smtpSettings?.Port}, SSL: {smtpSettings?.EnableSsl}");
+                return false;
+            }
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                _logger.LogError(ex, $"Socket error sending email {emailLogId}. ErrorCode: {ex.ErrorCode}, SocketErrorCode: {ex.SocketErrorCode}, Host: {smtpSettings?.Host}:{smtpSettings?.Port}");
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error sending email {emailLogId}");
+                _logger.LogError(ex, $"Unexpected error sending email {emailLogId}");
                 return false;
             }
         }
@@ -319,7 +385,7 @@ namespace SOK.Application.Services.Implementation
                     }
 
                     // Krótka przerwa między wysyłkami, żeby nie przeciążać serwera
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                 }
 
                 _logger.LogInformation($"Sent {sentCount} emails, {errorCount} errors, {attemptCount} attempts");
@@ -396,6 +462,8 @@ namespace SOK.Application.Services.Implementation
                 // Dodaj podstawowe dane parafii, jeśli nie są już w danych
                 if (!enriched.ContainsKey("parish_name"))
                     enriched["parish_name"] = parishInfo.GetValueOrDefault(InfoKeys.Parish.ShortName) ?? "";
+                if (!enriched.ContainsKey("parish_name_appendix"))
+                    enriched["parish_name_appendix"] = parishInfo.GetValueOrDefault(InfoKeys.Parish.ShortNameAppendix) ?? "";
 
                 if (!enriched.ContainsKey("parish_address"))
                 {

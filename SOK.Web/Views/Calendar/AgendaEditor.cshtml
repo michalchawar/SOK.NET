@@ -1,0 +1,980 @@
+@model SOK.Application.Common.DTO.AgendaDto
+@{
+    ViewData["Title"] = "Edytor agendy - " + ViewData["DayDate"];
+    var agendaId = ViewData["AgendaId"];
+    var schedules = ViewData["Schedules"] as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var streets = ViewData["Streets"] as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+<div id="agenda-editor-app" class="container mx-auto p-4" v-cloak>
+    <!-- Nagłówek -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">Edytor agendy</h1>
+            <p class="text-base-content/70 mt-1">
+                @ViewData["DayDate"] · @ViewData["DayStartHour"] - @ViewData["DayEndHour"]
+            </p>
+            <p class="text-sm text-base-content/60 mt-1">
+                @if (!string.IsNullOrEmpty(ViewData["PriestName"] as string) && ViewData["PriestName"] as string !=
+                                "Brak księdza")
+                {
+                    <span><i class="bi bi-person-fill"></i> @ViewData["PriestName"]</span>
+                }
+                @if (!string.IsNullOrEmpty(ViewData["MinisterNames"] as string))
+                {
+                    <span class="ml-2"><i class="bi bi-person-plus"></i> @ViewData["MinisterNames"]</span>
+                }
+            </p>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+            <a href="/VisitControl?agendaUniqueId=@Model.UniqueId&accessToken=@Model.AccessToken" class="btn btn-success">
+                <i class="bi bi-play-circle"></i>
+                Przeprowadź wizytę
+            </a>
+            <a asp-action="Day" asp-route-id="@Model.DayId" class="btn btn-ghost">
+                <i class="bi bi-arrow-left"></i>
+                Powrót do dnia
+            </a>
+            <div class="flex items-center">
+                <button type="button" class="btn btn-primary" @@click="openDrawer">
+                    <i class="bi bi-plus-circle"></i>
+                    Dodaj wizyty
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center py-20">
+        <span class="loading loading-spinner loading-lg"></span>
+    </div>
+
+    <!-- Lista wizyt -->
+    <div v-else-if="visits.length === 0" class="text-center py-20">
+        <i class="bi bi-inbox text-6xl text-base-content/30 mb-4"></i>
+        <p class="text-lg text-base-content/60">Brak wizyt w agendzie</p>
+        <p class="text-sm text-base-content/50 mt-2">Kliknij "Dodaj wizyty" aby rozpocząć planowanie</p>
+    </div>
+
+    <div v-else class="space-y-3">
+        <!-- Grupa wizyt pogrupowana po bramach -->
+        <div v-for="(group, index) in groupedVisits" :key="group.buildingKey">
+            <!-- Separator między bramami -->
+            <div v-if="index > 0" class="divider my-6">
+                <i class="bi bi-building"></i>
+                Zmiana bramy
+            </div>
+
+            <!-- Nagłówek bramy -->
+            <div class="flex items-center gap-3 mb-2 px-2">
+                <i class="bi bi-building text-xl"></i>
+                <span class="font-semibold text-lg">{{ group.streetTypeAbbrev }} {{ group.streetName }} {{ group.buildingNumber }}</span>
+                <span class="badge badge-ghost">{{ group.visits.length }} {{ declinateWord(group.visits.length,
+                    'wizyta', 'wizyty', 'wizyt') }}</span>
+                <div class="flex gap-2 ml-auto">
+                    <button type="button" 
+                        class="btn btn-sm btn-ghost hover:btn-primary"
+                        :disabled="index === 0"
+                        @@click="moveBuildingUp(group)">
+                        <i class="bi bi-arrow-up"></i>
+                    </button>
+                    <button type="button" 
+                        class="btn btn-sm btn-ghost hover:btn-primary"
+                        :disabled="index === groupedVisits.length - 1"
+                        @@click="moveBuildingDown(group)">
+                        <i class="bi bi-arrow-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Wizyty w bramie -->
+            <div class="space-y-2">
+                <div v-for="visit in group.visits" :key="visit.id"
+                    class="flex items-center gap-3 bg-base-200 rounded-lg p-3 hover:bg-base-300 transition-colors"
+                    :class="{ 'ring-2 ring-primary': selectedVisits.includes(visit.id) }">
+
+                    <!-- Checkbox -->
+                    <input type="checkbox" class="checkbox checkbox-primary"
+                        :checked="selectedVisits.includes(visit.id)" @@change="toggleVisitSelection(visit.id)" />
+
+                    <!-- Uchwyt drag&drop (tylko desktop) -->
+                    <div class="hidden md:block cursor-move drag-handle" draggable="true"
+                        @@dragstart="onDragStart($event, visit)" @@dragover="onDragOver($event, visit)"
+                        @@drop="onDrop($event, visit)">
+                        <i class="bi bi-grip-vertical text-xl text-base-content/40"></i>
+                    </div>
+
+                    <!-- Numer porządkowy -->
+                    <div class="badge badge-lg font-bold">
+                        {{ visit.apartmentNumber }}{{ visit.apartmentLetter }}
+                    </div>
+
+                    <!-- Informacje o wizycie -->
+                    <div class="flex-1">
+                        <div class="font-medium flex gap-3 items-center">
+                            {{ visit.submitterName }}
+                            <div class="badge badge-xs" 
+                                :style="{ '--badge-color': visit.scheduleColor, '--badge-fg': getContrastColor(visit.scheduleColor) }">
+                                {{ visit.scheduleShortName }}
+                            </div>
+                        </div>
+                        <div class="text-sm text-base-content/60">
+                            <span v-if="visit.estimatedTime">
+                                ok. <span class="font-semibold">{{ new Date('1900-01-01T' + visit.estimatedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
+                            </span>
+                        </div>
+                        <div v-if="visit.submitterNotes" class="text-xs text-base-content/50 mt-1 italic">
+                            {{ visit.submitterNotes }}
+                        </div>
+                    </div>
+
+                    <!-- Przyciski akcji -->
+                    <div class="flex gap-2">
+                        <button type="button" 
+                            class="btn btn-sm btn-ghost hover:btn-info"
+                            @@click.stop="openSubmissionModal(visit.submissionId)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-ghost hover:btn-soft hover:btn-primary" 
+                            :disabled="visit.ordinalNumber === 1" @@click="moveVisitUp(visit)">
+                            <i class="bi bi-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-ghost hover:btn-soft hover:btn-primary"
+                            :disabled="visit.ordinalNumber === visits.length" @@click="moveVisitDown(visit)">
+                            <i class="bi bi-arrow-down"></i>
+                        </button>
+                    </div>
+
+                    <!-- Przycisk usuń -->
+                    <button type="button" class="btn btn-sm btn-ghost text-error hover:btn-error hover:text-white" @@click="removeVisit(visit.id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Akcje masowe -->
+    <div v-if="selectedVisits.length > 0" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-15">
+        <div class="card bg-base-100 shadow-2xl">
+            <div class="card-body p-4 flex-row items-center gap-4">
+                <span class="font-medium">Zaznaczono: {{ selectedVisits.length }}</span>
+                <div v-if="areSelectedVisitsAdjacent()" class="flex gap-2">
+                    <button type="button" class="btn btn-sm btn-primary" 
+                        :disabled="!canMoveSelectedUp()"
+                        @@click="moveSelectedVisitsUp">
+                        <i class="bi bi-arrow-up"></i>
+                        W górę
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary"
+                        :disabled="!canMoveSelectedDown()"
+                        @@click="moveSelectedVisitsDown">
+                        <i class="bi bi-arrow-down"></i>
+                        W dół
+                    </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-error" @@click="removeSelectedVisits">
+                    <i class="bi bi-trash"></i>
+                    Usuń zaznaczone
+                </button>
+                <button type="button" class="btn btn-sm btn-ghost" @@click="selectedVisits = []">
+                    Anuluj
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer do dodawania wizyt -->
+    <div class="drawer drawer-end z-20">
+        <input id="visits-drawer" type="checkbox" class="drawer-toggle" v-model="drawerOpen" />
+        <div class="drawer-side">
+            <label for="visits-drawer" class="drawer-overlay"></label>
+            <div class="bg-base-100 w-full md:w-2/3 lg:w-1/2 min-h-full p-0 flex flex-col">
+                <!-- Nagłówek drawer -->
+                <div class="sticky top-0 z-30 bg-base-300 text-primary-content p-4 flex justify-between items-center">
+                    <h3 class="text-xl font-bold">Dodaj wizyty</h3>
+                    <button type="button" class="btn btn-sm btn-ghost btn-circle" @@click="closeDrawer">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Filtry -->
+                <div class="sticky top-14 z-30 p-4 bg-base-200 space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="label label-text">Ulica</label>
+                            <select v-model="filters.streetId" class="select select-bordered select-sm w-full">
+                                <option :value="null">Wszystkie</option>
+                                @foreach (var street in streets)
+                                {
+                                    <option value="@street.id">@street.name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <label class="label">
+                                <span class="font-semibold">Harmonogram</span>
+                            </label>
+                            <div class="flex gap-2">
+                                @foreach (var schedule in schedules)
+                                {
+                                    <button @@click="filters.scheduleId === @schedule.id ? filters.scheduleId = null : filters.scheduleId = @schedule.id" type="button"
+                                        class="btn"
+                                        :class="[filters.scheduleId === @schedule.id ? 'btn-primary' : 'btn-outline']">
+                                        <span>@schedule.name</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button
+                            @@click="filters.sortOrder === 'asc' ? filters.sortOrder = 'desc' : filters.sortOrder = 'asc'"
+                            class="btn btn-secondary btn-outline lg:btn-soft btn-lg font-normal w-full lg:w-auto lg:h-full">
+                            <i class="bi"
+                                :class="filters.sortOrder === 'asc' ? 'bi-sort-up' : 'bi-sort-down'"></i>
+                            <span class="">{{ filters.sortOrder === 'asc' ? 'Rosnąco' : 'Malejąco' }}</span>
+                        </button>
+
+                        <label class="label cursor-pointer gap-2">
+                            <input type="checkbox" class="checkbox checkbox-sm" v-model="filters.showEmpty" />
+                            <span class="label-text">Pokaż puste bramy</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Loading buildings -->
+                <div v-if="loadingBuildings" class="flex-1 flex items-center justify-center">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+
+                <!-- Lista bram -->
+                <div v-else class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Polecane bramy -->
+                    <div v-if="recommendedBuildings.length > 0">
+                        <h4 class="font-semibold mb-2 text-success flex items-center gap-2">
+                            <i class="bi bi-star-fill"></i>
+                            Polecane bramy
+                        </h4>
+                        <div class="space-y-2">
+                            <div v-for="building in recommendedBuildings" :key="building.buildingId"
+                                class="card bg-success/10 border border-success/30">
+                                <div class="card-body p-3">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div class="flex items-baseline gap-0.5">
+                                                <span class="text-sm">{{ building.streetTypeAbbrev }}</span>
+                                                <span class="font-semibold text-lg">
+                                                    {{ building.streetName }} {{ building.buildingNumber }}
+                                                </span>
+                                            </div>
+                                            <div class="text-xs text-base-content/60">
+                                                {{ building.scheduleName }} ·
+                                                {{ building.submissions.filter(s => !s.isAssigned).length }}
+                                                ({{ building.submissions.length }}) {{
+                                                getSubmissionDeclination(building.submissions.filter(s =>
+                                                !s.isAssigned).length) }}
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-xs btn-success"
+                                            @@click="assignBuilding(building)">
+                                            <i class="bi bi-plus"></i>
+                                            Dodaj bramę
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wszystkie bramy -->
+                    <div v-if="allBuildings.length > 0">
+                        <h4 class="font-semibold mb-2">
+                            Wszystkie bramy
+                            <span class="badge badge-ghost ml-2">{{ allBuildings.length }}</span>
+                        </h4>
+                        <div class="space-y-2">
+                            <div v-for="building in sortedAllBuildings" :key="building.buildingId"
+                                class="card bg-base-200 cursor-pointer transition-all hover:-translate-y-0.5" 
+                                :class="{
+                                    'bg-primary/15': getBuildingSelectionState(building) === 'all',
+                                    'ring-2 ring-primary/50 bg-base-300 hover:ring-3! hover:ring-primary/70': getBuildingSelectionState(building) === 'partial'
+                                }" @@click="toggleBuilding(building.buildingId)">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center justify-start gap-3">
+                                        <div class="text-3xl text-primary" @@click.stop="toggleBuildingSelection(building)">
+                                            <i v-if="getBuildingSelectionState(building) === 'all'"
+                                                class="bi bi-check-square-fill"></i>
+                                            <i v-else-if="getBuildingSelectionState(building) === 'partial'"
+                                                class="bi bi-dash-square-fill"></i>
+                                            <i v-else
+                                                class="bi bi-square"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex items-baseline gap-0.5">
+                                                    <span class="text-sm">{{ building.streetTypeAbbrev }}</span>
+                                                    <span class="font-semibold text-xl">
+                                                        {{ building.streetName }} {{ building.buildingNumber }}
+                                                    </span>
+                                                </div>
+                                                <span v-if="building.isRecommended" class="badge badge-success badge-sm">
+                                                    <i class="bi bi-star-fill"></i>
+                                                    Polecana
+                                                </span>
+                                            </div>
+                                            <div class="text-base-content/60">
+                                                <span class="font-semibold">{{ building.submissions.filter(s =>
+                                                    !s.isAssigned).length }}</span>
+                                                nieprzypisane {{ getSubmissionDeclination(building.submissions.filter(s =>
+                                                !s.isAssigned).length) }}
+                                            </div>
+                                        </div>
+                                        <div class="text-2xl text-base-content/60 ms-auto">
+                                            <i class="bi"
+                                                :class="expandedBuildings.includes(building.buildingId) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lista zgłoszeń -->
+                                    <div v-if="expandedBuildings.includes(building.buildingId)" class="space-y-1 mt-2">
+                                        <div v-for="submission in building.submissions" :key="submission.id"
+                                            @@click.stop="submission.isAssigned && !selectedSubmissions.includes(submission.id) ? reassignSubmission(submission.id) : toggleSubmission(submission.id)"
+                                            :class="{ 'opacity-60': submission.isAssigned && !selectedSubmissions.includes(submission.id),
+                                                      'bg-base-300 hover:bg-primary/30 ': getBuildingSelectionState(building) === 'none',
+                                                      'bg-base-200 hover:bg-primary/30': getBuildingSelectionState(building) === 'partial',
+                                                      'bg-base-100 hover:bg-primary/65': getBuildingSelectionState(building) === 'all',
+                                                      'ring-1 ring-primary': selectedSubmissions.includes(submission.id),
+                                            }" class="flex items-center justify-between p-2.5 rounded text-sm hover:-translate-y-0.5 transition-all">
+                                            <div class="flex-1 flex items-center gap-1.5">
+                                                <div class="badge">
+                                                    {{ submission.apartmentNumber }}
+                                                </div>
+                                                <div class="font-medium">{{ submission.submitterName }}</div>
+                                                <div class="text-xs text-base-content/60">
+                                                    <span v-if="submission.isAssigned && submission.assignedDate"
+                                                        class="badge badge-xs badge-warning ml-2">
+                                                        {{ new Date(submission.assignedDate).toLocaleDateString('pl-PL',
+                                                        { day: 'numeric', month: 'short' }) }},
+                                                        {{ submission.assignedStartHour?.substring(0, 5) }}
+                                                    </span>
+                                                    <span v-else-if="submission.isAssigned"
+                                                        class="badge badge-xs badge-ghost ml-2">
+                                                        Przypisane
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="min-w-1/3 flex-1 flex items-center justify-center gap-4">
+                                                <div v-if="submission.submitterNotes && submission.submitterNotes.length > 0"
+                                                    class="flex items-center justify-center gap-1 lg:tooltip lg:tooltip-left"
+                                                    :data-tip="submission.submitterNotes">
+                                                    <span v-if="submission.notesStatus === 0" class="status status-md"></span>
+                                                    <span v-if="submission.notesStatus === 1" class="status status-warning status-md"></span>
+                                                    <span v-if="submission.notesStatus === 2" class="status status-error status-md"></span>
+                                                    <span v-if="submission.notesStatus === 3" class="status status-success status-md"></span>
+                                                    <i class="bi bi-sticky-fill text-lg sm:text-2xl opacity-70"></i>
+                                                </div>
+                                                <div v-if="submission.adminMessage && submission.adminMessage.length > 0"
+                                                    class="flex items-center justify-center gap-1 lg:tooltip lg:tooltip-left"
+                                                    :data-tip="submission.adminMessage">
+                                                    <i class="bi bi-reply text-lg sm:text-2xl opacity-70"></i>
+                                                </div>
+                                                <div v-if="submission.adminNotes && submission.adminNotes.length > 0"
+                                                    class="flex items-center justify-center gap-1 lg:tooltip lg:tooltip-left"
+                                                    :data-tip="submission.adminNotes">
+                                                    <i class="bi bi-sticky text-info text-lg sm:text-2xl opacity-70"></i>
+                                                </div>
+                                            </div>
+                                            <button v-if="submission.isAssigned && !selectedSubmissions.includes(submission.id)" type="button"
+                                                class="btn btn-xs btn-warning">
+                                                <i class="bi bi-arrow-right-circle"></i>
+                                                Przepisz tutaj
+                                            </button>
+                                            <div v-else>
+                                                <i class="bi text-primary"
+                                                    :class="selectedSubmissions.includes(submission.id) ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="recommendedBuildings.length === 0 && allBuildings.length === 0"
+                        class="text-center py-10 text-base-content/60">
+                        <i class="bi bi-inbox text-4xl mb-2"></i>
+                        <p>Brak dostępnych bram</p>
+                    </div>
+                </div>
+
+                <!-- Akcje drawer -->
+                <div v-if="selectedSubmissions.length > 0"
+                    class="absolute bottom-0 left-0 right-0 p-4 bg-base-200 border-t">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium">Zaznaczono: {{ selectedSubmissions.length }} {{
+                            getSubmissionDeclination(selectedSubmissions.length) }}</span>
+                        <button type="button" class="btn btn-xs btn-ghost" @@click="selectedSubmissions = []">
+                            Wyczyść
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-primary w-full" :disabled="savingVisits"
+                        @@click="assignSelectedSubmissions">
+                        <span v-if="savingVisits" class="loading loading-spinner loading-sm"></span>
+                        <span v-else><i class="bi bi-plus-circle"></i> Dodaj do agendy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_SubmissionModal" model="null" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_VueScript" />
+
+    <script>
+        const agendaId = @agendaId;
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    agendaId: agendaId,
+                    loading: true,
+                    visits: [],
+                    drawerOpen: false,
+                    loadingBuildings: false,
+                    allBuildingsData: [], // Wszystkie dane z backendu
+                    selectedVisits: [],
+                    selectedSubmissions: [],
+                    expandedBuildings: [],
+                    savingVisits: false,
+                    draggedVisit: null,
+                    filters: {
+                        streetId: null,
+                        scheduleId: null,
+                        showEmpty: false,
+                        sortOrder: 'asc'
+                    }
+                };
+            },
+            computed: {
+                groupedVisits() {
+                    const groups = [];
+                    let currentBuilding = null;
+
+                    for (const visit of this.visits) {
+                        const buildingKey = `${visit.buildingId}`;
+
+                        if (currentBuilding !== buildingKey) {
+                            currentBuilding = buildingKey;
+                            groups.push({
+                                buildingKey,
+                                buildingId: visit.buildingId,
+                                buildingNumber: visit.buildingNumber,
+                                streetTypeAbbrev: visit.streetTypeAbbrev,
+                                streetName: visit.streetName,
+                                visits: []
+                            });
+                        }
+
+                        groups[groups.length - 1].visits.push(visit);
+                    }
+
+                    return groups;
+                },
+                // Filtrowanie lokalne wszystkich bram
+                filteredBuildings() {
+                    let filtered = [...this.allBuildingsData];
+
+                    // Filtr ulicy
+                    if (this.filters.streetId) {
+                        filtered = filtered.filter(b => b.streetId === parseInt(this.filters.streetId));
+                    }
+
+                    // Filtr harmonogramu
+                    if (this.filters.scheduleId) {
+                        filtered = filtered.map(b => ({
+                            ...b,
+                            submissions: b.submissions.filter(s =>
+                                s.scheduleId === parseInt(this.filters.scheduleId) || !s.scheduleId
+                            )
+                        })).filter(b => b.submissions.length > 0);
+                    }
+
+                    // Filtr pokaż puste
+                    if (!this.filters.showEmpty) {
+                        filtered = filtered.map(b => ({
+                            ...b,
+                            submissions: b.submissions.filter(s => !s.isAssigned)
+                        })).filter(b => b.submissions.length > 0);
+                    }
+
+                    return filtered;
+                },
+                recommendedBuildings() {
+                    return this.filteredBuildings
+                        .filter(b => b.isRecommended)
+                        .filter(b => b.submissions.filter(s => !s.isAssigned).length > 0); // Tylko z nieprzypisanymi
+                },
+                allBuildings() {
+                    return this.filteredBuildings;
+                },
+                sortedAllBuildings() {
+                    const grouped = {};
+
+                    // Grupuj po ulicach
+                    this.allBuildings.forEach(b => {
+                        if (!grouped[b.streetName]) {
+                            grouped[b.streetName] = [];
+                        }
+                        grouped[b.streetName].push(b);
+                    });
+
+                    // Sortuj bramy w każdej ulicy
+                    Object.keys(grouped).forEach(street => {
+                        grouped[street].sort((a, b) => {
+                            const numA = parseInt(a.buildingNumber) || 0;
+                            const numB = parseInt(b.buildingNumber) || 0;
+                            return this.filters.sortOrder === 'asc' ? numA - numB : numB - numA;
+                        });
+                    });
+
+                    // Zwróć płaską tablicę posortowaną po ulicach, potem po numerach
+                    const result = [];
+                    Object.keys(grouped).sort().forEach(street => {
+                        result.push(...grouped[street]);
+                    });
+
+                    return result;
+                },
+                submissionDeclination() {
+                    const dictionary = {};
+                    for (let i = 0; i <= 20; i++) {
+                        dictionary[i] = this.declinateWord(i, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń');
+                    }
+
+                    return dictionary;
+                }
+            },
+            methods: {
+                async loadVisits() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/agenda/${this.agendaId}/visits`);
+                        if (!response.ok) throw new Error('Failed to load visits');
+                        this.visits = await response.json();
+                    } catch (error) {
+                        console.error('Error loading visits:', error);
+                        alert('Nie udało się załadować wizyt');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadBuildings() {
+                    this.loadingBuildings = true;
+                    try {
+                        // Pobierz wszystkie bramy raz, bez filtrów
+                        const response = await fetch(`/api/agenda/${this.agendaId}/available-buildings`);
+                        if (!response.ok) throw new Error('Failed to load buildings');
+                        this.allBuildingsData = await response.json();
+                    } catch (error) {
+                        console.error('Error loading buildings:', error);
+                    } finally {
+                        this.loadingBuildings = false;
+                    }
+                },
+                openDrawer() {
+                    this.drawerOpen = true;
+                    if (this.allBuildingsData.length === 0) {
+                        this.loadBuildings();
+                    }
+                },
+                closeDrawer() {
+                    this.drawerOpen = false;
+                    this.selectedSubmissions = [];
+                    this.expandedBuildings = [];
+                },
+                toggleBuilding(buildingId) {
+                    const index = this.expandedBuildings.indexOf(buildingId);
+                    if (index > -1) {
+                        this.expandedBuildings.splice(index, 1);
+                    } else {
+                        this.expandedBuildings.push(buildingId);
+                    }
+                },
+                toggleSubmission(submissionId) {
+                    const index = this.selectedSubmissions.indexOf(submissionId);
+                    if (index > -1) {
+                        this.selectedSubmissions.splice(index, 1);
+                    } else {
+                        this.selectedSubmissions.push(submissionId);
+                    }
+                },
+                // Przełącz całą bramę (tylko nieprzypisane)
+                toggleBuildingSelection(building) {
+                    const unassignedIds = building.submissions
+                        .filter(s => !s.isAssigned)
+                        .map(s => s.id);
+
+                    if (unassignedIds.length === 0) return;
+
+                    const allSelected = unassignedIds.every(id => this.selectedSubmissions.includes(id));
+
+                    if (allSelected) {
+                        // Odznacz wszystkie
+                        unassignedIds.forEach(id => {
+                            const index = this.selectedSubmissions.indexOf(id);
+                            if (index > -1) this.selectedSubmissions.splice(index, 1);
+                        });
+                    } else {
+                        // Zaznacz wszystkie nieprzypisane
+                        unassignedIds.forEach(id => {
+                            if (!this.selectedSubmissions.includes(id)) {
+                                this.selectedSubmissions.push(id);
+                            }
+                        });
+                    }
+                },
+                // Sprawdź czy brama jest zaznaczona (fully/partially/not)
+                getBuildingSelectionState(building) {
+                    const buildingIds = building.submissions
+                        .map(s => s.id);
+
+                    if (buildingIds.length === 0) return 'none';
+
+                    const selectedCount = buildingIds.filter(id => this.selectedSubmissions.includes(id)).length;
+
+                    if (selectedCount === 0) return 'none';
+
+                    const unassignedIds = building.submissions
+                        .filter(s => !s.isAssigned)
+                        .map(s => s.id);
+                    
+                    const selectedUnassignedCount = unassignedIds.filter(id => this.selectedSubmissions.includes(id)).length;
+
+                    if (selectedUnassignedCount === unassignedIds.length) return 'all';
+                    return 'partial';
+                },
+                toggleVisitSelection(visitId) {
+                    const index = this.selectedVisits.indexOf(visitId);
+                    if (index > -1) {
+                        this.selectedVisits.splice(index, 1);
+                    } else {
+                        this.selectedVisits.push(visitId);
+                    }
+                },
+                async assignBuilding(building) {
+                    const unassignedIds = building.submissions
+                        .filter(s => !s.isAssigned)
+                        .map(s => s.id);
+                    await this.assignSubmissions(unassignedIds);
+                },
+                async reassignSubmission(submissionId) {
+                    if (!confirm('Czy na pewno chcesz przepisać tę wizytę do tej agendy?')) return;
+
+                    this.toggleSubmission(submissionId);
+                },
+                async assignSelectedSubmissions() {
+                    await this.assignSubmissions(this.selectedSubmissions);
+                },
+                async assignSubmissions(submissionIds) {
+                    if (submissionIds.length === 0) return;
+
+                    this.savingVisits = true;
+                    try {
+                        const response = await fetch(`/api/agenda/${this.agendaId}/assign-visits`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ submissionIds })
+                        });
+
+                        if (!response.ok) throw new Error('Failed to assign visits');
+
+                        await this.loadVisits();
+                        await this.loadBuildings(); // Odśwież listę dostępnych
+                        this.closeDrawer();
+                    } catch (error) {
+                        console.error('Error assigning visits:', error);
+                        alert('Nie udało się dodać wizyt');
+                    } finally {
+                        this.savingVisits = false;
+                    }
+                },
+                async removeVisit(visitId) {
+                    if (!confirm('Czy na pewno chcesz usunąć tę wizytę z agendy?')) return;
+
+                    try {
+                        const response = await fetch(`/api/agenda/${this.agendaId}/remove-visits`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ visitIds: [visitId] })
+                        });
+
+                        if (!response.ok) throw new Error('Failed to remove visit');
+
+                        await this.loadVisits();
+                    } catch (error) {
+                        console.error('Error removing visit:', error);
+                        alert('Nie udało się usunąć wizyty');
+                    }
+                },
+                async removeSelectedVisits() {
+                    if (!confirm(`Czy na pewno chcesz usunąć ${this.selectedVisits.length} ${this.declinateWord(this.selectedVisits.length, 'wizyta', 'wizyty', 'wizyt')} z agendy?`)) return;
+
+                    try {
+                        const response = await fetch(`/api/agenda/${this.agendaId}/remove-visits`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ visitIds: this.selectedVisits })
+                        });
+
+                        if (!response.ok) throw new Error('Failed to remove visits');
+
+                        await this.loadVisits();
+                        this.selectedVisits = [];
+                    } catch (error) {
+                        console.error('Error removing visits:', error);
+                        alert('Nie udało się usunąć wizyt');
+                    }
+                },
+                async moveVisitUp(visit) {
+                    const index = this.visits.findIndex(v => v.id === visit.id);
+                    if (index <= 0) return;
+
+                    const newOrder = this.visits.map((v, i) => {
+                        if (i === index - 1) return { visitId: v.id, ordinalNumber: visit.ordinalNumber };
+                        if (i === index) return { visitId: v.id, ordinalNumber: this.visits[index - 1].ordinalNumber };
+                        return { visitId: v.id, ordinalNumber: v.ordinalNumber };
+                    });
+
+                    await this.updateOrder(newOrder);
+                },
+                async moveVisitDown(visit) {
+                    const index = this.visits.findIndex(v => v.id === visit.id);
+                    if (index >= this.visits.length - 1) return;
+
+                    const newOrder = this.visits.map((v, i) => {
+                        if (i === index) return { visitId: v.id, ordinalNumber: this.visits[index + 1].ordinalNumber };
+                        if (i === index + 1) return { visitId: v.id, ordinalNumber: visit.ordinalNumber };
+                        return { visitId: v.id, ordinalNumber: v.ordinalNumber };
+                    });
+
+                    await this.updateOrder(newOrder);
+                },
+                onDragStart(event, visit) {
+                    this.draggedVisit = visit;
+                    event.dataTransfer.effectAllowed = 'move';
+                },
+                onDragOver(event, targetVisit) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                },
+                async onDrop(event, targetVisit) {
+                    event.preventDefault();
+
+                    if (!this.draggedVisit || this.draggedVisit.id === targetVisit.id) {
+                        this.draggedVisit = null;
+                        return;
+                    }
+
+                    const draggedIndex = this.visits.findIndex(v => v.id === this.draggedVisit.id);
+                    const targetIndex = this.visits.findIndex(v => v.id === targetVisit.id);
+
+                    const newOrder = [];
+                    const visitsCopy = [...this.visits];
+
+                    // Usuń przeciągany element
+                    const [movedVisit] = visitsCopy.splice(draggedIndex, 1);
+                    // Wstaw w nowe miejsce
+                    visitsCopy.splice(targetIndex, 0, movedVisit);
+
+                    // Przenumeruj
+                    visitsCopy.forEach((v, i) => {
+                        newOrder.push({ visitId: v.id, ordinalNumber: i + 1 });
+                    });
+
+                    await this.updateOrder(newOrder);
+                    this.draggedVisit = null;
+                },
+                async updateOrder(newOrder) {
+                    try {
+                        const response = await fetch(`/api/agenda/${this.agendaId}/visits-order`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ visits: newOrder })
+                        });
+
+                        if (!response.ok) throw new Error('Failed to update order');
+
+                        await this.loadVisits();
+                    } catch (error) {
+                        console.error('Error updating order:', error);
+                        alert('Nie udało się zaktualizować kolejności');
+                    }
+                },
+                // Sprawdź czy zaznaczone wizyty są obok siebie
+                areSelectedVisitsAdjacent() {
+                    if (this.selectedVisits.length === 0) return false;
+                    
+                    const selectedOrdinals = this.visits
+                        .filter(v => this.selectedVisits.includes(v.id))
+                        .map(v => v.ordinalNumber)
+                        .sort((a, b) => a - b);
+                    
+                    for (let i = 1; i < selectedOrdinals.length; i++) {
+                        if (selectedOrdinals[i] !== selectedOrdinals[i - 1] + 1) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                },
+                canMoveSelectedUp() {
+                    const selectedOrdinals = this.visits
+                        .filter(v => this.selectedVisits.includes(v.id))
+                        .map(v => v.ordinalNumber);
+                    
+                    return Math.min(...selectedOrdinals) > 1;
+                },
+                canMoveSelectedDown() {
+                    const selectedOrdinals = this.visits
+                        .filter(v => this.selectedVisits.includes(v.id))
+                        .map(v => v.ordinalNumber);
+                    
+                    return Math.max(...selectedOrdinals) < this.visits.length;
+                },
+                async moveSelectedVisitsUp() {
+                    if (!this.areSelectedVisitsAdjacent() || !this.canMoveSelectedUp()) return;
+                    
+                    const selectedOrdinals = this.visits
+                        .filter(v => this.selectedVisits.includes(v.id))
+                        .map(v => v.ordinalNumber)
+                        .sort((a, b) => a - b);
+                    
+                    const minOrdinal = Math.min(...selectedOrdinals);
+                    const maxOrdinal = Math.max(...selectedOrdinals);
+                    
+                    const newOrder = this.visits.map(v => {
+                        if (v.ordinalNumber === minOrdinal - 1) {
+                            // Wizyta przed grupą -> przesuń na koniec grupy
+                            return { visitId: v.id, ordinalNumber: maxOrdinal };
+                        } else if (this.selectedVisits.includes(v.id)) {
+                            // Zaznaczone wizyty -> przesuń o 1 w górę
+                            return { visitId: v.id, ordinalNumber: v.ordinalNumber - 1 };
+                        }
+                        return { visitId: v.id, ordinalNumber: v.ordinalNumber };
+                    });
+                    
+                    await this.updateOrder(newOrder);
+                },
+                async moveSelectedVisitsDown() {
+                    if (!this.areSelectedVisitsAdjacent() || !this.canMoveSelectedDown()) return;
+                    
+                    const selectedOrdinals = this.visits
+                        .filter(v => this.selectedVisits.includes(v.id))
+                        .map(v => v.ordinalNumber)
+                        .sort((a, b) => a - b);
+                    
+                    const minOrdinal = Math.min(...selectedOrdinals);
+                    const maxOrdinal = Math.max(...selectedOrdinals);
+                    
+                    const newOrder = this.visits.map(v => {
+                        if (v.ordinalNumber === maxOrdinal + 1) {
+                            // Wizyta po grupie -> przesuń na początek grupy
+                            return { visitId: v.id, ordinalNumber: minOrdinal };
+                        } else if (this.selectedVisits.includes(v.id)) {
+                            // Zaznaczone wizyty -> przesuń o 1 w dół
+                            return { visitId: v.id, ordinalNumber: v.ordinalNumber + 1 };
+                        }
+                        return { visitId: v.id, ordinalNumber: v.ordinalNumber };
+                    });
+                    
+                    await this.updateOrder(newOrder);
+                },
+                async moveBuildingUp(group) {
+                    // Znajdź wszystkie wizyty w bieżącej bramie i w bramie powyżej
+                    const currentIndex = this.groupedVisits.findIndex(g => g.buildingKey === group.buildingKey);
+                    if (currentIndex === 0) return;
+                    
+                    const currentGroup = this.groupedVisits[currentIndex];
+                    const previousGroup = this.groupedVisits[currentIndex - 1];
+                    
+                    const currentVisitIds = currentGroup.visits.map(v => v.id);
+                    const previousVisitIds = previousGroup.visits.map(v => v.id);
+                    
+                    // Zamień miejscami grupy wizyt
+                    const newOrder = this.visits.map(v => {
+                        if (currentVisitIds.includes(v.id)) {
+                            // Bieżąca grupa -> przesuń w górę o rozmiar poprzedniej grupy
+                            const offset = previousVisitIds.length;
+                            return { visitId: v.id, ordinalNumber: v.ordinalNumber - offset };
+                        } else if (previousVisitIds.includes(v.id)) {
+                            // Poprzednia grupa -> przesuń w dół o rozmiar bieżącej grupy
+                            const offset = currentVisitIds.length;
+                            return { visitId: v.id, ordinalNumber: v.ordinalNumber + offset };
+                        }
+                        return { visitId: v.id, ordinalNumber: v.ordinalNumber };
+                    });
+                    
+                    await this.updateOrder(newOrder);
+                },
+                async moveBuildingDown(group) {
+                    // Znajdź wszystkie wizyty w bieżącej bramie i w bramie poniżej
+                    const currentIndex = this.groupedVisits.findIndex(g => g.buildingKey === group.buildingKey);
+                    if (currentIndex === this.groupedVisits.length - 1) return;
+                    
+                    const currentGroup = this.groupedVisits[currentIndex];
+                    const nextGroup = this.groupedVisits[currentIndex + 1];
+                    
+                    const currentVisitIds = currentGroup.visits.map(v => v.id);
+                    const nextVisitIds = nextGroup.visits.map(v => v.id);
+                    
+                    // Zamień miejscami grupy wizyt
+                    const newOrder = this.visits.map(v => {
+                        if (currentVisitIds.includes(v.id)) {
+                            // Bieżąca grupa -> przesuń w dół o rozmiar następnej grupy
+                            const offset = nextVisitIds.length;
+                            return { visitId: v.id, ordinalNumber: v.ordinalNumber + offset };
+                        } else if (nextVisitIds.includes(v.id)) {
+                            // Następna grupa -> przesuń w górę o rozmiar bieżącej grupy
+                            const offset = currentVisitIds.length;
+                            return { visitId: v.id, ordinalNumber: v.ordinalNumber - offset };
+                        }
+                        return { visitId: v.id, ordinalNumber: v.ordinalNumber };
+                    });
+                    
+                    await this.updateOrder(newOrder);
+                },
+                declinateWord(count, singular, pluralFew, pluralMany) {
+                    window.declinateWord(count, singular, pluralFew, pluralMany);
+                },
+                getSubmissionDeclination(count) {
+                    return this.submissionDeclination[count] || this.declinateWord(count, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń');
+                },
+                openSubmissionModal(submissionId) {
+                    window.openSubmissionModal(submissionId);
+                },
+                getContrastColor(hexColor) {
+                    return window.getContrastColor(hexColor);
+                }
+            },
+            mounted() {
+                this.loadVisits();
+                this.loadBuildings(); // Załaduj dane od razu
+                registerVueApp('agenda-editor-app');
+
+                // Inicjalizuj modal zgłoszenia
+                window.initSubmissionModal();
+
+                // Callback po aktualizacji zgłoszenia
+                window.onSubmissionUpdated = () => {
+                    this.loadVisits();
+                    this.loadBuildings();
+                };
+            }
+        }).mount('#agenda-editor-app');
+    </script>
+}

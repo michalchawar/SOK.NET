@@ -1,0 +1,435 @@
+@model int
+
+<dialog id="agenda-modal" class="modal">
+    <div id="agenda-modal-app" class="modal-box max-w-3xl">
+        <h3 class="font-bold text-lg mb-4">
+            <span v-if="editMode">Edytuj agendę</span>
+            <span v-else>Nowa agenda</span>
+        </h3>
+
+        <!-- Formularz -->
+        <div class="space-y-4">
+            <!-- Godziny -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="label">
+                        <span class="label-text">Godzina rozpoczęcia (niestandardowa)</span>
+                    </label>
+                    <input v-model="form.startHour" type="time" class="input input-bordered w-full" />
+                    <label class="label">
+                        <span class="text-xs text-base-content/60">Jeśli puste, używa domyślnej godziny dnia</span>
+                    </label>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="label">
+                        <span class="label-text">Godzina zakończenia (niestandardowa)</span>
+                    </label>
+                    <input v-model="form.endHour" type="time" class="input input-bordered w-full" />
+                    <label class="label">
+                        <span class="text-xs text-base-content/60">Jeśli puste, używa domyślnej godziny dnia</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Ksiądz -->
+            <div class="flex flex-col gap-1">
+                <label class="label">
+                    <span class="label-text">Przypisany ksiądz</span>
+                </label>
+                <div v-if="loading" class="flex justify-center py-4">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+                <div v-else-if="!priests || priests.length === 0" class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Brak dostępnych księży dla tego planu. Dodaj księży w edycji planu.</span>
+                </div>
+                <div v-else class="grid grid-cols-2 gap-2">
+                    <button 
+                        v-for="priest in priests" 
+                        :key="priest.id"
+                        type="button"
+                        class="btn font-medium h-auto justify-start py-3"
+                        :class="form.priestId === priest.id ? 'btn-primary' : 'btn-soft'"
+                        @@click="togglePriest(priest.id)">
+                        <i class="bi bi-person-fill text-xl"></i>
+                        <span class="flex-1 text-left">{{ priest.displayName }}</span>
+                        <i v-if="form.priestId === priest.id" class="bi bi-check-circle-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ministranci -->
+            <div class="flex flex-col gap-1">
+                <label class="label">
+                    <span class="label-text">Przypisani ministranci</span>
+                </label>
+                
+                <!-- Lista przypisanych ministrantów -->
+                <div v-if="selectedMinisters.length > 0" class="flex flex-wrap gap-2 mb-3">
+                    <div 
+                        v-for="minister in selectedMinisters" 
+                        :key="minister.id"
+                        class="badge badge-lg badge-accent badge-soft gap-2">
+                        <i class="bi bi-person"></i>
+                        {{ minister.displayName }}
+                        <button 
+                            type="button" 
+                            class="btn btn-xs btn-circle btn-ghost hover:btn-error"
+                            @@click="removeMinister(minister.id)">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+                <div v-else class="text-sm text-base-content/60 mb-3 italic">
+                    Brak przypisanych ministrantów
+                </div>
+
+                <!-- Wybór ministranta -->
+                <div v-if="!loading && availableMinisters.length > 0" class="flex gap-2">
+                    <select v-model="selectedMinisterId" class="select select-bordered flex-1">
+                        <option :value="null">-- Wybierz ministranta --</option>
+                        <option 
+                            v-for="minister in availableMinisters" 
+                            :key="minister.id"
+                            :value="minister.id">
+                            {{ minister.displayName }}
+                        </option>
+                    </select>
+                    <button 
+                        type="button" 
+                        class="btn btn-primary"
+                        :disabled="!selectedMinisterId"
+                        @@click="addMinister">
+                        <i class="bi bi-plus-circle"></i>
+                        Dodaj
+                    </button>
+                </div>
+                <div v-else-if="!loading && ministers.length === 0" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Brak ministrantów w systemie.</span>
+                </div>
+            </div>
+
+            <!-- Jednostka czasowa -->
+            <div class="flex flex-col gap-1">
+                <label class="label">
+                    <span class="label-text">Jednostka czasowa (minuty na wizytę)</span>
+                </label>
+                <div class="flex items-center gap-4">
+                    <input 
+                        v-model.number="form.minutesPerVisit" 
+                        type="range" 
+                        min="3" 
+                        max="20" 
+                        class="range range-primary flex-1" 
+                        :step="1" />
+                    <div class="badge badge-lg badge-primary font-bold min-w-[4rem]">
+                        {{ form.minutesPerVisit || defaultMinutesPerVisit }} min
+                    </div>
+                </div>
+                <label class="label">
+                    <span class="text-xs text-base-content/60">
+                        Jeśli puste, używa wartości księdza 
+                        <span v-if="priestMinutesPerVisit">({{ priestMinutesPerVisit }} min)</span>
+                        lub domyślnej (10 min)
+                    </span>
+                </label>
+                <button 
+                    v-if="form.minutesPerVisit" 
+                    type="button" 
+                    class="btn btn-sm btn-ghost self-start"
+                    @@click="form.minutesPerVisit = null">
+                    <i class="bi bi-x-circle"></i>
+                    Użyj wartości księdza
+                </button>
+            </div>
+
+            <!-- Ustawienia dodatkowe -->
+            <div class="grid grid-cols-1 gap-4">
+                <label class="label">
+                    <span class="label-text">Ustawienia agendy</span>
+                </label>
+                <div class="flex gap-2 items-center">
+                    <input v-model="form.showHours" type="checkbox" class="checkbox checkbox-primary" id="show-hours-checkbox" />
+                    <label class="label" for="show-hours-checkbox">
+                        Pokaż godziny w agendzie
+                    </label>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <input v-model="form.hideVisits" type="checkbox" class="checkbox checkbox-primary" id="hide-visits-checkbox" />
+                    <label class="label" for="hide-visits-checkbox">
+                        Ukryj wizyty przed zgłaszającymi (agenda niepubliczna)
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Akcje -->
+        <div class="modal-action justify-between">
+            <button type="button" class="btn btn-error btn-outline" @@click="deleteAgenda">Usuń</button>
+            <div class="flex gap-3">
+                <button type="button" class="btn" @@click="closeModal">Anuluj</button>
+                <button type="button" class="btn btn-primary" @@click="saveAgenda" :disabled="saving">
+                    <span v-if="saving" class="loading loading-spinner loading-sm"></span>
+                    <span v-else>Zapisz</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+    let agendaModalApp;
+    const dayId = @Model;
+
+    function openAgendaModal(agendaId = null) {
+        if (!agendaModalApp) {
+            initAgendaModal();
+        }
+        agendaModalApp.openModal(agendaId);
+    }
+
+    function initAgendaModal() {
+        const { createApp } = Vue;
+
+        agendaModalApp = createApp({
+            data() {
+                return {
+                    dayId: dayId,
+                    editMode: false,
+                    currentAgendaId: null,
+                    loading: false,
+                    saving: false,
+                    priests: [],
+                    ministers: [],
+                    form: {
+                        startHour: null,
+                        endHour: null,
+                        priestId: null,
+                        ministerIds: [],
+                        hideVisits: false,
+                        showHours: false,
+                        minutesPerVisit: null
+                    },
+                    selectedMinisterId: null,
+                    defaultMinutesPerVisit: 10,
+                    priestMinutesPerVisit: null
+                };
+            },
+            computed: {
+                selectedMinisters() {
+                    return this.ministers.filter(m => this.form.ministerIds.includes(m.id));
+                },
+                availableMinisters() {
+                    return this.ministers.filter(m => !this.form.ministerIds.includes(m.id));
+                }
+            },
+            watch: {
+                'form.priestId': async function(newPriestId) {
+                    // Gdy zmienia się ksiądz, pobierz jego jednostkę czasową
+                    if (newPriestId) {
+                        await this.loadPriestMinutesPerVisit(newPriestId);
+                    } else {
+                        this.priestMinutesPerVisit = null;
+                    }
+                }
+            },
+            methods: {
+                async openModal(agendaId = null) {
+                    this.editMode = !!agendaId;
+                    this.currentAgendaId = agendaId;
+                    this.resetForm();
+
+                    // Otwórz modal
+                    document.getElementById('agenda-modal').showModal();
+
+                    // Załaduj dane
+                    await this.loadModalData();
+
+                    // Jeśli edycja, załaduj dane agendy
+                    if (agendaId) {
+                        await this.loadAgenda(agendaId);
+                    }
+                },
+                closeModal() {
+                    document.getElementById('agenda-modal').close();
+
+                    setTimeout(() => {
+                        this.resetForm();
+                    }, 300);
+                },
+                resetForm() {
+                    this.form = {
+                        startHour: null,
+                        endHour: null,
+                        priestId: null,
+                        ministerIds: [],
+                        hideVisits: false,
+                        showHours: false,
+                        minutesPerVisit: null
+                    };
+                    this.selectedMinisterId = null;
+                    this.priestMinutesPerVisit = null;
+                },
+                async loadModalData() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/agenda/modal-data/${this.dayId}`);
+                        if (!response.ok) throw new Error('Failed to load modal data');
+                        
+                        const data = await response.json();
+                        this.priests = data.priests || [];
+                        this.ministers = data.ministers || [];
+                        this.hideVisits = data.hideVisits || false;
+                        this.showHours = data.showHours || false;
+                    } catch (error) {
+                        console.error('Error loading modal data:', error);
+                        alert('Nie udało się załadować danych modalu');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadAgenda(agendaId) {
+                    try {
+                        const response = await fetch(`/api/agenda/${agendaId}`);
+                        if (!response.ok) throw new Error('Failed to load agenda');
+                        
+                        const agenda = await response.json();
+                        
+                        // Mapuj dane do formularza
+                        this.form.startHour = agenda.startHourOverride ? this.formatTimeForInput(agenda.startHourOverride) : null;
+                        this.form.endHour = agenda.endHourOverride ? this.formatTimeForInput(agenda.endHourOverride) : null;
+                        this.form.priestId = agenda.priest?.id || null;
+                        this.form.ministerIds = agenda.ministers.map(m => m.id);
+                        this.form.hideVisits = agenda.hideVisits;
+                        this.form.showHours = agenda.showHours;
+                        this.form.minutesPerVisit = agenda.minutesPerVisit || null;
+                        
+                        // Załaduj jednostkę czasową księdza jeśli przypisany
+                        if (this.form.priestId) {
+                            await this.loadPriestMinutesPerVisit(this.form.priestId);
+                        }
+                    } catch (error) {
+                        console.error('Error loading agenda:', error);
+                        alert('Nie udało się załadować danych agendy');
+                    }
+                },
+                formatTimeForInput(timeOnly) {
+                    // timeOnly format: "HH:mm:ss" lub obiekt z hour i minute
+                    if (typeof timeOnly === 'string') {
+                        return timeOnly.substring(0, 5);
+                    }
+                    if (timeOnly.hour !== undefined) {
+                        const h = String(timeOnly.hour).padStart(2, '0');
+                        const m = String(timeOnly.minute).padStart(2, '0');
+                        return `${h}:${m}`;
+                    }
+                    return null;
+                },
+                togglePriest(priestId) {
+                    if (this.form.priestId === priestId) {
+                        this.form.priestId = null;
+                    } else {
+                        this.form.priestId = priestId;
+                    }
+                },
+                addMinister() {
+                    if (this.selectedMinisterId && !this.form.ministerIds.includes(this.selectedMinisterId)) {
+                        this.form.ministerIds.push(this.selectedMinisterId);
+                        this.selectedMinisterId = null;
+                    }
+                },
+                removeMinister(ministerId) {
+                    const index = this.form.ministerIds.indexOf(ministerId);
+                    if (index > -1) {
+                        this.form.ministerIds.splice(index, 1);
+                    }
+                },
+                async saveAgenda() {
+                    this.saving = true;
+                    try {
+                        const payload = {
+                            dayId: this.dayId,
+                            startHourOverride: this.form.startHour || null,
+                            endHourOverride: this.form.endHour || null,
+                            priestId: this.form.priestId,
+                            ministerIds: this.form.ministerIds,
+                            hideVisits: this.form.hideVisits,
+                            showHours: this.form.showHours,
+                            minutesPerVisit: this.form.minutesPerVisit
+                        };
+
+                        let response;
+                        if (this.editMode) {
+                            response = await fetch(`/api/agenda/${this.currentAgendaId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        } else {
+                            response = await fetch('/api/agenda', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        }
+
+                        if (response.ok) {
+                            this.closeModal();
+                            location.reload();
+                        } else {
+                            const error = await response.json();
+                            alert('Błąd: ' + (error.error || 'Nie udało się zapisać agendy'));
+                        }
+                    } catch (error) {
+                        console.error('Error saving agenda:', error);
+                        alert('Wystąpił błąd podczas zapisywania agendy');
+                    } finally {
+                        this.saving = false;
+                    }
+                },
+                async deleteAgenda() {
+                    if (!confirm('Czy na pewno chcesz usunąć tę agendę? Wszystkie wizyty usuną przypisanie.')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/agenda/${this.currentAgendaId}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            location.reload();
+                        } else {
+                            const error = await response.json();
+                            alert('Błąd: ' + (error.error || 'Nie udało się usunąć agendy'));
+                        }
+                    } catch (error) {
+                        console.error('Error deleting agenda:', error);
+                        alert('Wystąpił błąd podczas usuwania agendy');
+                    }
+                },
+                async loadPriestMinutesPerVisit(priestId) {
+                    try {
+                        const response = await fetch(`/api/parish-member/${priestId}/minutes-per-visit`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.priestMinutesPerVisit = data.minutesPerVisit;
+                        } else {
+                            this.priestMinutesPerVisit = null;
+                        }
+                    } catch (error) {
+                        console.error('Error loading priest minutes per visit:', error);
+                        this.priestMinutesPerVisit = null;
+                    }
+                }
+            },
+            mounted() {
+                registerVueApp('agenda-modal-app');
+            }
+        }).mount('#agenda-modal-app');
+    }
+</script>

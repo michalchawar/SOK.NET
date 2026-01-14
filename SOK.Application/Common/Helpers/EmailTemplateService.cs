@@ -61,7 +61,7 @@ namespace SOK.Application.Common.Helpers
         public string ReplacePlaceholders(string template, Dictionary<string, string> data)
         {
             if (data == null || data.Count == 0)
-                return template;
+                return RemovePlaceholders(template);
 
             foreach (var kvp in data)
             {
@@ -69,7 +69,13 @@ namespace SOK.Application.Common.Helpers
                 template = template.Replace(placeholder, kvp.Value ?? string.Empty);
             }
 
-            return template;
+            return RemovePlaceholders(template);
+        }
+
+        private static readonly Regex PlaceholderRegex = new Regex(@"%(\w+)%", RegexOptions.Compiled);
+        private static string RemovePlaceholders(string template)
+        {
+            return PlaceholderRegex.Replace(template, string.Empty);
         }
 
         /// <summary>

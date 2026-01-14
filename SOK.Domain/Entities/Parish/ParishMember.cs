@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SOK.Domain.Interfaces;
 
 namespace SOK.Domain.Entities.Parish
 {
@@ -6,7 +7,7 @@ namespace SOK.Domain.Entities.Parish
     /// Reprezentuje użytkownika systemu (np. administratora, księdza, ministranta).
     /// Przechowuje dane logowania, status, role oraz powiązania z parafią i agendami.
     /// </summary>
-    public class ParishMember
+    public class ParishMember : IEntityMetadata
     {
         /// <summary>
         /// Unikalny identyfikator użytkownika (klucz główny).

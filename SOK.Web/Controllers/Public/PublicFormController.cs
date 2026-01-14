@@ -29,6 +29,9 @@ namespace SOK.Web.Controllers
         private readonly IBuildingService _buildingService;
         private readonly ICurrentParishService _currentParishService;
         private readonly IPlanService _planService;
+        private readonly IVisitService _visitService;
+        private readonly IAgendaService _agendaService;
+        private readonly IVisitTimeEstimationService _visitTimeEstimationService;
 
         public PublicFormController(
             ISubmissionService submissionService,
@@ -37,7 +40,10 @@ namespace SOK.Web.Controllers
             IParishInfoService parishInfoService,
             IBuildingService buildingService,
             ICurrentParishService currentParishService,
-            IPlanService planService)
+            IPlanService planService,
+            IVisitService visitService,
+            IAgendaService agendaService,
+            IVisitTimeEstimationService visitTimeEstimationService)
         {
             _submissionService = submissionService;
             _scheduleService = scheduleService;
@@ -46,6 +52,9 @@ namespace SOK.Web.Controllers
             _buildingService = buildingService;
             _currentParishService = currentParishService;
             _planService = planService;
+            _visitService = visitService;
+            _agendaService = agendaService;
+            _visitTimeEstimationService = visitTimeEstimationService;
         }
 
         [HttpGet]
@@ -141,6 +150,7 @@ namespace SOK.Web.Controllers
                     Author = null, // Anonimowe zgłoszenie
                     Method = SubmitMethod.WebForm,
                     IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    SendConfirmationEmail = model.WantsEmailNotification,
                 };
 
                 try
@@ -169,6 +179,36 @@ namespace SOK.Web.Controllers
         }
 
         [HttpGet]
+        [Route("check-auto-assign/{buildingId}")]
+        public async Task<IActionResult> CheckAutoAssignment(string parishUid, int buildingId)
+        {
+            if (!_currentParishService.IsParishSet())
+            {
+                return BadRequest();
+            }
+
+            Schedule? defaultSchedule = await _scheduleService.GetDefaultScheduleAsync();
+            if (defaultSchedule is null)
+            {
+                return Json(new { hasAutoAssign = false });
+            }
+
+            var assignmentDate = await _visitService.GetAutoAssignmentDate(buildingId, defaultSchedule.Id);
+
+            if (assignmentDate.HasValue)
+            {
+                return Json(new
+                {
+                    hasAutoAssign = true,
+                    date = assignmentDate.Value.ToString("yyyy-MM-dd"),
+                    dateFormatted = assignmentDate.Value.ToString("dd.MM.yyyy")
+                });
+            }
+
+            return Json(new { hasAutoAssign = false });
+        }
+
+        [HttpGet]
         [Route("success")]
         public async Task<IActionResult> Success(string parishUid, string submissionUid = "", string submissionAccessToken = "")
         {
@@ -176,7 +216,7 @@ namespace SOK.Web.Controllers
             ViewData["SubmissionUid"] = submissionUid;
             ViewData["SubmissionAccessToken"] = submissionAccessToken;
     
-            string? coreUrl = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+            string? coreUrl = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
             ViewData["SubmissionPanelUrl"] = $"{coreUrl}?submissionUid={submissionUid}&accessToken={submissionAccessToken}";
             return View();
         }
@@ -217,13 +257,39 @@ namespace SOK.Web.Controllers
             };
 
             // Dane wizyty
+            var estimatedTimeRange = submission.Visit.AgendaId.HasValue 
+                ? await _visitTimeEstimationService.CalculateDynamicTimeRangeAsync(submission.Visit.Id)
+                : null;
+
+            // Sprawdź czy czas jest dynamiczny (agenda rozpoczęta)
+            var isDynamic = false;
+            if (submission.Visit.Agenda != null && estimatedTimeRange.HasValue)
+            {
+                var agendaStartDateTime = new DateTime(submission.Visit.Agenda.Day.Date, 
+                    submission.Visit.Agenda.StartHourOverride ?? submission.Visit.Agenda.Day.StartHour);
+                var polandTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, polandTimeZone);
+                
+                var visits = await _agendaService.GetAgendaVisitsAsync(submission.Visit.Agenda.Id);
+
+                isDynamic = now >= agendaStartDateTime.AddMinutes(-15) && 
+                    visits.Any(v => 
+                        v.Status == VisitStatus.Visited || 
+                        v.Status == VisitStatus.Rejected || 
+                        v.Status == VisitStatus.Suspended || 
+                        v.Status == VisitStatus.Pending);
+            }
+
             vm.Visit = new VisitInfoVM
             {
                 Status = submission.Visit.Status,
                 OrdinalNumber = submission.Visit.OrdinalNumber,
                 PlannedDate = submission.Visit.Agenda?.Day?.Date,
-                EstimatedTime = null, // TODO: Oblicz przewidywaną godzinę na podstawie OrdinalNumber i StartHourOverride
-                Agenda = null // Agenda jest obiektem, nie stringiem - można dodać jej nazwę/opis jeśli potrzeba
+                DateVisible = !submission.Visit.Agenda?.HideVisits ?? true,
+                EstimatedTime = estimatedTimeRange?.Start,
+                EstimatedTimeEnd = estimatedTimeRange?.End,
+                TimeVisible = submission.Visit.Agenda?.ShowHours ?? false,
+                IsDynamicTimeRange = isDynamic
             };
 
             // Plan i harmonogram
@@ -270,7 +336,8 @@ namespace SOK.Web.Controllers
 
         protected async Task PopulateNewSubmissionWebFormVM(NewSubmissionWebFormVM vm)
         {
-            var streets = await _streetService.GetAllStreetsAsync(buildings: true, type: true);
+            var streets = (await _streetService.GetAllStreetsAsync(buildings: true, type: true))
+                .Where(s => s.Buildings.Any(b => b.AllowSelection));
 
             vm.StreetList = streets.Select(s => new SelectListItem
             {
@@ -280,7 +347,10 @@ namespace SOK.Web.Controllers
 
             vm.BuildingList = streets.ToDictionary(
                 s => s.Id,
-                s => s.Buildings.OrderBy(b => b.Number).ThenBy(b => b.Letter).Select(b => new SelectListItem
+                s => s.Buildings.Where(b => b.AllowSelection)
+                                .OrderBy(b => b.Number)
+                                .ThenBy(b => b.Letter)
+                                .Select(b => new SelectListItem
                 {
                     Text = b.Number + (b.Letter ?? ""),
                     Value = b.Id.ToString()

@@ -198,8 +198,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 context.AddRange([plan]);
 
                 Schedule 
-                    schedule1 = new Schedule { Name = "Kolęda w terminie", ShortName = "T", Plan = plan },
-                    schedule2 = new Schedule { Name = "Kolęda dodatkowa",  ShortName = "D", Plan = plan };
+                    schedule1 = new Schedule { Name = "Kolęda w terminie", ShortName = "T", Color = "#bec5d1", Plan = plan },
+                    schedule2 = new Schedule { Name = "Kolęda dodatkowa",  ShortName = "D", Color = "#3b73d4", Plan = plan };
                 context.AddRange([schedule1, schedule2]);
 
                 await context.SaveChangesAsync();

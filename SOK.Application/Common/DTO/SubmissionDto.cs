@@ -7,9 +7,12 @@ namespace SOK.Application.Common.DTO
     {
         public int Id { get; private set; }
         public string UniqueId { get; private set; } = string.Empty;
+        public string AccessToken { get; private set; } = string.Empty;
 
         public SubmitterDto Submitter { get; set; }
         public AddressDto Address { get; set; }
+        public VisitDto Visit { get; set; }
+        public PlanDto Plan { get; set; }
 
         public string SubmitterNotes { get; set; } = string.Empty;
         public string AdminMessage { get; set; } = string.Empty;
@@ -24,6 +27,7 @@ namespace SOK.Application.Common.DTO
         {
             Id = submission.Id;
             UniqueId = submission.UniqueId.ToString();
+            AccessToken = submission.AccessToken ?? string.Empty;
             SubmitterNotes = submission.SubmitterNotes ?? string.Empty;
             AdminMessage = submission.AdminMessage ?? string.Empty;
             AdminNotes = submission.AdminNotes ?? string.Empty;
@@ -34,6 +38,8 @@ namespace SOK.Application.Common.DTO
 
             Submitter = new SubmitterDto(submission.Submitter);
             Address = new AddressDto(submission.Address);
+            Visit = new VisitDto(submission.Visit);
+            Plan = new PlanDto(submission.Plan);
         }
     }
 }

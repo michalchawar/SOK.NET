@@ -80,12 +80,21 @@
                 <select asp-for="BuildingId" 
                         asp-items="@(Model.BuildingList.ContainsKey(Model.StreetId) ? Model.BuildingList[Model.StreetId] : new List<SelectListItem>())"
                         v-model="form.buildingId"
+                        v-on:change="onBuildingChange"
                         :disabled="!form.streetId"
                         class="select select-lg w-full focus:select-primary"
                         required>
                     <option value="0" selected disabled>-- Wybierz bramę --</option>
                 </select>
                 <span asp-validation-for="BuildingId" class="text-error mt-1"></span>
+            </div>
+
+            <!-- Info o automatycznym przypisaniu -->
+            <div v-if="autoAssignInfo.show" class="md:col-span-2 alert alert-info alert-soft shadow-md">
+                <i class="bi bi-info-circle text-xl"></i>
+                <span>
+                    Twoje zgłoszenie zostanie automatycznie zaplanowane na <strong>{{ autoAssignInfo.dateFormatted }}</strong> ({{ autoAssignInfo.dayOfWeek }}).
+                </span>
             </div>
 
             <!-- Numer mieszkania -->
@@ -161,7 +170,7 @@
 
             <!-- RODO Checkbox -->
             <div class="form-control md:col-span-2">
-                <label class="label cursor-pointer flex justify-start gap-3 items-start max-w-full">
+                <label class="hidden label cursor-pointer justify-start gap-3 items-start max-w-full">
                     <input asp-for="GdprConsent"
                             v-model="form.gdprConsent"
                             type="checkbox" 
@@ -175,6 +184,13 @@
                         </p>
                     </div>
                 </label>
+                <div class="flex flex-col">
+                    <h5 class="font-semibold">Wysyłając formularz wyrażasz zgodę na przetwarzanie danych osobowych.</h5>
+                    <p class="text-sm opacity-70 mt-1">
+                        Administratorem danych osobowych jest @Model.Parish.Name. 
+                        Twoje dane będą wykorzystane wyłącznie w celu zorganizowania wizyty duszpasterskiej.
+                    </p>
+                </div>
                 <span asp-validation-for="GdprConsent" class="text-error mt-1"></span>
             </div>
 
@@ -215,8 +231,6 @@
     <partial name="_ValidationScriptsPartial" />
     <partial name="_VueScript" />
 
-    <script src="~/js/address-utilities.js" asp-append-version="true"></script>
-
     <script>
         const { createApp } = Vue;
 
@@ -233,7 +247,7 @@
                         email: '@Html.Raw(Model.Email)',
                         hasNotes: @(Model.HasAdditionalNotes ? "true" : "false"),
                         notes: '@Html.Raw(Model.SubmitterNotes)',
-                        gdprConsent: @(Model.GdprConsent ? "true" : "false")
+                        gdprConsent: true
                     },
                     buildingList: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BuildingList)),
                     isSubmitting: false,
@@ -241,6 +255,12 @@
                         show: false,
                         type: 'success',
                         text: ''
+                    },
+                    autoAssignInfo: {
+                        show: false,
+                        date: null,
+                        dateFormatted: null,
+                        dayOfWeek: null
                     }
                 }
             },
@@ -264,6 +284,39 @@
             methods: {
                 onStreetChange() {
                     this.form.buildingId = '0';
+                    this.clearAutoAssignInfo();
+                },
+                onBuildingChange() {
+                    this.clearAutoAssignInfo();
+                    
+                    if (this.form.buildingId && this.form.buildingId !== '0') {
+                        this.checkAutoAssignment();
+                    }
+                },
+                async checkAutoAssignment() {
+                    try {
+                        const response = await fetch(`/@ViewContext.RouteData.Values["parishUid"]/submissions/check-auto-assign/${this.form.buildingId}`);
+                        const data = await response.json();
+                        
+                        if (data.hasAutoAssign) {
+                            this.autoAssignInfo = {
+                                show: true,
+                                date: data.date,
+                                dateFormatted: data.dateFormatted,
+                                dayOfWeek: new Date(data.date).toLocaleDateString('pl-PL', { weekday: 'long' })
+                            };
+                        }
+                    } catch (error) {
+                        console.error('Error checking auto-assignment:', error);
+                    }
+                },
+                clearAutoAssignInfo() {
+                    this.autoAssignInfo = {
+                        show: false,
+                        date: null,
+                        dateFormatted: null,
+                        dayOfWeek: null
+                    };
                 },
                 handleSubmit(event) {
                     if (!this.isFormValid) {

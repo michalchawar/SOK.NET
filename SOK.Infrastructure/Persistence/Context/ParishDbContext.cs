@@ -128,7 +128,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 .ToList();
 
             // Pobierz aktualnie zalogowanego użytkownika raz dla wszystkich snapshotów
-            int? currentUserId = await GetCurrentUserIdAsync();
+            int? currentUserId = GetCurrentUserId();
 
             foreach (var entry in entries)
             {
@@ -147,7 +147,7 @@ namespace SOK.Infrastructure.Persistence.Context
             }
         }
 
-        private async Task<int?> GetCurrentUserIdAsync()
+        private int? GetCurrentUserId()
         {
             try
             {
@@ -171,6 +171,24 @@ namespace SOK.Infrastructure.Persistence.Context
 
         private async Task CreateSubmissionSnapshotAsync(EntityEntry entry, Submission submission, int? currentUserId)
         {
+            if (
+                entry.OriginalValues.GetValue<Guid>(nameof(Submission.UniqueId)) 
+                    == entry.CurrentValues.GetValue<Guid>(nameof(Submission.UniqueId)) &&
+                entry.OriginalValues.GetValue<string>(nameof(Submission.AccessToken)) 
+                    == entry.CurrentValues.GetValue<string>(nameof(Submission.AccessToken)) &&
+                entry.OriginalValues.GetValue<string?>(nameof(Submission.SubmitterNotes)) 
+                    == entry.CurrentValues.GetValue<string?>(nameof(Submission.SubmitterNotes)) &&
+                entry.OriginalValues.GetValue<string?>(nameof(Submission.AdminMessage)) 
+                    == entry.CurrentValues.GetValue<string?>(nameof(Submission.AdminMessage)) &&
+                entry.OriginalValues.GetValue<string?>(nameof(Submission.AdminNotes)) 
+                    == entry.CurrentValues.GetValue<string?>(nameof(Submission.AdminNotes)) &&
+                entry.OriginalValues.GetValue<NotesFulfillmentStatus>(nameof(Submission.NotesStatus)) 
+                    == entry.CurrentValues.GetValue<NotesFulfillmentStatus>(nameof(Submission.NotesStatus))
+            )
+            {
+                return;
+            }
+
             // Pobierz oryginalne wartości dla prostych właściwości Submission
             var originalValues = entry.OriginalValues;
             var originalUniqueId = originalValues.GetValue<Guid>(nameof(Submission.UniqueId));
@@ -228,6 +246,23 @@ namespace SOK.Infrastructure.Persistence.Context
 
         private async Task CreateSubmitterSnapshotAsync(EntityEntry entry, Submitter submitter, int? currentUserId)
         {
+            // Sprawdź, czy zaszły istotne zmiany, aby utworzyć snapshot
+            if (
+                entry.OriginalValues.GetValue<Guid>(nameof(Submitter.UniqueId)) 
+                    == entry.CurrentValues.GetValue<Guid>(nameof(Submitter.UniqueId)) &&
+                entry.OriginalValues.GetValue<string>(nameof(Submitter.Name)) 
+                    == entry.CurrentValues.GetValue<string>(nameof(Submitter.Name)) &&
+                entry.OriginalValues.GetValue<string>(nameof(Submitter.Surname)) 
+                    == entry.CurrentValues.GetValue<string>(nameof(Submitter.Surname)) &&
+                entry.OriginalValues.GetValue<string?>(nameof(Submitter.Email)) 
+                    == entry.CurrentValues.GetValue<string?>(nameof(Submitter.Email)) &&
+                entry.OriginalValues.GetValue<string?>(nameof(Submitter.Phone)) 
+                    == entry.CurrentValues.GetValue<string?>(nameof(Submitter.Phone))
+            )
+            {
+                return;
+            }
+
             var originalValues = entry.OriginalValues;
 
             var snapshot = new SubmitterSnapshot
@@ -239,12 +274,27 @@ namespace SOK.Infrastructure.Persistence.Context
                 Phone = originalValues.GetValue<string?>(nameof(Submitter.Phone)),
                 ChangeAuthorId = currentUserId,
             };
-
+            
             await SubmitterSnapshots.AddAsync(snapshot);
         }
 
         private async Task CreateVisitSnapshotAsync(EntityEntry entry, Visit visit, int? currentUserId)
         {
+            // Sprawdź, czy zaszły istotne zmiany, aby utworzyć snapshot
+            if (
+                entry.OriginalValues.GetValue<int?>(nameof(Visit.OrdinalNumber)) 
+                    == entry.CurrentValues.GetValue<int?>(nameof(Visit.OrdinalNumber)) &&
+                entry.OriginalValues.GetValue<VisitStatus>(nameof(Visit.Status)) 
+                    == entry.CurrentValues.GetValue<VisitStatus>(nameof(Visit.Status)) &&
+                entry.OriginalValues.GetValue<int?>(nameof(Visit.PeopleCount)) 
+                    == entry.CurrentValues.GetValue<int?>(nameof(Visit.PeopleCount)) &&
+                entry.OriginalValues.GetValue<int?>(nameof(Visit.AgendaId)) 
+                    == entry.CurrentValues.GetValue<int?>(nameof(Visit.AgendaId))
+            )
+            {
+                return;
+            }
+
             var originalValues = entry.OriginalValues;
 
             // Załaduj Schedule jeśli nie jest załadowany (potrzebujemy Schedule.Name)
@@ -268,7 +318,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 if (visit.Agenda.Day != null)
                 {
                     visitDate = visit.Agenda.Day.Date.ToDateTime(TimeOnly.MinValue);
-                    dateVisibility = visit.Agenda.ShowsAssignment;
+                    dateVisibility = !visit.Agenda.HideVisits;
                 }
             }
 
@@ -277,7 +327,9 @@ namespace SOK.Infrastructure.Persistence.Context
                 VisitId = visit.Id,
                 OrdinalNumber = (short)(originalValues.GetValue<int?>(nameof(Visit.OrdinalNumber)) ?? 0),
                 Status = originalValues.GetValue<VisitStatus>(nameof(Visit.Status)),
+                PeopleCount = originalValues.GetValue<int?>(nameof(Visit.PeopleCount)),
                 ScheduleName = visit.Schedule?.Name,
+                AgendaId = originalValues.GetValue<int?>(nameof(Visit.AgendaId)),
                 Date = visitDate,
                 DateVisibility = dateVisibility,
                 PredictedTime = null, // TODO: Dodaj jeśli będziesz mieć przewidywany czas wizyty

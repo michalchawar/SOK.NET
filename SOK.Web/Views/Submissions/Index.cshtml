@@ -3,74 +3,173 @@
 }
 
 <div id="submissions-app" class="h-full">
-    <div class="flex h-full">
+    <div class="flex flex-col lg:flex-row h-full">
         <!-- filtr -->
-        <div class="flex min-w-1/3 flex-shrink-0 flex-col gap-y-8 overflow-y-scroll p-2 text-center">
-            <h2 class="text-semibold text-3xl">Wyszukaj:</h2>
+        <div
+            class="flex w-full lg:min-w-1/3 lg:max-w-md flex-shrink-0 flex-col gap-y-2 lg:gap-y-4 overflow-y-auto px-2 lg:px-4 text-center">
+            <div class="flex sticky min-h-14 py-2 px-3 top-0 bg-base-200 shadow-md rounded-sm z-10 items-center gap-2">
+                <h2 class="flex-1 font-semibold text-left text-2xl lg:text-3xl">Wyszukaj:</h2>
+                <button v-if="appliedFiltersOrSorting" @@click="resetFilters" class="btn btn-warning btn-dash">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reset
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
+                        <span class="inline lg:hidden">Adres:</span>
+                        <span class="hidden lg:inline">Szukaj po adresie:</span>
+                    </legend>
+                    <label class="input input-lg w-full">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <input v-model="filters.address" v-on:input="loadSubmissions"
+                            placeholder="np. @(ViewData["SampleAddress"] ?? "Brzozowa 45/3")" class="" type="text" />
+                    </label>
+                </fieldset>
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
+                        <span class="inline lg:hidden">Osoba:</span>
+                        <span class="hidden lg:inline">Szukaj po danych zgłaszającego:</span>
+                    </legend>
+                    <label class="input input-lg w-full">
+                        <i class="bi bi-person-fill"></i>
+                        <input v-model="filters.person" v-on:input="loadSubmissions"
+                            placeholder="np. @(ViewData["SampleSurname"] ?? "Kowalski")..." class="" type="text" />
+                    </label>
+                </fieldset>
+            </div>
 
             <fieldset class="fieldset">
-                <legend class="fieldset-legend text-lg font-normal opacity-50">
-                    Szukaj po adresie:
+                <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
+                    Sortowanie:
                 </legend>
-                <label class="input input-lg w-full">
-                    <i class="bi bi-geo-alt-fill"></i>
-
-                    <input v-model="filters.address" v-on:input="loadSubmissions"
-                        placeholder="np. @(ViewData["SampleAddress"] ?? "Brzozowa 45/3")" class="" type="text" />
-                </label>
+                <div class="flex flex-col lg:flex-row gap-2">
+                    <div class="join flex-1 w-full lg:w-auto">
+                        <button v-for="option in sortOptions" :key="option.value" @@click="setSortBy(option.value)"
+                            class="h-auto join-item flex-1 flex flex-col btn btn-lg p-1"
+                            :class="[sorting.by === option.value ? 'btn-accent' : 'btn-soft']">
+                            <i class="bi" :class="`bi-${option.icon}`"></i>
+                            <span class="text-sm font-normal -mt-2">{{ option.label }}</span>
+                        </button>
+                    </div>
+                    <button @@click="toggleSortOrder" class="btn btn-secondary btn-outline lg:btn-soft btn-sm lg:btn-lg w-full lg:w-auto lg:h-full">
+                        <i class="bi text-md" :class="sorting.order === 'asc' ? 'bi-sort-up' : 'bi-sort-down'"></i>
+                        <span class="lg:hidden">{{ sorting.order === 'asc' ? 'Rosnąco' : 'Malejąco' }}</span>
+                    </button>
+                </div>
             </fieldset>
 
             <fieldset class="fieldset">
-                <legend class="fieldset-legend text-lg font-normal opacity-50">
-                    Szukaj po imieniu i nazwisku:
+                <legend class="fieldset-legend text-base lg:text-lg font-normal opacity-50">
+                    Filtry:
                 </legend>
-                <label class="input input-lg w-full">
-                    <i class="bi bi-person-fill"></i>
+                <div class="flex flex-col gap-2">
+                    <div class="join w-full">
+                        <button @@click="toggleEmailFilter" class="h-auto join-item flex-1 flex flex-col btn btn-lg p-1"
+                            :class="[getFilterButtonClass(filters.email)]">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span class="text-sm opacity-60 font-semibold -mt-2">
+                                {{ getFilterLabel(filters.email) }}
+                            </span>
+                            <span class="text-sm font-normal -mt-2">
+                                E-mail
+                            </span>
+                        </button>
+                        <button @@click="toggleNotesFilter" class="h-auto join-item flex-1 flex flex-col btn btn-lg p-1"
+                            :class="[getFilterButtonClass(filters.notes)]">
+                            <i class="bi bi-sticky-fill"></i>
+                            <span class="text-sm opacity-60 font-semibold -mt-2">
+                                {{ getFilterLabel(filters.notes) }}
+                            </span>
+                            <span class="text-sm font-normal -mt-2">
+                                Notatki
+                            </span>
+                        </button>
+                    </div>
 
-                    <input v-model="filters.person" v-on:input="loadSubmissions"
-                        placeholder="np. @(ViewData["SampleSurname"] ?? "Kowalski")..." class="" type="text" />
-                </label>
+                    <!-- Przyciski wyboru statusu notatek - widoczne tylko gdy filtr notatek jest włączony -->
+                    <div v-if="filters.notes === 'on'" class="flex flex-col gap-2 mt-2 p-2 bg-base-200 rounded-lg">
+                        <span class="text-xs opacity-60 text-center">Status notatek:</span>
+                        <div class="grid grid-cols-2 gap-1">
+                            <button v-for="status in noteStatuses" :key="status.value"
+                                @@click="toggleNoteStatus(status.value)"
+                                :class="['btn btn-xs', filters.noteStatuses.includes(status.value) ? 'btn-primary' : 'btn-ghost']">
+                                {{ status.label }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </fieldset>
+
+            <div class="text-center text-sm opacity-70">
+                <p>Załadowano: <strong>{{ loadedCount }}</strong> / <strong>{{ totalCount }}</strong></p>
+            </div>
         </div>
 
-        <div class="divider divider-horizontal h-full">
-            <i class="bi bi-chevron-double-right text-(--divider-color)"></i>
+        <div class="divider lg:divider-horizontal lg:h-full text-(--divider-color)">
+            <i class="bi bi-chevron-double-down block lg:hidden"></i>
+            <i class="bi bi-chevron-double-right hidden lg:block"></i>
         </div>
 
         <!-- lista -->
-        <div class="flex-grow overflow-y-scroll py-2 ps-2 pe-4" v-if="submissions.length > 0 || !isDataLoaded">
+        <div class="flex-grow overflow-y-auto py-2 px-2 lg:ps-2 lg:pe-4" v-if="submissions.length > 0 || !isDataLoaded">
             <div class="flex flex-col gap-2">
-                <div v-for="s in submissions" :key="s.id"
-                    @@click="openModal(s.id)"
-                    class="submission-card bg-base-200 grid cursor-pointer grid-cols-[3fr_1fr] grid-rows-[20%_40%_40%] px-4 py-3 transition-colors hover:bg-base-300">
-                    <div class="mb-0 opacity-40">
-                        <span>{{ s.address.streetType }}</span>
+                <div v-for="s in submissions" :key="s.id" @@click="openModal(s.id)"
+                    class="submission-card bg-base-200 flex px-3 py-4 sm:px-4 cursor-pointer transition-colors hover:bg-base-300">
+                    <div class="flex-1 flex flex-col gap-y-0">
+                        <div class="opacity-40 text-xs sm:text-sm">
+                            <span>{{ s.address.streetType }}</span>
+                        </div>
+                        <div class="text-lg sm:text-2xl">
+                            <b>{{ s.address.streetName }}</b> {{ s.address.buildingNumber }}{{ s.address.buildingLetter
+                            }}
+                            <span class="ms-2 sm:ms-3 text-sm sm:text-lg opacity-60">m.</span> {{
+                            s.address.apartmentNumber }}{{
+                            s.address.apartmentLetter }}
+                        </div>
+                        <div class="text-sm sm:text-md opacity-80">
+                            <b>{{ s.submitter.surname }}</b> {{ s.submitter.name }}
+                        </div>
                     </div>
-                    <div class="mb-3 text-2xl">
-                        <b>{{ s.address.streetName }}</b> {{ s.address.buildingNumber }}{{ s.address.buildingLetter }}
-                        <span class="ms-3 text-lg opacity-60">m.</span> {{ s.address.apartmentNumber }}{{
-                        s.address.apartmentLetter }}
+                    <div v-if="s.submitterNotes && s.submitterNotes.length > 0"
+                        class="flex! items-center justify-end gap-1 px-2 sm:px-5 lg:tooltip lg:tooltip-bottom"
+                        :data-tip="s.submitterNotes">
+                        <span v-if="s.notesStatus === 0" class="status status-md"></span>
+                        <span v-if="s.notesStatus === 1" class="loading loading-ring loading-md text-warning"></span>
+                        <span v-if="s.notesStatus === 2" class="status status-error status-md"></span>
+                        <span v-if="s.notesStatus === 3" class="status status-success status-md"></span>
+                        <i class="bi bi-sticky-fill text-lg sm:text-2xl opacity-70"></i>
                     </div>
-                    <div class="text-md opacity-80">
-                        <b>{{ s.submitter.surname }}</b> {{ s.submitter.name }}
-                    </div>
-                    <div class="col-start-2 row-span-full flex justify-end px-5">
-                        <div class="flex flex-col justify-center text-center text-sm opacity-50">
-                            <i class="bi bi-arrow-counterclockwise text-2xl"></i>
+                    <div class="flex justify-end px-2 sm:px-5">
+                        <div class="flex flex-col justify-center text-center text-xs sm:text-sm opacity-50">
+                            <i class="bi bi-arrow-counterclockwise text-lg sm:text-2xl"></i>
                             {{ s.timeAgo }}
                         </div>
                     </div>
                 </div>
 
                 <!-- lista dummy do ładowania -->
-                <div v-if="!isDataLoaded" v-for="n in 10" :key="n"
-                    class="bg-base-200 grid cursor-default grid-cols-[3fr_1fr] grid-rows-[20%_40%_40%] gap-y-2 px-4 py-3">
-                    <div class="skeleton mb-0 h-4 w-20 rounded-sm opacity-60"></div>
-                    <div class="skeleton mb-3 h-7 w-40 rounded-sm text-2xl"></div>
-                    <div class="text-md skeleton h-4 w-32 rounded-sm opacity-80"></div>
+                <div v-if="!isDataLoaded" v-for="n in skeletonCount" :key="n"
+                    class="bg-base-200 grid grid-cols-[3fr_1fr] grid-rows-[20%_40%_40%] gap-y-2 px-3 py-2 sm:px-4 sm:py-3">
+                    <div class="skeleton mb-0 h-3 sm:h-4 w-16 sm:w-20 rounded-sm opacity-60"></div>
+                    <div class="skeleton mb-2 sm:mb-3 h-5 sm:h-7 w-32 sm:w-40 rounded-sm"></div>
+                    <div class="skeleton h-3 sm:h-4 w-24 sm:w-32 rounded-sm opacity-80"></div>
                     <div class="col-start-2 row-span-full flex items-center justify-end">
-                        <div class="text-md skeleton flex size-12 flex-col justify-center rounded-sm text-center"></div>
+                        <div class="skeleton flex size-10 sm:size-12 flex-col justify-center rounded-sm"></div>
                     </div>
+                </div>
+
+                <!-- Przycisk załaduj więcej -->
+                <div v-if="isDataLoaded && hasMorePages" class="flex justify-center py-4">
+                    <button @@click="loadMoreSubmissions" :disabled="isLoadingMore"
+                        class="btn btn-info btn-dash btn-wide btn-lg font-medium">
+                        <div v-if="!isLoadingMore" class="flex items-center gap-3">
+                            <i class="bi bi-arrow-down-circle"></i>
+                            Załaduj więcej
+                        </div>
+                        <span v-else class="loading loading-spinner"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -92,9 +191,7 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <partial name="_VueScript" />
-    
-    <script src="~/js/address-utilities.js"></script>
-    
+
     <script>
         const { createApp } = Vue;
 
@@ -105,23 +202,67 @@
                     filters: {
                         address: "",
                         person: "",
+                        email: "off", // off, on, reverse
+                        notes: "off", // off, on, reverse
+                        noteStatuses: [], // Array of selected NotesFulfillmentStatus values
                     },
+                    sorting: {
+                        by: "time", // time, address, submitter
+                        order: "desc", // asc, desc
+                    },
+                    sortOptions: [
+                        { value: "time", label: "Czas", icon: "clock-fill" },
+                        { value: "address", label: "Adres", icon: "house-fill" },
+                        { value: "submitter", label: "Nazwisko", icon: "person-fill" },
+                    ],
+                    noteStatuses: [
+                        { value: "NA", label: "N/A" },
+                        { value: "Pending", label: "Oczekujące" },
+                        { value: "Rejected", label: "Odrzucone" },
+                        { value: "Accepted", label: "Zaakceptowane" },
+                    ],
+                    currentPage: 1,
+                    pageSize: 10,
+                    totalCount: 0,
                     isDataLoaded: false,
+                    isLoadingMore: false,
                     timeoutIds: new Map(),
                     debounceTimeout: null,
+                    skeletonCount: 10,
+                }
+            },
+            computed: {
+                loadedCount() {
+                    return this.submissions.length;
+                },
+                hasMorePages() {
+                    return this.loadedCount < this.totalCount;
+                },
+                appliedFiltersOrSorting() {
+                    return this.filters.address !== "" ||
+                        this.filters.person !== "" ||
+                        this.filters.email !== "off" ||
+                        this.filters.notes !== "off" ||
+                        (this.sorting.by !== "time" || this.sorting.order !== "desc");
                 }
             },
             mounted() {
+                this.calculatePageSize();
                 this.loadSubmissions();
                 registerVueApp('submissions-app');
-                
+
                 // Inicjalizuj modal
                 window.initSubmissionModal();
-                
+
                 // Callback po aktualizacji
                 window.onSubmissionUpdated = () => {
-                    this.loadSubmissions();
+                    this.fetchSubmissions(false, true);
                 };
+
+                // Przelicz pageSize przy zmianie rozmiaru okna
+                window.addEventListener('resize', () => {
+                    this.calculatePageSize();
+                });
             },
             beforeUnmount() {
                 // Wyczyść wszystkie timery przy unmount
@@ -130,39 +271,169 @@
                 if (this.debounceTimeout) {
                     clearTimeout(this.debounceTimeout);
                 }
+                window.removeEventListener('resize', this.calculatePageSize);
             },
             methods: {
+                calculatePageSize() {
+                    // Wysokość pojedynczego zgłoszenia (w przybliżeniu)
+                    const submissionHeight = 100; // px
+
+                    // Dostępna wysokość dla listy
+                    const availableHeight = window.innerHeight - 200; // odejmujemy margines
+
+                    // Oblicz ile zgłoszeń się zmieści
+                    let calculatedSize = Math.floor(availableHeight / submissionHeight);
+
+                    // Ogranicz do zakresu 5-15
+                    this.pageSize = Math.max(5, Math.min(15, calculatedSize));
+                    this.skeletonCount = this.pageSize;
+                },
                 openModal(id) {
                     window.openSubmissionModal(id);
                 },
+                setSortBy(value) {
+                    this.sorting.by = value;
+
+                    // Ustaw domyślny kierunek sortowania
+                    if (value === "time") {
+                        this.sorting.order = "desc";
+                    } else {
+                        this.sorting.order = "asc";
+                    }
+
+                    this.loadSubmissions();
+                },
+                toggleSortOrder() {
+                    this.sorting.order = this.sorting.order === "asc" ? "desc" : "asc";
+                    this.loadSubmissions();
+                },
+                toggleEmailFilter() {
+                    const states = ["off", "on", "reverse"];
+                    const currentIndex = states.indexOf(this.filters.email);
+                    this.filters.email = states[(currentIndex + 1) % states.length];
+                    this.loadSubmissions();
+                },
+                toggleNotesFilter() {
+                    const states = ["off", "on", "reverse"];
+                    const currentIndex = states.indexOf(this.filters.notes);
+                    this.filters.notes = states[(currentIndex + 1) % states.length];
+
+                    // Jeśli wyłączamy filtr notatek, wyczyść statusy
+                    if (this.filters.notes === "off") {
+                        this.filters.noteStatuses = [];
+                    }
+
+                    // Jeśli włączamy filtr notatek, domyślnie wybierz wszystkie statusy
+                    if (this.filters.notes === "on") {
+                        this.filters.noteStatuses = this.noteStatuses.map(s => s.value);
+                    }
+
+                    this.loadSubmissions();
+                },
+                toggleNoteStatus(status) {
+                    const index = this.filters.noteStatuses.indexOf(status);
+                    if (index > -1) {
+                        if (this.filters.noteStatuses.length == 1)
+                            return; // Nie pozwalaj na odznaczenie ostatniego statusu
+
+                        this.filters.noteStatuses.splice(index, 1);
+                    } else {
+                        this.filters.noteStatuses.push(status);
+                    }
+                    this.loadSubmissions();
+                },
+                getFilterButtonClass(filterState) {
+                    if (filterState === "on") return "btn-success";
+                    if (filterState === "reverse") return "btn-error";
+                    return "btn-soft";
+                },
+                getFilterLabel(filterState) {
+                    if (filterState === "on") return `POSIADAJĄ`;
+                    if (filterState === "reverse") return `NIE POSIADAJĄ`;
+                    return `DOWOLNE`;
+                },
+                resetFilters() {
+                    this.filters.address = "";
+                    this.filters.person = "";
+                    this.filters.email = "off";
+                    this.filters.notes = "off";
+                    this.filters.noteStatuses = [];
+                    this.sorting.by = "time";
+                    this.sorting.order = "desc";
+                    this.loadSubmissions();
+                },
                 loadSubmissions() {
+                    // Reset paginacji przy nowym wyszukiwaniu
+                    this.currentPage = 1;
+
                     // Debouncing - czekaj 250ms po ostatnim wpisaniu
                     if (this.debounceTimeout) {
                         clearTimeout(this.debounceTimeout);
                     }
-                    
+
                     this.debounceTimeout = setTimeout(() => {
                         this.fetchSubmissions();
                     }, 250);
                 },
-                async fetchSubmissions() {
-                    this.isDataLoaded = false;
+                loadMoreSubmissions() {
+                    this.currentPage++;
+                    this.fetchSubmissions(true);
+                },
+                async fetchSubmissions(append = false, reload = false) {
+                    if (append && reload)
+                        reload = false;
 
-                    // Wyczyść poprzednie timery
-                    this.timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
-                    this.timeoutIds.clear();
+                    if (append) {
+                        this.isLoadingMore = true;
+                    } else {
+                        this.isDataLoaded = false;
 
-                    let response = await fetch(`/api/submissions?address=${encodeURIComponent(this.filters.address)}&submitter=${encodeURIComponent(this.filters.person)}`);
-                    this.submissions = await response.json();
+                        // Wyczyść poprzednie timery
+                        this.timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
+                        this.timeoutIds.clear();
+                    }
 
-                    console.log(this.submissions);
+                    const params = new URLSearchParams({
+                        address: this.filters.address,
+                        submitter: this.filters.person,
+                        emailFilter: this.filters.email,
+                        notesFilter: this.filters.notes,
+                        notesStatuses: this.filters.noteStatuses.join(','),
+                        sort: this.sorting.by,
+                        order: this.sorting.order,
+                        page: this.currentPage.toString(),
+                        pageSize: this.pageSize.toString()
+                    });
+
+                    if (reload) {
+                        params.set("page", "1");
+                        params.set("pageSize", this.loadedCount.toString());
+                    }
+
+                    let response = await fetch(`/api/submissions?${params}`);
+                    let data = await response.json();
+
+                    console.log(data);
+
+                    if (append) {
+                        // Dodaj nowe zgłoszenia do istniejących
+                        this.submissions.push(...data.submissions);
+                    } else {
+                        // Zastąp zgłoszenia
+                        this.submissions = data.submissions;
+                    }
+
+                    this.totalCount = data.totalCount;
 
                     this.submissions.forEach(s => {
-                        s.timeAgo = computeTimeDiffString(s.submitTime + "Z");
-                        this.scheduleNextUpdate(s);
+                        if (!s.timeAgo) {
+                            s.timeAgo = computeTimeDiffString(s.submitTime + "Z");
+                            this.scheduleNextUpdate(s);
+                        }
                     });
 
                     this.isDataLoaded = true;
+                    this.isLoadingMore = false;
                 },
                 scheduleNextUpdate(submission) {
                     let diff = Date.now() - new Date(submission.submitTime + "Z");

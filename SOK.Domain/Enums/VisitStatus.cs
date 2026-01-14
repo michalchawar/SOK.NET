@@ -7,6 +7,7 @@ namespace SOK.Domain.Enums
         Pending,
         Visited,
         Rejected,
-        Withdrawn
+        Withdrawn,
+        Suspended
     }
 }

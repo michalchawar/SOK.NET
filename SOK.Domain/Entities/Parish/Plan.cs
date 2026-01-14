@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SOK.Domain.Interfaces;
 
 namespace SOK.Domain.Entities.Parish
 {
@@ -6,7 +7,7 @@ namespace SOK.Domain.Entities.Parish
     /// Reprezentuje plan wizyt duszpasterskich dla danej parafii.
     /// Plan zawiera informacje o autorze, parafii, harmonogramach, zgłoszeniach oraz dniach wizyt.
     /// </summary>
-    public class Plan
+    public class Plan : IEntityMetadata
     {
         /// <summary>
         /// Unikalny identyfikator planu (klucz główny).

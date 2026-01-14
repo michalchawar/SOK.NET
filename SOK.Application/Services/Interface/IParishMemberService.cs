@@ -149,5 +149,90 @@ namespace SOK.Application.Services.Interface
             int page = 1,
             int pageSize = 1,
             bool loadRoles = false);
+
+        /// <summary>
+        /// Tworzy nowego użytkownika wraz z kontem w centralnej bazie danych.
+        /// </summary>
+        /// <param name="displayName">Wyświetlana nazwa użytkownika.</param>
+        /// <param name="userName">Login użytkownika.</param>
+        /// <param name="email">Adres email użytkownika.</param>
+        /// <param name="password">Hasło użytkownika.</param>
+        /// <param name="roles">Role, do których użytkownik ma być przypisany.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację, którego zawartością jest
+        /// obiekt <see cref="UserDto"/> nowo utworzonego użytkownika, lub <see cref="null"/> w przypadku błędu.
+        /// </returns>
+        Task<UserDto?> CreateUserAsync(string displayName, string userName, string? email, string password, IEnumerable<Role> roles);
+
+        /// <summary>
+        /// Aktualizuje dane użytkownika.
+        /// </summary>
+        /// <param name="userId">Identyfikator użytkownika centralnego.</param>
+        /// <param name="displayName">Nowa nazwa wyświetlana.</param>
+        /// <param name="userName">Nowy login.</param>
+        /// <param name="email">Nowy email.</param>
+        /// <param name="roles">Nowe role użytkownika.</param>
+        /// <param name="assignedPlanIds">Lista ID planów przypisanych do użytkownika.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację, którego zawartością jest
+        /// wartość logiczna określająca, czy aktualizacja się powiodła.
+        /// </returns>
+        Task<bool> UpdateUserAsync(string userId, string displayName, string userName, string? email, IEnumerable<Role> roles, IEnumerable<int> assignedPlanIds);
+
+        /// <summary>
+        /// Resetuje hasło użytkownika na nowe, losowe.
+        /// </summary>
+        /// <param name="userId">Identyfikator użytkownika centralnego.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację, którego zawartością jest
+        /// nowe hasło, lub <see cref="null"/> w przypadku błędu.
+        /// </returns>
+        Task<string?> ResetPasswordAsync(string userId);
+
+        /// <summary>
+        /// Pobiera szczegółowe dane użytkownika po jego ID centralnym.
+        /// </summary>
+        /// <param name="userId">Identyfikator użytkownika centralnego.</param>
+        /// <param name="loadRoles">Określa, czy załadować role użytkownika.</param>
+        /// <param name="loadPlans">Określa, czy załadować plany przypisane do użytkownika.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację, którego zawartością jest
+        /// obiekt <see cref="UserDto"/>, lub <see cref="null"/> jeśli użytkownik nie istnieje.
+        /// </returns>
+        Task<UserDto?> GetUserByIdAsync(string userId, bool loadRoles = false, bool loadPlans = false);
+
+        /// <summary>
+        /// Pobiera wszystkie plany z systemu.
+        /// </summary>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację, którego zawartością jest
+        /// lista wszystkich planów.
+        /// </returns>
+        Task<IEnumerable<Plan>> GetAllPlansAsync();
+
+        // === Metody metadanych ===
+
+        /// <summary>
+        /// Pobiera wartość liczbową metadanych dla użytkownika.
+        /// </summary>
+        /// <param name="member">Członek parafii.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        /// <returns>Wartość liczbowa lub null.</returns>
+        Task<int?> GetIntMetadataAsync(ParishMember member, string metadataKey);
+
+        /// <summary>
+        /// Ustawia wartość liczbową metadanych dla użytkownika.
+        /// </summary>
+        /// <param name="member">Członek parafii.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        /// <param name="value">Wartość do zapisania.</param>
+        Task SetIntMetadataAsync(ParishMember member, string metadataKey, int value);
+
+        /// <summary>
+        /// Usuwa metadane dla użytkownika.
+        /// </summary>
+        /// <param name="member">Członek parafii.</param>
+        /// <param name="metadataKey">Klucz metadanych.</param>
+        Task DeleteMetadataAsync(ParishMember member, string metadataKey);
     }
 }

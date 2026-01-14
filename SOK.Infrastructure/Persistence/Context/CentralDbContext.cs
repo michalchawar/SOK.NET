@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SOK.Domain.Entities.Central;
 using SOK.Infrastructure.Persistence.Configurations.Central;
 
 namespace SOK.Infrastructure.Persistence.Context
 {
-    public class CentralDbContext : IdentityDbContext<User>
+    public class CentralDbContext : IdentityDbContext<User>, IDataProtectionKeyContext
     {
         public CentralDbContext(DbContextOptions<CentralDbContext> options)
             : base(options)
@@ -13,6 +14,7 @@ namespace SOK.Infrastructure.Persistence.Context
         }
 
         public DbSet<ParishEntry> Parishes { get; set; } = default!;
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

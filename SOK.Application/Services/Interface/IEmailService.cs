@@ -9,6 +9,12 @@ namespace SOK.Application.Services.Interface
     public interface IEmailService
     {
         /// <summary>
+        /// Ustawia timeout dla połączeń SMTP w milisekundach
+        /// </summary>
+        /// <param name="timeoutMs">Timeout w milisekundach</param>
+        void SetSMTPTimeout(int timeoutMs);
+
+        /// <summary>
         /// Kolejkuje email do wysłania używając typu emaila
         /// </summary>
         /// <param name="emailType">Typ emaila z automatycznym wypełnianiem danych</param>

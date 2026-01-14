@@ -29,12 +29,22 @@ namespace SOK.Domain.Entities.Parish
         /// </summary>
         [DefaultValue(VisitStatus.Unplanned)]
         public VisitStatus Status { get; set; } = VisitStatus.Unplanned;
+        
+        /// <summary>
+        /// Liczba osób przyjmujących wizytę w momencie utworzenia snapshotu.
+        /// </summary>
+        public int? PeopleCount { get; set; }
 
         /// <summary>
         /// Nazwa harmonogramu, do którego przypisana była wizyta w momencie utworzenia snapshotu.
         /// Może być null, tylko gdy Status jest równy VisitStatus.Withdrawn.
         /// </summary>
         public string? ScheduleName { get; set; } = null;
+        
+        /// <summary>
+        /// Identyfikator agendy, do której przypisana była wizyta w momencie utworzenia snapshotu (opcjonalny).
+        /// </summary>
+        public int? AgendaId { get; set; }
 
         /// <summary>
         /// Data wizyty w momencie utworzenia snapshotu (jeśli dotyczy).

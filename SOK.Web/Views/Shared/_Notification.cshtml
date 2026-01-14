@@ -1,36 +1,31 @@
 ﻿@if (TempData["error"] != null)
 {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     <script type="text/javascript" >
-        $(document).ready(() => {
+        document.addEventListener("DOMContentLoaded", function () {
             notifications.error('@TempData["error"]');
         });
     </script>
 }
 @if (TempData["warning"] != null)
 {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript">
-        $(document).ready(() => {
+        document.addEventListener("DOMContentLoaded", function () {
             notifications.warning('@TempData["warning"]');
         });
     </script>
 }
 @if (TempData["success"] != null)
 {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" >
-        $(document).ready(() => {
+        document.addEventListener("DOMContentLoaded", function () {
             notifications.success('@TempData["success"]');
         });
     </script>
 }
 @if (TempData["info"] != null)
 {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript">
-        $(document).ready(() => {
+        document.addEventListener("DOMContentLoaded", function () {
             notifications.info('@TempData["info"]');
         });
     </script>

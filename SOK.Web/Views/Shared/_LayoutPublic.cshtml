@@ -1,19 +1,29 @@
-﻿<!DOCTYPE html>
-<html lang="pl">
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
+<!DOCTYPE html>
+<html lang="pl" data-env="@(HostEnvironment.EnvironmentName == "Development" ? "Development" : null)">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/css/bundle.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" asp-append-version="true">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTheme = urlParams.get("theme");
+        const theme = urlTheme || localStorage.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        if (urlTheme) {
+            localStorage.theme = urlTheme;
+        }
+    </script>
 </head>
 <body class="bg-base-100">
-    <div class="min-h-screen w-full flex flex-col items-center justify-start p-6">
+    <div class="min-h-screen w-full flex flex-col items-center justify-start">
         @RenderBody()
     </div>
 

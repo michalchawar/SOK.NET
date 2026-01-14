@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SOK.Application.Common.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Interfaces;
 using SOK.Infrastructure.Persistence.Context;
 
 namespace SOK.Infrastructure.Repositories
@@ -21,7 +22,7 @@ namespace SOK.Infrastructure.Repositories
         {
             ParishInfo? parishInfo = await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == name);
 
-            if (parishInfo != null)
+            if (parishInfo is not null)
             {
                 parishInfo.Value = value;
                 Update(parishInfo);
@@ -61,6 +62,73 @@ namespace SOK.Infrastructure.Repositories
             return GetQueryable()
                 .Where(pi => options.Contains(pi.Name))
                 .ToDictionaryAsync(pi => pi.Name, pi => pi.Value);
+        }
+
+        /// <summary>
+        /// Tworzy klucz w formacie: EntityName:EntityId:PropertyName
+        /// </summary>
+        private string CreateKey<T>(int entityId, string propertyName) where T : IEntityMetadata
+        {
+            return $"{typeof(T).Name}:{entityId}:{propertyName}";
+        }
+
+        /// <inheritdoc />
+        public async Task SetMetadataAsync<T>(T entity, string propertyName, string value) 
+            where T : IEntityMetadata
+        {
+            string key = CreateKey<T>(entity.Id, propertyName);
+            ParishInfo? existing = await GetQueryable(tracked: true).FirstOrDefaultAsync(pi => pi.Name == key);
+
+            // Aktualizuj istniejące metadane
+            if (existing is not null)
+            {
+                existing.Value = value;
+                return;
+            }
+            
+            // Lub dodaj nowe metadane
+            var info = new ParishInfo
+            {
+                Name = key,
+                Value = value
+            };
+            dbSet.Add(info);
+        }
+
+        /// <inheritdoc />
+        public async Task<string?> GetMetadataAsync<T>(T entity, string propertyName) 
+            where T : IEntityMetadata
+        {
+            string key = CreateKey<T>(entity.Id, propertyName);
+            ParishInfo? info = await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == key);
+            return info?.Value;
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMetadataAsync<T>(T entity, string propertyName) 
+            where T : IEntityMetadata
+        {
+            string key = CreateKey<T>(entity.Id, propertyName);
+            ParishInfo? existing = await GetQueryable().FirstOrDefaultAsync(pi => pi.Name == key);
+            
+            if (existing is not null)
+            {
+                dbSet.Remove(existing);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<Dictionary<string, string>> GetAllMetadataAsync<T>(T entity) 
+            where T : IEntityMetadata
+        {
+            string prefix = CreateKey<T>(entity.Id, string.Empty);
+            var allInfos = GetQueryable()
+                .Where(pi => pi.Name.StartsWith(prefix));
+            
+            return await allInfos.ToDictionaryAsync(
+                info => info.Name.Substring(prefix.Length),
+                info => info.Value
+            );
         }
     }
 }

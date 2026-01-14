@@ -36,26 +36,9 @@ namespace SOK.Application.Common.Helpers.EmailTypes
 
             return new Dictionary<string, string>
             {
-                ["submitter_name"] = _submission.Submitter.Name,
-                ["submitter_surname"] = _submission.Submitter.Surname,
-                ["submission_uid"] = _submission.UniqueId.ToString(),
-                ["invalid_email"] = _submission.Submitter.Email!,
-                ["new_email"] = _newEmail,
-                ["address"] = FormatAddress()
+                ["subject"] = GetSubject(),
+                ["bad_email"] = _submission.Submitter.Email ?? "Brak",
             };
-        }
-
-        private string FormatAddress()
-        {
-            var address = _submission.Address;
-            var building = address.Building;
-            var street = building?.Street;
-            var type = street?.Type;
-
-            if (building == null || street == null)
-                return "Adres nieokreślony";
-
-            return $"{type?.FullName ?? ""} {street.Name} {building.Number}{building.Letter}/{address.ApartmentNumber}{address.ApartmentLetter}".Trim();
         }
     }
 }

@@ -135,13 +135,13 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Property<float?>("GatheredFunds")
                         .HasColumnType("real");
 
+                    b.Property<bool>("HideVisits")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ScheduleId")
                         .HasColumnType("int");
 
                     b.Property<bool>("ShowHours")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ShowsAssignment")
                         .HasColumnType("bit");
 
                     b.Property<TimeOnly?>("StartHourOverride")
@@ -218,6 +218,9 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.Property<int>("ScheduleId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("EnableAutoAssign")
+                        .HasColumnType("bit");
 
                     b.HasKey("DayId", "BuildingId", "ScheduleId");
 
@@ -538,6 +541,11 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -679,8 +687,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AddressId")
-                        .IsUnique();
+                    b.HasIndex("AddressId");
 
                     b.HasIndex("PlanId");
 
@@ -879,6 +886,9 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Property<int?>("OrdinalNumber")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PeopleCount")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ScheduleId")
                         .HasColumnType("int");
 
@@ -890,14 +900,14 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgendaId");
+                    b.HasIndex("ScheduleId");
 
                     b.HasIndex("SubmissionId")
                         .IsUnique();
 
-                    b.HasIndex("ScheduleId", "OrdinalNumber")
+                    b.HasIndex("AgendaId", "OrdinalNumber")
                         .IsUnique()
-                        .HasFilter("[ScheduleId] IS NOT NULL AND [OrdinalNumber] IS NOT NULL");
+                        .HasFilter("[AgendaId] IS NOT NULL AND [OrdinalNumber] IS NOT NULL");
 
                     b.ToTable("Visits");
                 });
@@ -909,6 +919,9 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AgendaId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("ChangeAuthorId")
                         .HasColumnType("int");
@@ -926,6 +939,9 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.Property<short>("OrdinalNumber")
                         .HasColumnType("smallint");
+
+                    b.Property<int?>("PeopleCount")
+                        .HasColumnType("int");
 
                     b.Property<TimeOnly?>("PredictedTime")
                         .HasColumnType("time");
@@ -1135,8 +1151,8 @@ namespace SOK.Infrastructure.Migrations.Parish
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Submission", b =>
                 {
                     b.HasOne("SOK.Domain.Entities.Parish.Address", "Address")
-                        .WithOne("Submission")
-                        .HasForeignKey("SOK.Domain.Entities.Parish.Submission", "AddressId")
+                        .WithMany("Submissions")
+                        .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1240,7 +1256,7 @@ namespace SOK.Infrastructure.Migrations.Parish
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Address", b =>
                 {
-                    b.Navigation("Submission");
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("SOK.Domain.Entities.Parish.Agenda", b =>

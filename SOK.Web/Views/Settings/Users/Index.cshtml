@@ -1,0 +1,140 @@
+@using Microsoft.IdentityModel.Tokens
+@using SOK.Application.Common.Helpers
+@using SOK.Domain.Entities.Parish;
+@using SOK.Domain.Enums
+@using SOK.Infrastructure.Extensions
+@using System.Globalization
+@using static SOK.Application.Common.Helpers.RolesExtensions
+@{
+    ViewData["Title"] = "Użytkownicy";
+}
+
+@{
+    var users = ViewData["UserDtos"] as IEnumerable<SOK.Application.Common.DTO.UserDto>;
+}
+
+<div class="overflow-x-auto h-full">
+    @* Success/Error Messages *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mb-4">
+            <i class="bi bi-check-circle"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error mb-4">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+    
+    @if (users.IsNullOrEmpty())
+    {
+        <div class="min-h-full flex flex-col items-center justify-center">
+            <h2 class="text-center text-xl font-semibold">
+                Brak użytkowników w systemie.
+            </h2>
+            <h4 class="text-center text-lg opacity-70">
+                To zasadnicze nieporozumienie, bo jesteś tu przynajmniej Ty. Pilnie skontaktuj się z administratorem.
+            </h4>
+        </div>
+    }
+    else
+    {
+        // Group users by their highest priority role
+        var usersByRole = users!
+            .Select(u => new {
+                User = u,
+                HighestRole = u.Roles.OrderBy(r => r.GetSortPriority()).FirstOrDefault()
+            })
+            .GroupBy(x => x.HighestRole)
+            .OrderBy(g => g.Key.GetSortPriority())
+            .ToList();
+        
+        <div class="min-h-full w-full flex flex-col items-center justify-start">
+            <div class="flex flex-col items-center justify-center mb-3">
+                <h3 class="text-center text-lg font-semibold">
+                    Zarządzaj użytkownikami
+                </h3>
+                <h4 class="text-center text-md opacity-70">
+                    Poniżej wyświetlają się członkowie Twojej parafii, pogrupowani według ról.
+                </h4>
+                
+                <a asp-action="CreateUser" class="btn btn-primary mt-4">
+                    <i class="bi bi-plus"></i>
+                    Nowe konto
+                </a>
+            </div>
+
+            <div class="divider self-auto w-5/6"></div>
+
+            <div class="w-5/6 flex flex-col gap-8">
+                @foreach (var roleGroup in usersByRole)
+                {
+                    var role = roleGroup.Key;
+                    var usersInGroup = roleGroup.Select(x => x.User).ToList();
+                    
+                    <div class="flex flex-col gap-3">
+                        <!-- Role Header -->
+                        <div class="flex items-center gap-3 px-4">
+                            <div class="flex items-center gap-2">
+                                <i class="@role.GetRoleIcon() text-2xl opacity-70"></i>
+                                <h3 class="text-xl font-semibold">@role.ToPolishName()</h3>
+                            </div>
+                            <span class="badge badge-sm @role.GetBadgeColorClass()">
+                                @usersInGroup.Count
+                            </span>
+                        </div>
+
+                        <!-- Users List -->
+                        <ul class="list">
+                            @foreach (var (user, index) in usersInGroup.WithIndex()) 
+                            {
+                                <a asp-action="EditUser" asp-route-id="@user.CentralId" 
+                                 class="list-row hover:bg-base-200/50 transition-colors">
+                                    <div class="flex flex-col items-center justify-center min-w-[3rem]">
+                                        <h5 class="text-2xl font-light font-noto-sans opacity-40">
+                                            @(index+1)
+                                        </h5>
+                                    </div>
+                                    
+                                    <div class="flex flex-col lg:flex-row gap-1 flex-1">
+                                        <div class="flex-1 flex flex-col justify-center gap-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                @foreach (Role userRole in user.Roles.OrderBy(r => r.GetSortPriority()))
+                                                {
+                                                    <span class="badge badge-xs @userRole.GetBadgeColorClass()">
+                                                        @userRole.ToPolishName()
+                                                    </span>
+                                                }
+                                            </div>
+                                            <h3 class="text-xl font-bold font-nunito-sans">
+                                                @user.DisplayName
+                                            </h3>
+                                        </div>
+                                        <div class="hidden lg:flex flex-col items-end justify-center gap-1 text-sm opacity-60">
+                                            @if (!string.IsNullOrEmpty(user.UserName))
+                                            {
+                                                <p class="tooltip" data-tip="Login użytkownika">
+                                                    <i class="bi bi-person"></i> @user.UserName
+                                                </p>
+                                            }
+                                            @if (!string.IsNullOrEmpty(user.Email))
+                                            {
+                                                <p class="tooltip" data-tip="Adres email">
+                                                    <i class="bi bi-envelope"></i> @user.Email
+                                                </p>
+                                            }
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

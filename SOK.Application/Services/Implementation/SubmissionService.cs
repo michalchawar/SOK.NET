@@ -16,15 +16,21 @@ namespace SOK.Application.Services.Implementation
         private readonly IUnitOfWorkParish _uow;
         private readonly IEmailService _emailService;
         private readonly IParishInfoService _parishInfoService;
+        private readonly IVisitService _visitService;
 
         public SubmissionService(
             IUnitOfWorkParish uow, 
             IEmailService emailService,
-            IParishInfoService parishInfoService)
+            IParishInfoService parishInfoService,
+            IVisitService visitService
+            )
         {
             _uow = uow;
             _emailService = emailService;
             _parishInfoService = parishInfoService;
+            _visitService = visitService;
+
+            _emailService.SetSMTPTimeout(3000);
         }
 
         /// <inheritdoc />
@@ -34,7 +40,7 @@ namespace SOK.Application.Services.Implementation
                 (await _uow.Submission.GetPaginatedAsync(
                     s => s.Id == id,
                     submitter: true,
-                    address: true,
+                    addressFull: true,
                     visit: true,
                     formSubmission: true,
                     plan: true,
@@ -75,7 +81,34 @@ namespace SOK.Application.Services.Implementation
                     pageSize: pageSize,
                     page: page,
                     submitter: true,
-                    address: true)];
+                    address: true,
+                    visit: true,
+                    formSubmission: true)];
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsPaginatedWithSorting(
+            Expression<Func<Submission, bool>>? filter = null,
+            string sortBy = "time",
+            string order = "desc",
+            int page = 1,
+            int pageSize = 1)
+        {
+            if (pageSize < 1) throw new ArgumentException("Page size must be positive.");
+            if (page < 1) throw new ArgumentException("Page must be positive.");
+
+            var result = await _uow.Submission.GetPaginatedWithSortingAsync(
+                filter,
+                sortBy: sortBy,
+                order: order,
+                pageSize: pageSize,
+                page: page,
+                submitter: true,
+                address: true,
+                plan: true,
+                visit: true);
 
             return result;
         }
@@ -108,12 +141,17 @@ namespace SOK.Application.Services.Implementation
             if (submitter == null) 
                 submitter = submissionDto.Submitter;
 
+            submissionDto.Submitter.Name = submissionDto.Submitter.Name.Trim([' ', '\n', '\r']).FirstCharToUpper();
+            submissionDto.Submitter.Surname = submissionDto.Submitter.Surname.Trim([' ', '\n', '\r']).FirstCharToUpper();
+            submissionDto.Submitter.Email = string.IsNullOrWhiteSpace(submissionDto.Submitter.Email) ? null : submissionDto.Submitter.Email.Trim([' ', '\n', '\r']).ToLower();
+            submissionDto.Submitter.Phone = string.IsNullOrWhiteSpace(submissionDto.Submitter.Phone) ? null : submissionDto.Submitter.Phone.Trim([' ', '\n', '\r']);
+
             submissionDto.SubmitterNotes = string.IsNullOrWhiteSpace(submissionDto.SubmitterNotes) ? null : submissionDto.SubmitterNotes.Trim([' ', '\n', '\r']);
             submissionDto.AdminNotes = string.IsNullOrWhiteSpace(submissionDto.AdminNotes) ? null : submissionDto.AdminNotes.Trim([' ', '\n', '\r']);
             submissionDto.ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']).ToLower();
 
             // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
-            Submission submission = new Submission(schedule.Plan)
+            Submission submission = new Submission(schedule.Plan, submissionDto.Created)
             {
                 Submitter = submitter,
                 SubmitterNotes = submissionDto.SubmitterNotes,
@@ -132,14 +170,15 @@ namespace SOK.Application.Services.Implementation
             Address? address = building.Addresses
                 .FirstOrDefault(a => a.ApartmentNumber == submissionDto.ApartmentNumber
                                   && a.ApartmentLetter == submissionDto.ApartmentLetter);
+            
             // Jeśli adres istnieje, to nie może mieć zgłoszenia
             if (address != null)
             {
-                address = await _uow.Address.GetAsync(a => a.Id == address.Id, includeProperties: "Submission", tracked: true);
-                if (address!.Submission != null)
+                address = await _uow.Address.GetAsync(a => a.Id == address.Id, includeProperties: "Submissions", tracked: true);
+                if (address!.Submissions.Any(s => s.PlanId == schedule.Plan.Id))
                     throw new InvalidOperationException($"Cannot create submission for address: '{address.ToString()}'. Address already has a submission.");
                 
-                address.Submission = submission;
+                address.Submissions.Add(submission);
                 submission.Address = address;
             }
             // Jeśli adres nie istnieje to utwórz
@@ -150,7 +189,7 @@ namespace SOK.Application.Services.Implementation
                     ApartmentNumber = submissionDto.ApartmentNumber,
                     ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']),
                     Building = building,
-                    Submission = submission
+                    Submissions = [submission]
                 };
             }
             submission.Address = address;
@@ -171,7 +210,7 @@ namespace SOK.Application.Services.Implementation
                 City = street.City.Name,
                 Method = submissionDto.Method,
                 IP = submissionDto.IPAddress ?? "",
-                Author = submissionDto.Author,
+                AuthorId = submissionDto.Author?.Id ?? null,
                 Submission = submission
             };
             submission.FormSubmission = fs;
@@ -199,6 +238,31 @@ namespace SOK.Application.Services.Implementation
                 formSubmission: true
             )).FirstOrDefault()!;
 
+            // Sprawdź czy istnieje BuildingAssignment z włączonym auto-assign
+            var buildingAssignment = await _uow.BuildingAssignment.GetAsync(
+                filter: ba => 
+                    ba.BuildingId == building.Id &&
+                    ba.ScheduleId == schedule.Id &&
+                    ba.EnableAutoAssign,
+                tracked: false);
+
+            if (buildingAssignment != null && !submissionDto.DisableAutoAssignment)
+            {
+                try
+                {
+                    // Automatyczne przypisanie wizyty do odpowiedniej agendy w danym dniu
+                    await _visitService.AssignVisitToDay(
+                        visitId: submission.Visit.Id, 
+                        dayId: buildingAssignment.DayId, 
+                        sendEmail: false);
+                }
+                catch (Exception ex)
+                {
+                    // Logowanie błędu - ale nie przerywamy procesu tworzenia zgłoszenia
+                    Console.WriteLine($"Failed to auto-assign visit {submission.Visit.Id} to day {buildingAssignment.DayId}: {ex.Message}");
+                }
+            }
+
             // Wysyłanie emaila potwierdzającego (jeśli włączone)
             if (submissionDto.SendConfirmationEmail && !string.IsNullOrWhiteSpace(submitter.Email))
             {
@@ -208,7 +272,7 @@ namespace SOK.Application.Services.Implementation
                     var emailEnabled = await _parishInfoService.GetValueAsync(InfoKeys.Email.EnableEmailSending);
                     if (emailEnabled == "true" || emailEnabled == "True")
                     {
-                        var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
+                        var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
 
                         // Utwórz typ emaila confirmation
                         var confirmationEmail = new ConfirmationEmail(
@@ -267,208 +331,70 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool> SendConfirmationEmailAsync(int submissionId)
+        public async Task<Submission?> FindSubmissionByAddressAsync(int buildingId, int? apartmentNumber, string? apartmentLetter)
         {
-            Submission? submission = (await _uow.Submission.GetPaginatedAsync(
-                s => s.Id == submissionId,
-                submitter: true,
-                addressFull: true,
-                visit: true,
-                formSubmission: true
-            )).FirstOrDefault();
-            
-            if (submission is null)
-            {
-                throw new ArgumentException("Nie znaleziono powiązanego zgłoszenia.");
-            }
-            if (string.IsNullOrWhiteSpace(submission.Submitter.Email))
-            {
-                throw new ArgumentException("Zgłaszający nie posiada adresu email.");
-            }
+            var address = await _uow.Address.GetAsync(
+                filter: a => a.BuildingId == buildingId &&
+                            a.ApartmentNumber == apartmentNumber &&
+                            a.ApartmentLetter == apartmentLetter,
+                tracked: false
+            );
 
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
-            if (string.IsNullOrWhiteSpace(controlLinkBase))
-            {
-                throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
-            }
+            if (address == null)
+                return null;
 
-            try
-            {
-                // Utwórz typ emaila confirmation
-                var confirmationEmail = new ConfirmationEmail(
-                    submission: submission,
-                    controlLinkBase: controlLinkBase
-                );
+            var submission = await _uow.Submission.GetAsync(
+                filter: s => s.AddressId == address.Id,
+                includeProperties: "Visit.Agenda.Day",
+                tracked: false
+            );
 
-                int? emailLogId = await _emailService.QueueEmailAsync(
-                    emailType: confirmationEmail,
-                    submission: submission,
-                    forceSend: true
-                );
-
-                if (emailLogId.HasValue)
-                {
-                    return true;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return false;
+            return submission;
         }
 
         /// <inheritdoc />
-        public async Task<string> PreviewConfirmationEmailAsync(int submissionId)
+        public async Task AppendAdminNotesAsync(int submissionId, string text)
         {
-            Submission? submission = (await _uow.Submission.GetPaginatedAsync(
-                s => s.Id == submissionId,
-                submitter: true,
-                addressFull: true,
-                visit: true,
-                formSubmission: true
-            )).FirstOrDefault();
-            
-            if (submission is null)
-            {
-                throw new ArgumentException("Nie znaleziono powiązanego zgłoszenia.");
-            }
-            if (string.IsNullOrWhiteSpace(submission.Submitter.Email))
-            {
-                throw new ArgumentException("Zgłaszający nie posiada adresu email.");
-            }
+            var submission = await _uow.Submission.GetAsync(
+                filter: s => s.Id == submissionId,
+                tracked: true
+            );
 
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
-            if (string.IsNullOrWhiteSpace(controlLinkBase))
-            {
-                throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
-            }
+            if (submission == null)
+                throw new ArgumentException($"Submission with ID {submissionId} not found.");
 
-            try
-            {
-                // Utwórz typ emaila confirmation
-                var confirmationEmail = new ConfirmationEmail(
-                    submission: submission,
-                    controlLinkBase: controlLinkBase
-                );
-
-                string emailPreview = await _emailService.PreviewEmailAsync(
-                    emailType: confirmationEmail
-                );
-
-                return emailPreview;
-            }
-            catch (Exception)
-            {
-                return string.Empty;
-            }
+            submission.AdminNotes = (submission.AdminNotes ?? "") + text;
+            await _uow.SaveAsync();
         }
 
-        public async Task<bool> SendInvalidEmailAsync(int submissionId, string to = "")
+        /// <inheritdoc />
+        public async Task<int> CreateSubmissionDuringVisitAsync(int buildingId, int? apartmentNumber, string? apartmentLetter, int scheduleId)
         {
-            
-            Submission? submission = (await _uow.Submission.GetPaginatedAsync(
-                s => s.Id == submissionId,
-                submitter: true,
-                addressFull: true,
-                visit: true,
-                formSubmission: true
-            )).FirstOrDefault();
-            
-            if (submission is null)
+            // Utwórz zgłoszenie z danymi
+            int? submissionId = await CreateSubmissionAsync(new SubmissionCreationRequestDto
             {
-                throw new ArgumentException("Nie znaleziono powiązanego zgłoszenia.");
-            }
-            if (string.IsNullOrWhiteSpace(submission.Submitter.Email))
-            {
-                throw new ArgumentException("Zgłaszający nie posiada adresu email.");
-            }
-            if (string.IsNullOrWhiteSpace(to))
-            {
-                throw new ArgumentException("Nie podano nowego adresu email.");
-            }
-
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
-            if (string.IsNullOrWhiteSpace(controlLinkBase))
-            {
-                throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
-            }
-
-            try
-            {
-                // Utwórz typ emaila invalid
-                var invalidEmail = new InvalidEmailNotification(
-                    submission: submission,
-                    newEmail: to
-                );
-
-                int? emailLogId = await _emailService.QueueEmailAsync(
-                    emailType: invalidEmail,
-                    submission: submission,
-                    forceSend: true
-                );
-
-                if (emailLogId.HasValue)
+                Building = new Building { Id = buildingId },
+                ApartmentNumber = apartmentNumber,
+                ApartmentLetter = apartmentLetter,
+                Schedule = new Schedule { Id = scheduleId },
+                AdminNotes = "Dodano podczas przeprowadzania wizyty danego dnia.",
+                Submitter = new Submitter
                 {
-                    return true;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+                    Name = "(-)",
+                    Surname = "(-)",
+                    Email = null,
+                    Phone = null
+                },
+                Method = SubmitMethod.DuringVisits,
+                Created = DateTime.Now,
+                SendConfirmationEmail = false,
+                DisableAutoAssignment = true
+            });
 
-            return false;
-        }
+            if (submissionId == null)
+                throw new InvalidOperationException("Failed to create submission during visit.");
 
-        public async Task<string> PreviewInvalidEmailAsync(int submissionId, string to = "")
-        {
-            Submission? submission = (await _uow.Submission.GetPaginatedAsync(
-                s => s.Id == submissionId,
-                submitter: true,
-                addressFull: true,
-                visit: true,
-                formSubmission: true
-            )).FirstOrDefault();
-            
-            if (submission is null)
-            {
-                throw new ArgumentException("Nie znaleziono powiązanego zgłoszenia.");
-            }
-            if (string.IsNullOrWhiteSpace(submission.Submitter.Email))
-            {
-                throw new ArgumentException("Zgłaszający nie posiada adresu email.");
-            }
-            if (string.IsNullOrWhiteSpace(to))
-            {
-                throw new ArgumentException("Nie podano nowego adresu email.");
-            }
-
-            var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbededApplication.ControlPanelBaseUrl);
-            if (string.IsNullOrWhiteSpace(controlLinkBase))
-            {
-                throw new InvalidOperationException("Nie skonfigurowano bazowego URL aplikacji.");
-            }
-
-            try
-            {
-                // Utwórz typ emaila confirmation
-                var confirmationEmail = new InvalidEmailNotification(
-                    submission: submission,
-                    newEmail: to
-                );
-
-                string emailPreview = await _emailService.PreviewEmailAsync(
-                    emailType: confirmationEmail
-                );
-
-                return emailPreview;
-            }
-            catch (Exception)
-            {
-                return string.Empty;
-            }
+            return submissionId.Value;
         }
     }
 }

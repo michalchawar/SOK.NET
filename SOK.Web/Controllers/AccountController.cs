@@ -37,7 +37,7 @@ namespace SOK.Web.Controllers
                 var result = await _signInManager.PasswordSignInAsync(
                     user,
                     model.Password,
-                    model.RememberMe,
+                    isPersistent: model.RememberMe,
                     lockoutOnFailure: false
                 );
 

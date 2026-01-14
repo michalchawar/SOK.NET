@@ -1,0 +1,818 @@
+@model SOK.Web.ViewModels.VisitControl.VisitControlViewModel
+@using SOK.Application.Common.Helpers
+@using SOK.Domain.Enums
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Wizyta kolędowa";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    
+    var visitsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Visits);
+    var priestsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.AvailablePriests);
+    var buildingsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.AvailableBuildings);
+}
+
+<div id="visit-control-app" class="max-h-screen bg-base-300 w-full flex flex-col overflow-y-hidden group">
+    <!-- Header -->
+    <div class="fixed left-0 top-0 w-screen bg-base-200 border-b border-base-300 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold">Wizyta kolędowa</h1>
+                    <p class="text-sm text-base-content/70 mt-1">
+                        @Model.StartHour.ToString("HH:mm") - @Model.EndHour.ToString("HH:mm")
+                        @if (!string.IsNullOrEmpty(Model.AssignedPriestName))
+                        {
+                            <span class="ml-3"><i class="bi bi-person-fill"></i> @Model.AssignedPriestName</span>
+                        }
+                    </p>
+                    <p class="text-sm text-base-content/60 mt-1">
+                        Zgłoszenia: <span class="font-semibold">{{ totalVisits }}</span>
+                    </p>
+                </div>
+                
+                <!-- Menu dropdown -->
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-lg btn-ghost btn-circle">
+                        <i class="bi bi-three-dots-vertical text-2xl"></i>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box text-lg w-60 mt-2">
+                        <li>
+                            <a @@click="toggleTheme"><i class="bi bi-palette"></i> Zmień motyw</a>
+                        </li>
+                        <li v-if="hasPriest">
+                            <a @@click="openChangePriestModal"><i class="bi bi-person-gear"></i> Zmień księdza</a>
+                        </li>
+                        <li v-if="canManageFunds">
+                            <a @@click="openFundsModal"><i class="bi bi-cash"></i> Zarządzaj funduszami</a>
+                        </li>
+                        <div class="divider my-0"></div>
+                        <li v-if="visitStarted">
+                            <a @@click="startSelectingVisit"><i class="bi bi-cursor"></i> Przejdź do wizyty</a>
+                        </li>
+                        <li v-if="pendingVisitId">
+                            <a @@click="openAddAddressModal"><i class="bi bi-plus-circle"></i> Dodaj wejście</a>
+                        </li>
+                        <li v-if="nextVisitId">
+                            <a @@click="suspendVisit"><i class="bi bi-pause-circle"></i> Wstrzymaj wizytę</a>
+                        </li>
+                        <li v-if="canResetVisit">
+                            <a @@click="confirmResetVisit"><i class="bi bi-arrow-counterclockwise"></i> Cofnij status wizyty</a>
+                        </li>
+                        <div class="divider my-0"></div>
+                        <li>
+                            <a asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-left"></i> Powrót</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spacer pod header -->
+    <div class="h-28 shrink-0"></div>
+
+    <!-- Banner trybu wyboru wizyty -->
+    <div v-if="isSelectingVisit" class="fixed top-28 left-0 right-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="alert alert-info shadow-lg">
+                <i class="bi bi-cursor-fill text-2xl"></i>
+                <div class="flex-1">
+                    <h3 class="font-bold">Tryb wyboru wizyty</h3>
+                    <div class="text-sm">Kliknij na dowolną wizytę, aby ją wybrać</div>
+                </div>
+                <button class="btn btn-sm btn-ghost" @@click="cancelSelectingVisit">
+                    <i class="bi bi-x-lg"></i> Anuluj
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content - Lista wizyt -->
+    <div class="flex-1 overflow-y-auto px-3 mb-12">
+        <div class="container mx-auto max-w-2xl space-y-4">
+            <!-- Pusta lista -->
+            <div v-if="visits.length === 0" class="text-center py-20">
+                <i class="bi bi-inbox text-6xl text-base-content/30 mb-4"></i>
+                <p class="text-lg text-base-content/60">Brak wizyt w agendzie</p>
+            </div>
+
+            <!-- Wizyty pogrupowane według bram -->
+            <template v-for="(group, groupIndex) in groupedVisits" :key="groupIndex">
+                <!-- Separator bramy -->
+                <div class="divider gap-1">
+                    <i class="bi bi-chevron-double-down me-2"></i> 
+                    <i class="bi bi-building"></i> 
+                    {{ group.streetName }} {{ group.buildingNumber }}
+                    <i class="bi bi-chevron-double-down ms-2"></i>
+                </div>
+
+                <!-- Wizyty w bramie -->
+                <div v-for="(visit, visitIndex) in group.visits" :key="visit.VisitId"
+                    @@click="isSelectingVisit ? selectVisit(visit.VisitId) : null"
+                    class="card bg-base-100 shadow-lg transition-all duration-300 scroll-mt-3"
+                    :class="{
+                        'ring-2 ring-warning': visit.VisitId === pendingVisitId && visit.VisitId !== nextVisitId && !isSelectingVisit,
+                        'ring-4 ring-success sticky top-1 z-40 shadow-lg': visit.VisitId === nextVisitId && !isSelectingVisit,
+                        'opacity-50': visit.Status === @((int)VisitStatus.Visited) && visit.VisitId !== nextVisitId && !isSelectingVisit,
+                        'bg-error/20': visit.Status === @((int)VisitStatus.Rejected) && visit.VisitId !== nextVisitId && !isSelectingVisit,
+                        'bg-warning/20': visit.Status === @((int)VisitStatus.Suspended) && visit.VisitId !== nextVisitId && !isSelectingVisit,
+                        'cursor-pointer hover:ring-4 hover:ring-primary': isSelectingVisit,
+                        'ring-2 ring-primary/50': isSelectingVisit
+                    }"
+                    :id="'visit-' + visit.VisitId">
+                    
+                    <div class="card-body px-2 py-3">
+                        <div class="flex items-center gap-3 relative">
+                            <!-- Numer porządkowy -->
+                            <div class="text-base-content/40 min-w-4 text-nowrap">
+                                <span class="badge badge-lg badge-ghost py-5 text-3xl font-bold">
+                                    {{ visit.ApartmentNumber }}{{ visit.ApartmentLetter || '' }}
+                                </span>
+                            </div>
+
+                            <div class="flex-1">
+                                <!-- Adres -->
+                                <h2 class="card-title text-lg z-10">
+                                    {{ visit.StreetName }} {{ visit.BuildingNumber }}
+                                    m. {{ visit.ApartmentNumber }}{{ visit.ApartmentLetter || '' }}
+                                </h2>
+
+                                <!-- Przewidywany czas -->
+                                <div class="flex justify-between items-center gap-3 text-sm text-base-content/70">
+                                    <div v-if="visit.EstimatedTime" class="">
+                                        ok. <span class="font-semibold">{{ new Date('1900-01-01T' + visit.EstimatedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
+                                    </div>
+                                    <!-- Liczba osób -->
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span v-if="visit.PeopleCount">
+                                            Przyjęto: <span class="font-semibold">{{ visit.PeopleCount }}</span> os.
+                                        </span>
+                                        <span v-else-if="visit.DeclaredPeopleCount" class="text-base-content/50">
+                                            Zadeklarowano: {{ visit.DeclaredPeopleCount }} os.
+                                        </span>
+                                        <span v-else class="text-base-content/50">
+                                            Brak danych
+                                        </span>
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute top-1/2 right-[10%] -translate-y-1/2
+                                text-3xl font-bold text-base-content/5 text-nowrap">
+                                #{{ visit.OrdinalNumberLocal }}
+                            </div>
+
+                            <!-- Status -->
+                            <div class="absolute -top-1 -right-1">
+                                <span v-if="visit.VisitId === nextVisitId" 
+                                    class="badge badge-sm badge-info badge-soft gap-2">
+                                    <i class="bi bi-three-dots"></i> Następna
+                                </span>
+                                <span v-else-if="visit.Status === @((int)VisitStatus.Visited)" 
+                                    class="badge badge-sm badge-success badge-soft gap-2">
+                                    <i class="bi bi-check-circle-fill"></i> Odwiedzone
+                                </span>
+                                <span v-else-if="visit.Status === @((int)VisitStatus.Rejected)" 
+                                    class="badge badge-sm badge-error gap-2">
+                                    <i class="bi bi-x-circle-fill"></i> Odrzucone
+                                </span>
+                                <span v-else-if="visit.Status === @((int)VisitStatus.Suspended)" 
+                                    class="badge badge-sm badge-warning badge-soft gap-2">
+                                    <i class="bi bi-pause-circle-fill"></i> Wstrzymane
+                                </span>
+                                <span v-else-if="visit.Status === @((int)VisitStatus.Pending)" 
+                                    class="badge badge-sm badge-warning badge-soft gap-2">
+                                    <i class="bi bi-clock-fill"></i> W trakcie
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Notatki systemowe -->
+                        <div v-if="visit.AdminNotes" class="alert alert-info alert-soft w-full text-sm py-2">
+                            <i class="bi bi-info-circle"></i>
+                            <span>{{ visit.AdminNotes }}</span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Placeholder na puste miejsce na końcu -->
+            <div id="empty-apartment" 
+                class="text-center text-base-content/30 flex justify-center items-start
+                h-12 group-has-[#visit-controls-panel]:h-28">
+                <span>Koniec listy wizyt</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel kontroli - dolny pasek (tylko gdy kolęda rozpoczęta i jest następna wizyta) -->
+    <div v-if="canStart && visitStarted && nextVisitId" id="visit-controls-panel"
+        class="fixed bottom-0 left-0 right-0 bg-base-200 border-t border-base-300 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <!-- Licznik osób -->
+            <div class="flex justify-center items-center gap-3 mb-3">
+                <button class="btn btn-circle btn-error btn-sm" @@click="decrementPeopleCount" :disabled="!nextVisitId">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+                <div class="text-center min-w-[6rem]">
+                    <div class="text-sm text-base-content/60">Liczba osób</div>
+                    <div class="text-3xl font-bold">{{ peopleCount }}</div>
+                </div>
+                <button class="btn btn-circle btn-success btn-sm" @@click="incrementPeopleCount" :disabled="!nextVisitId">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+
+            <!-- Przyciski akcji - tylko ikonki -->
+            <div class="grid grid-cols-3 gap-2 justify-center items-center">
+                <button class="btn btn-ghost text-error" @@click="rejectVisit" :disabled="!nextVisitId" title="Odrzuć">
+                    <i class="bi bi-x-circle text-2xl"></i>
+                </button>
+                <button class="btn btn-ghost text-info" @@click="openAddAddressModal" :disabled="!pendingVisitId" title="Dodaj wejście">
+                    <i class="bi bi-house-add text-2xl"></i>
+                </button>
+                <button class="btn btn-ghost text-success" @@click="acceptVisit" :disabled="!nextVisitId" title="Przyjmij">
+                    <i class="bi bi-check-circle text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel rozpoczęcia/zakończenia -->
+    <div v-else id="visit-start-end-panel"
+        class="fixed bottom-0 left-0 right-0 bg-base-200 border-t border-base-300 z-50">
+        <div class="container mx-auto px-4 py-4 text-center">
+            <button v-if="!visitStarted && canStart" 
+                class="btn btn-primary" @@click="openSetPriestModal">
+                <i class="bi bi-play-circle"></i>
+                Rozpocznij kolędę
+            </button>
+            <button v-else-if="canEndVisit && !visitEnded" 
+                class="btn btn-success" @@click="endVisit">
+                <i class="bi bi-check-circle"></i>
+                Zakończ kolędę
+            </button>
+            <button v-else-if="visitStarted && visitEnded && !fundsEntered" 
+                class="btn btn-success" @@click="openFundsModal">
+                <i class="bi bi-cash"></i>
+                Wprowadź fundusze
+            </button>
+            <div v-else-if="!canStart" class="text-base-content/60">
+                <i class="bi bi-clock"></i>
+                Kolędę można rozpocząć 15 minut przed czasem rozpoczęcia
+            </div>
+            <div v-else class="text-base-content/60">
+                Jesteś w trybie przeglądania.
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasty -->
+    <div class="toast toast-top toast-center z-[100]">
+        <div v-for="toast in toasts" :key="toast.id" class="alert" :class="toast.type">
+            <span>{{ toast.message }}</span>
+        </div>
+    </div>
+
+    <!-- Modal: Wybór księdza -->
+    <dialog ref="setPriestModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">Wybierz księdza prowadzącego</h3>
+            <select v-model="selectedPriestId" class="select w-full">
+                <option :value="null" disabled>Wybierz księdza...</option>
+                <option v-for="priest in availablePriests" :key="priest.Id" :value="priest.Id">
+                    {{ priest.DisplayName }}
+                </option>
+            </select>
+            <div class="modal-action">
+                <button class="btn" @@click="closePriestModal">Anuluj</button>
+                <button class="btn btn-primary" @@click="setPriest" :disabled="!selectedPriestId">Zapisz</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Modal: Zarządzanie funduszami -->
+    <dialog ref="fundsModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">{{ fundsEntered > 0 ? 'Zarządzanie funduszami' : 'Wpisz zebrane fundusze' }}</h3>
+            <div class="form-control">
+                <label class="label">
+                    <span class="">Zebrana kwota (PLN)</span>
+                </label>
+                <input v-model.number="gatheredFunds" type="number" step="0.01" min="0" class="input" />
+            </div>
+            <div class="modal-action">
+                <button class="btn" @@click="closeFundsModal">{{ visitEnded ? 'Anuluj' : 'Pomiń' }}</button>
+                <button class="btn btn-primary" @@click="updateFunds">Zapisz</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Modal: Dodaj adres -->
+    <dialog ref="addAddressModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">Dodaj nowe wejście</h3>
+            <p class="text-sm text-base-content/70 mb-4">
+                Dodajesz wejście w bramie: <strong>{{ pendingVisitAddress }}</strong>
+            </p>
+            <div class="form-control">
+                <label class="label">
+                    <span class="">Numer mieszkania</span>
+                </label>
+                <input v-model="newApartmentInput" type="text" placeholder="np. 5, 12, 1A" class="input" autofocus />
+                <label class="label">
+                    <span class="text-xs text-base-content/60">Możesz wpisać samą liczbę lub liczbę z literą</span>
+                </label>
+            </div>
+            <div class="modal-action">
+                <button class="btn" @@click="closeAddAddressModal">Anuluj</button>
+                <button class="btn btn-primary" @@click="addAddress" :disabled="!newApartmentInput || newApartmentAdding">
+                    <span v-if="newApartmentAdding" class="loading loading-spinner"></span>
+                    <span v-else>Dodaj</span>
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+</div>
+
+@section Scripts {
+    <partial name="_VueScript" />
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    agendaUniqueId: '@Model.AgendaUniqueId',
+                    accessToken: '@Model.AccessToken',
+                    visits: @Html.Raw(visitsJson),
+                    availablePriests: @Html.Raw(priestsJson),
+                    availableBuildings: @Html.Raw(buildingsJson),
+                    pendingVisitId: null,
+                    nextVisitId: null,
+                    peopleCount: 0,
+                    selectedPriestId: @(Model.AssignedPriestId.HasValue ? Model.AssignedPriestId.ToString() : "null"),
+                    gatheredFunds: @(Model.GatheredFunds ?? 0),
+                    fundsEntered: @(Model.GatheredFunds.HasValue && Model.GatheredFunds.Value > 0 ? "true" : "false"),
+                    visitStarted: @(string.IsNullOrEmpty(Model.AssignedPriestName) ? "false" : "true"),
+                    isSelectingVisit: false,
+                    isResettingStatus: false,
+                    toasts: [],
+                    newApartmentInput: '',
+                    newApartmentAdding: false
+                };
+            },
+            computed: {
+                groupedVisits() {
+                    const groups = [];
+                    let currentGroup = null;
+                    let lastBuildingId = null;
+                    let i = 0;
+
+                    for (const visit of this.visits) {
+                        if (visit.BuildingId !== lastBuildingId) {
+                            currentGroup = {
+                                buildingId: visit.BuildingId,
+                                streetName: visit.StreetName,
+                                buildingNumber: visit.BuildingNumber,
+                                buildingLetter: visit.BuildingLetter,
+                                visits: []
+                            };
+                            groups.push(currentGroup);
+                            lastBuildingId = visit.BuildingId;
+                        }
+                        visit.OrdinalNumberLocal = ++i;
+                        currentGroup.visits.push(visit);
+                    }
+
+                    return groups;
+                },
+                totalVisits() {
+                    return this.visits.length;
+                },
+                visitsLeft() {
+                    return this.visits.filter(v => v.Status === @((int)VisitStatus.Planned) || v.Status === @((int)VisitStatus.Suspended)).length;
+                },
+                hasPriest() {
+                    return this.visitStarted;
+                },
+                canManageFunds() {
+                    return this.visitStarted;
+                },
+                canStart() {
+                    // Sprawdź czy jest 15 min przed czasem rozpoczęcia
+                    const now = Date.now();
+                    const startTime = new Date('@Model.Date.ToString("yyyy-MM-dd")' + 'T' + '@Model.StartHour.ToString("HH:mm:ss")');
+
+                    return now >= new Date(startTime.getTime() - 15 * 60000);
+                },
+                canEndVisit() {
+                    if (!this.visitStarted || !this.pendingVisitId) return false;
+                    
+                    // Możemy zakończyć gdy wszystkie wizyty oprócz Pending są Visited lub Rejected
+                    const notFinished = this.visits.filter(v => 
+                        v.VisitId !== this.pendingVisitId && 
+                        v.Status !== @((int)VisitStatus.Visited) && 
+                        v.Status !== @((int)VisitStatus.Rejected)
+                    );
+                    
+                    return notFinished.length === 0;
+                },
+                canResetVisit() {
+                    if (!this.visitStarted) return false;
+                    // Można cofać status wizyty która jest Visited, Rejected lub Suspended
+                    const hasResettableVisit = this.visits.some(v => 
+                        v.Status === @((int)VisitStatus.Visited) || 
+                        v.Status === @((int)VisitStatus.Rejected) ||
+                        v.Status === @((int)VisitStatus.Suspended)
+                    );
+                    return hasResettableVisit;
+                },
+                pendingVisitAddress() {
+                    if (!this.pendingVisitId) return '';
+                    const pending = this.visits.find(v => v.VisitId === this.pendingVisitId);
+                    if (!pending) return '';
+                    return `${pending.StreetName} ${pending.BuildingNumber}${pending.BuildingLetter || ''}`;
+                },
+                visitEnded() {
+                    // Tryb przeglądania gdy kolęda rozpoczęta i brak Pending oraz Next
+                    return this.visitStarted && this.visits.every(v => 
+                        v.Status === @((int)VisitStatus.Visited) || 
+                        v.Status === @((int)VisitStatus.Rejected)
+                    );
+                }
+            },
+            methods: {
+                updateCurrentVisit() {
+                    if (!this.canStart) return;
+
+                    // Pending = wizyta trwająca (ostatnio przyjęta)
+                    const pending = this.visits.find(v => v.Status === @((int)VisitStatus.Pending));
+                    this.pendingVisitId = pending ? pending.VisitId : null;
+                    
+                    // Next = następna zaplanowana wizyta (centrum uwagi)
+                    const planned = this.visits.filter(v => v.Status === @((int)VisitStatus.Planned));
+                    if (planned.length > 0) {
+                        this.nextVisitId = planned[0].VisitId;
+                        
+                        // Przewiń do następnej wizyty
+                        this.$nextTick(() => {
+                            const element = document.getElementById('visit-' + this.nextVisitId);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+                    } else {
+                        this.nextVisitId = null;
+                    }
+                },
+                incrementPeopleCount() {
+                    if (this.peopleCount < 20) this.peopleCount++;
+                },
+                decrementPeopleCount() {
+                    if (this.peopleCount > 0) this.peopleCount--;
+                },
+                async acceptVisit() {
+                    if (!this.nextVisitId) {
+                        this.updateCurrentVisit();
+                        return;
+                    }
+
+                    if (this.peopleCount === 0) {
+                        this.showToast('Podaj liczbę osób!', 'alert-error');
+                        return;
+                    }
+
+                    // Ustawiamy next na Pending (trwającą), serwer automatycznie przeniesie poprzedni Pending na Visited
+                    await this.updateVisitStatus(this.nextVisitId, @((int)VisitStatus.Pending), this.peopleCount);
+                    this.peopleCount = 0;
+                },
+                async rejectVisit() {
+                    if (!this.nextVisitId) {
+                        this.updateCurrentVisit();
+                        return;
+                    }
+                    
+                    await this.updateVisitStatus(this.nextVisitId, @((int)VisitStatus.Rejected), null);
+                    this.peopleCount = 0;
+                },
+                async suspendVisit() {
+                    if (!this.nextVisitId) {
+                        this.updateCurrentVisit();
+                        return;
+                    }
+
+                    await this.updateVisitStatus(this.nextVisitId, @((int)VisitStatus.Suspended), null);
+                    this.peopleCount = 0;
+                },
+                async updateVisitStatus(visitId, status, peopleCount) {
+                    try {
+                        const response = await fetch('/api/VisitControl/update-status', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                agendaUniqueId: this.agendaUniqueId,
+                                accessToken: this.accessToken,
+                                visitId: visitId,
+                                status: status,
+                                peopleCount: peopleCount
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            const visit = this.visits.find(v => v.VisitId === visitId);
+                            if (visit) {
+                                visit.Status = status;
+                                visit.PeopleCount = peopleCount;
+                            }
+
+                            // Gdy ustawiamy nowy Pending, poprzedni Pending został automatycznie przeniesiony na Visited przez serwer
+                            if (status === @((int)VisitStatus.Pending) && this.pendingVisitId) {
+                                const previousPending = this.visits.find(v => v.VisitId === this.pendingVisitId);
+                                if (previousPending) {
+                                    previousPending.Status = @((int)VisitStatus.Visited);
+                                }
+                            }
+
+                            if (status === @((int)VisitStatus.Pending)) {
+                                this.showToast('Wizyta zaakceptowana!', 'alert-success');
+                            } else if (status === @((int)VisitStatus.Rejected)) {
+                                this.showToast('Wizyta odrzucona', 'alert-error');
+                            } else if (status === @((int)VisitStatus.Suspended)) {
+                                this.showToast('Wizyta wstrzymana', 'alert-warning');
+                            }
+
+                            this.updateCurrentVisit();
+                        }
+                    } catch (error) {
+                        this.showToast('Błąd połączenia z serwerem', 'alert-error');
+                        console.error(error);
+                    }
+                },
+                openSetPriestModal() {
+                    this.$refs.setPriestModal.showModal();
+                },
+                closePriestModal() {
+                    this.$refs.setPriestModal.close();
+                },
+                async setPriest() {
+                    if (!this.selectedPriestId) return;
+
+                    try {
+                        const response = await fetch('/api/VisitControl/set-priest', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                agendaUniqueId: this.agendaUniqueId,
+                                accessToken: this.accessToken,
+                                priestId: this.selectedPriestId
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            this.visitStarted = true;
+                            this.closePriestModal();
+                            this.updateCurrentVisit();
+                            this.showToast('Kolęda rozpoczęta!', 'alert-success');
+                        }
+                    } catch (error) {
+                        this.showToast('Błąd połączenia z serwerem', 'alert-error');
+                        console.error(error);
+                    }
+                },
+                openFundsModal() {
+                    this.$refs.fundsModal.showModal();
+                },
+                closeFundsModal() {
+                    this.$refs.fundsModal.close();
+                },
+                async updateFunds() {
+                    try {
+                        const response = await fetch('/api/VisitControl/update-funds', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                agendaUniqueId: this.agendaUniqueId,
+                                accessToken: this.accessToken,
+                                gatheredFunds: this.gatheredFunds
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            this.fundsEntered = this.gatheredFunds > 0;
+                            this.closeFundsModal();
+                            this.showToast('Fundusze zaktualizowane!', 'alert-success');
+                        }
+                    } catch (error) {
+                        this.showToast('Błąd połączenia z serwerem', 'alert-error');
+                        console.error(error);
+                    }
+                },
+                async endVisit() {
+                    if (!this.pendingVisitId) return;
+                    
+                    try {
+                        const response = await fetch('/api/VisitControl/update-status', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                agendaUniqueId: this.agendaUniqueId,
+                                accessToken: this.accessToken,
+                                visitId: this.pendingVisitId,
+                                status: @((int)VisitStatus.Visited),
+                                peopleCount: null
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            const visit = this.visits.find(v => v.VisitId === this.pendingVisitId);
+                            if (visit) {
+                                visit.Status = @((int)VisitStatus.Visited);
+                            }
+                            
+                            this.pendingVisitId = null;
+                            this.nextVisitId = null;
+                            this.showToast('Wszystkie wizyty zakończone!', 'alert-success');
+                        }
+                    } catch (error) {
+                        this.showToast('Błąd kończenia kolędy', 'alert-error');
+                        console.error(error);
+                    }
+                },
+                openAddAddressModal() {
+                    this.$refs.addAddressModal.showModal();
+                },
+                closeAddAddressModal() {
+                    this.$refs.addAddressModal.close();
+
+                    setTimeout(() => {
+                        this.newApartmentInput = '';
+                        this.newApartmentAdding = false;
+                    }, 300);
+                },
+                async addAddress() {
+                    if (!this.newApartmentInput || !this.pendingVisitId || this.newApartmentAdding) 
+                        return;
+
+                    this.newApartmentAdding = true;
+
+                    // Znajdź trwającą wizytę
+                    const pendingVisit = this.visits.find(v => v.VisitId === this.pendingVisitId);
+                    if (!pendingVisit) {
+                        this.showToast('Nie znaleziono trwającej wizyty', 'alert-error');
+                        return;
+                    }
+
+                    if (!this.newApartmentInput.match('@RegExpressions.ApartmentNumberPattern')) {
+                        this.showToast('Nieprawidłowy format numeru mieszkania', 'alert-error');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/VisitControl/add-address', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                agendaUniqueId: this.agendaUniqueId,
+                                accessToken: this.accessToken,
+                                scheduleId: pendingVisit.ScheduleId,
+                                buildingId: pendingVisit.BuildingId,
+                                apartment: this.newApartmentInput.trim()
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success && !data.alreadyInAgenda) {
+                            // Odśwież listę wizyt - przeładuj całą stronę, bo musimy przeliczyć kolejność
+                            window.location.reload();
+                        }
+                        else if (data.alreadyInAgenda) {
+                            this.showToast('To mieszkanie już istnieje w agendzie', 'alert-warning');
+                        }
+                    } catch (error) {
+                        this.showToast('Błąd dodawania adresu', 'alert-error');
+                        console.error(error);
+                    } finally {
+                        this.closeAddAddressModal();
+                    }
+                },
+                openChangePriestModal() {
+                    this.openSetPriestModal();
+                },
+                startSelectingVisit() {
+                    if (confirm('Czy na pewno chcesz przejść do innej wizyty? Kliknij na dowolną wizytę aby ją wybrać.')) {
+                        this.isSelectingVisit = true;
+                        this.showToast('Kliknij na wizytę, do której chcesz przejść', 'alert-info');
+                    }
+                },
+                selectVisit(visitId) {
+                    if (!this.isSelectingVisit) return;
+                    
+                    this.isSelectingVisit = false;
+                    
+                    if (this.isResettingStatus) {
+                        // Tryb resetowania statusu
+                        this.isResettingStatus = false;
+                        const visit = this.visits.find(v => v.VisitId === visitId);
+                        
+                        // Sprawdź czy wizyta może być zresetowana
+                        if (visit && (visit.Status === @((int)VisitStatus.Visited) || 
+                                     visit.Status === @((int)VisitStatus.Rejected) ||
+                                     visit.Status === @((int)VisitStatus.Suspended))) {
+                            this.resetVisitStatus(visitId);
+                        } else {
+                            this.showToast('Ta wizyta nie może zostać cofnięta', 'alert-error');
+                        }
+                    } else {
+                        // Normalny tryb przechodzenia do wizyty
+                        this.nextVisitId = visitId;
+                        this.peopleCount = this.visits.find(v => v.VisitId === visitId).PeopleCount || 0;
+                        
+                        // Przewiń do wybranej wizyty
+                        this.$nextTick(() => {
+                            const element = document.getElementById('visit-' + visitId);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        });
+                        
+                        this.showToast('Przeszedłeś do wybranej wizyty', 'alert-success');
+                    }
+                },
+                cancelSelectingVisit() {
+                    this.isSelectingVisit = false;
+                    this.isResettingStatus = false;
+                    this.showToast('Anulowano wybór wizyty', 'alert-warning');
+                },
+                confirmResetVisit() {
+                    if (confirm('Wybierz wizytę, której status chcesz cofać do "Zaplanowane". Kliknij na wizytę aby ją wybrać.')) {
+                        this.isSelectingVisit = true;
+                        this.isResettingStatus = true;
+                        this.showToast('Kliknij na wizytę, której status chcesz cofać', 'alert-info');
+                    }
+                },
+                async resetVisitStatus(visitId) {
+                    try {
+                        const response = await fetch('/api/VisitControl/reset-status', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                agendaUniqueId: this.agendaUniqueId,
+                                accessToken: this.accessToken,
+                                visitId: visitId
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            const visit = this.visits.find(v => v.VisitId === visitId);
+                            if (visit) {
+                                visit.Status = @((int)VisitStatus.Planned);
+                                visit.PeopleCount = null;
+                            }
+                            this.showToast('Status wizyty został cofnięty', 'alert-success');
+                            this.updateCurrentVisit();
+                        }
+                    } catch (error) {
+                        this.showToast('Błąd cofania statusu wizyty', 'alert-error');
+                        console.error(error);
+                    }
+                },
+                toggleTheme() {
+                    const html = document.documentElement;
+                    const current = html.getAttribute('data-theme');
+                    html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+                },
+                showToast(message, type) {
+                    const id = Date.now();
+                    this.toasts.push({ id, message, type });
+                    setTimeout(() => {
+                        const index = this.toasts.findIndex(t => t.id === id);
+                        if (index > -1) this.toasts.splice(index, 1);
+                    }, 3000);
+                }
+            },
+            mounted() {
+                this.updateCurrentVisit();
+                
+                // Obsługa klawisza ESC do anulowania trybu wyboru
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.isSelectingVisit) {
+                        this.cancelSelectingVisit();
+                    }
+                });
+                
+                registerVueApp("visit-control-app");
+            }
+        }).mount('#visit-control-app');
+    </script>
+}

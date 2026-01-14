@@ -10,12 +10,13 @@ using Microsoft.IdentityModel.Tokens;
 using SOK.Application.Common.DTO;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using SOK.Web.ViewModels.Parish;
 
 namespace SOK.Web.Controllers
 {
-    [Authorize]
+    [AuthorizeRoles(Role.Administrator, Role.Priest)]
     [ActivePage("Plans")]
     public class PlansController : Controller
     {
@@ -105,7 +106,7 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
-            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault });
+            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault, Color = s.Color });
             var priests = model.Priests.Where(p => p.IsActive).Select(p => new PlanPriestDto() { Id = p.Id, DisplayName = p.DisplayName });
 
             PlanActionRequestDto request = new()
@@ -146,7 +147,8 @@ namespace SOK.Web.Controllers
                     Id = s.Id,
                     Name = s.Name,
                     ShortName = s.ShortName,
-                    IsDefault = s.Id == plan.DefaultScheduleId
+                    IsDefault = s.Id == plan.DefaultScheduleId,
+                    Color = s.Color
                 })]
             };
 
@@ -177,7 +179,7 @@ namespace SOK.Web.Controllers
                 return View(model);
             }
 
-            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault });
+            var schedules = model.Schedules.Select(s => new PlanScheduleDto() { Id = s.Id, Name = s.Name, ShortName = s.ShortName, IsDefault = s.IsDefault, Color = s.Color });
             var priests = model.Priests.Where(p => p.IsActive).Select(p => new PlanPriestDto() { Id = p.Id, DisplayName = p.DisplayName });
 
             PlanActionRequestDto request = new()

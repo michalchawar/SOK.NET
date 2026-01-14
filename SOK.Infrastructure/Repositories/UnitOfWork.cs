@@ -25,6 +25,26 @@ namespace SOK.Infrastructure.Repositories
             return new Transaction(await _db.Database.BeginTransactionAsync());
         }
 
+        public async Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation)
+        {
+            var strategy = _db.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await BeginTransactionAsync();
+                try
+                {
+                    var result = await operation();
+                    await transaction.CommitAsync();
+                    return result;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+        }
+
         /// <inheritdoc cref="ITransaction" />
         private class Transaction : ITransaction
         {
@@ -79,6 +99,7 @@ namespace SOK.Infrastructure.Repositories
         public IAgendaRepository Agenda { get; private set; }
         public IPlanRepository Plan { get; private set; }
         public IDayRepository Day { get; private set; }
+        public IBuildingAssignmentRepository BuildingAssignment { get; private set; }
         public IParishMemberRepository ParishMember { get; private set; }
         public IEmailLogRepository EmailLog { get; private set; }
 
@@ -97,6 +118,7 @@ namespace SOK.Infrastructure.Repositories
             Agenda = new AgendaRepository(db);
             Plan = new PlanRepository(db);
             Day = new DayRepository(db);
+            BuildingAssignment = new BuildingAssignmentRepository(db);
             ParishMember = new ParishMemberRepository(db, userManager);
             EmailLog = new EmailLogRepository(db);
         }

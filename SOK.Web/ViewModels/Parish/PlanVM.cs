@@ -17,8 +17,8 @@ namespace SOK.Web.ViewModels.Parish
         [MinLength(1, ErrorMessage = "Dodaj co najmniej jeden harmonogram.")]
         public List<ScheduleVM> Schedules { get; set; } =
         [
-            new ScheduleVM { Name = "Kolęda w terminie", ShortName = "T", IsDefault = true },
-            new ScheduleVM { Name = "Kolęda dodatkowa", ShortName = "D", IsDefault = false }
+            new ScheduleVM { Name = "Kolęda w terminie", ShortName = "T", Color = "#bec5d1", IsDefault = true },
+            new ScheduleVM { Name = "Kolęda dodatkowa", ShortName = "D", Color = "#3b73d4", IsDefault = false }
         ];
 
         [ValidateNever]

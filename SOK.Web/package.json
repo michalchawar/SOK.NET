@@ -6,21 +6,23 @@
   "scripts": {
     "watch:css": "npx @tailwindcss/cli -i wwwroot/css/site.css -o wwwroot/css/site.min.css -m --watch",
     "watch:bs": "browser-sync start --proxy \"http://localhost:8060\" --files \"wwwroot/js/*.js, wwwroot/css/*.css, Views/**/*.cshtml\" --no-ui --reload-delay 500",
-    "build:js": "terser wwwroot/js/*.js --compress --mangle --output wwwroot/js/bundle.min.js",
-    "build:prod": "npm run build:js"
+    "copy:libs": "node copy-libs.js",
+    "postinstall": "npm run copy:libs",
+    "build:prod": "npm run copy:libs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
-    "daisyui": "^5.1.7",
-    "eslint": "^9.35.0",
-    "tailwindcss": "^4.1.13",
-    "terser": "^5.36.0"
+    "daisyui": "^5.5.14",
+    "eslint": "^9.39.2",
+    "browser-sync": "^3.0.4",
+    "tailwindcss": "^4.1.13"
   },
   "dependencies": {
-    "browser-sync": "^3.0.4",
-    "tailwindcss-cli": "^0.1.2"
+    "bootstrap-icons": "^1.13.1",
+    "@tailwindcss/cli": "^4.1.13",
+    "vue": "^3.5.26"
   }
 }

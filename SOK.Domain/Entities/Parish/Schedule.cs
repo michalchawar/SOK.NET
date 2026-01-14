@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SOK.Domain.Interfaces;
 
 namespace SOK.Domain.Entities.Parish
 {
@@ -9,7 +10,7 @@ namespace SOK.Domain.Entities.Parish
     /// "W terminie zasadniczym" oraz "W terminie dodatkowym".
     /// Harmonogram określa również charakter powiązania budynków z agendami.
     /// </summary>
-    public class Schedule
+    public class Schedule : IEntityMetadata
     {
         /// <summary>
         /// Unikalny identyfikator harmonogramu (klucz główny).
@@ -28,6 +29,12 @@ namespace SOK.Domain.Entities.Parish
         /// </summary>
         [MaxLength(24)]
         public string ShortName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Kolor harmonogramu w formacie RGB (#RRGGBB).
+        /// </summary>
+        [MaxLength(7)]
+        public string Color { get; set; } = "#bec5d1";
 
         /// <summary>
         /// Identyfikator planu, do którego należy harmonogram.

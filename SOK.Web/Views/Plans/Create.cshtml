@@ -1,3 +1,4 @@
+@using SOK.Application.Common.Helpers
 @model PlanVM
 @{
     ViewData["Title"] = "Utwórz plan";
@@ -54,9 +55,12 @@
                                 :name="`Schedules[${index}].ShortName`" v-model="schedule.shortName" readonly>
                             <input type="checkbox" class="hidden" :id="`Schedules_${index}__IsDefault`"
                                 :name="`Schedules[${index}].IsDefault`" v-model="schedule.isDefault" value="true" readonly>
+                            <input type="text" class="hidden" :id="`Schedules_${index}__Color`"
+                                :name="`Schedules[${index}].Color`" v-model="schedule.color" readonly>
                             <p class="text-xl opacity-40">{{ schedule.shortName }}</p>
                             <p class="text-md font-medium flex-1">{{ schedule.name }}</p>
                             <p class="text-xs opacity-50 font-normal" v-if="schedule.isDefault">DOMYŚLNY</p>
+                            <div class="size-6 rounded-full" :style="{ backgroundColor: schedule.color }"></div>
                         </button>
                         <button type="button" class="btn btn-soft py-5" @@click="editSchedule(index)">
                             <i class="bi bi-pencil-square"></i>
@@ -151,6 +155,14 @@
                     <input v-model="newSchedule.shortName" type="text" class="input w-full" required maxlength="24"
                         placeholder="Np. @(Model.Schedules.FirstOrDefault()?.ShortName ?? "D")" />
                 </div>
+                <div class="form-control mb-3">
+                    <label class="label-text mb-1">Kolor</label>
+                    <div class="flex gap-2 items-center">
+                        <input v-model="newSchedule.color" type="color" class="w-16 h-10 rounded cursor-pointer" required />
+                        <input v-model="newSchedule.color" type="text" class="input w-full" required maxlength="7" pattern="@RegExpressions.RgbColorPattern"
+                            placeholder="#bec5d1" />
+                    </div>
+                </div>
                 <div class="modal-action">
                     <button type="button" class="btn" @@click="closeScheduleModal">Anuluj</button>
                     <button type="submit" class="btn btn-primary" @@click.stop.prevent="addOrUpdateSchedule">{{ newSchedule.index !=
@@ -196,7 +208,7 @@
                     },
                     showScheduleModal: false,
                     showPriestModal: false,
-                    newSchedule: { index: null, name: '', shortName: '', isDefault: false },
+                    newSchedule: { index: null, name: '', shortName: '', color: '#bec5d1', isDefault: false },
                     newPriest: { displayName: '' }
                 };
             },
@@ -205,7 +217,7 @@
                 closeScheduleModal() { 
                     this.showScheduleModal = false; 
                     setTimeout(() => 
-                        this.newSchedule = { index: null, name: '', shortName: '', isDefault: false }
+                        this.newSchedule = { index: null, name: '', shortName: '', color: '#bec5d1', isDefault: false }
                     , 500);
                 },
                 addOrUpdateSchedule() {
@@ -215,6 +227,7 @@
                         if (index != null && this.form.schedules[index] !== undefined) {
                             this.form.schedules[index].name = this.newSchedule.name;
                             this.form.schedules[index].shortName = this.newSchedule.shortName;
+                            this.form.schedules[index].color = this.newSchedule.color;
                         } else {
                             this.form.schedules.push({ ...this.newSchedule });
                         }
@@ -229,6 +242,7 @@
                     this.newSchedule.index = index;
                     this.newSchedule.name = this.form.schedules[index].name;
                     this.newSchedule.shortName = this.form.schedules[index].shortName;
+                    this.newSchedule.color = this.form.schedules[index].color || '#bec5d1';
                     this.newSchedule.isDefault = this.form.schedules[index].isDefault;
 
                     this.openScheduleModal();

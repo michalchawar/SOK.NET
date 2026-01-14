@@ -1,3 +1,4 @@
+using SOK.Application.Common.DTO;
 using SOK.Domain.Entities.Parish;
 using System.Linq.Expressions;
 
@@ -76,5 +77,11 @@ namespace SOK.Application.Services.Interface
         /// Jeśli budynek o takich danych istnieje już na danej ulicy.
         /// </exception>
         Task UpdateBuildingAsync(Building building);
+
+        /// <summary>
+        /// Pobiera wszystkie budynki wraz z danymi ulicy i miasta.
+        /// </summary>
+        /// <returns>Lista uproszczonych DTO budynków.</returns>
+        Task<List<BuildingSimpleDto>> GetAllBuildingsAsync();
     }
 }

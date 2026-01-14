@@ -3,7 +3,7 @@
     Layout = "_LayoutPublic";
 }
 
-<div class="w-full max-w-2xl text-center">
+<div id="success-message-container" class="w-full max-w-2xl text-center">
     <!-- Ikona sukcesu -->
     <div class="mb-8 text-4xl text-success">
         <i class="bi bi-check-circle"></i>
@@ -51,3 +51,11 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            document.getElementById("success-message-container").scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+}

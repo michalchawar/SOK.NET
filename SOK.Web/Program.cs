@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using NUglify.JavaScript;
+using QuestPDF.Infrastructure;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Implementation;
 using SOK.Application.Services.Interface;
@@ -8,6 +11,9 @@ using SOK.Infrastructure.Identity;
 using SOK.Infrastructure.Persistence.Context;
 using SOK.Infrastructure.Provisioning;
 using SOK.Web.Middleware;
+
+// Konfiguracja licencji QuestPDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +25,12 @@ builder.Services.AddScoped<ICurrentParishService, CurrentParishService>();
 
 // Rejestracja kontekstów baz danych
 builder.Services.RegisterDatabaseContexts(builder.Configuration).MigrateCentralDatabase();
+
+// Konfiguracja Data Protection - klucze przechowywane w centralnej bazie danych
+// Zapewnia to utrzymanie sesji użytkowników po restarcie kontenerów
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<CentralDbContext>()
+    .SetApplicationName("SOK.NET");
 
 // Rejestracja repozytoriów
 builder.Services.RegisterRepositories();
@@ -40,7 +52,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromHours(6);
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        
+        // Konfiguracja czasu życia w zależności od isPersistent (Remember Me)
+        options.Events.OnSigningIn = context =>
+        {
+            if (!context.Properties.IsPersistent)
+            {
+                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(7);
+            }
+            else
+            {
+                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+            }
+            return Task.CompletedTask;
+        };
     });
 
 // Rejestracja fabryki do tworzenia obiektu ClaimsPrincipal z dodatkowymi danymi
@@ -58,12 +85,14 @@ builder.Services.AddControllersWithViews();
 // Konfiguracja WebOptimizer
 builder.Services.AddWebOptimizer(pipeline =>
 {
-    // Bundle i minifikuj CSS
-    pipeline.AddCssBundle("/css/bundle.min.css", "css/site.min.css");
-    
-    // Bundle i minifikuj JavaScript
-    pipeline.AddJavaScriptBundle("/js/bundle.min.js", "js/site.js", "js/address-utilities.js");
-});
+    var jsSettings = new WebOptimizer.Processors.JsSettings
+    {
+        CodeSettings = new() { MinifyCode = !builder.Environment.IsDevelopment() }
+    };
+
+    // Bundle JavaScript
+    pipeline.AddJavaScriptBundle("/js/bundle.min.js", jsSettings, "/js/site.js", "/js/address-utilities.js");
+}, o => { o.AllowEmptyBundle = true;  o.EnableTagHelperBundling = true; });
 
 var app = builder.Build();
 

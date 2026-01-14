@@ -3,10 +3,26 @@
 //
 /// <reference path="../lib/jquery/dist/jquery.js" />
 
-const sidebarWidthClass = {
-    collapsed: "w-16",
-    expanded: "w-68"
-}
+// Disable console in production
+// Sprawdza czy document.documentElement ma atrybut data-env="Development"
+(function() {
+    // Sprawdź środowisko z atrybutu HTML (zostanie ustawione w _Layout.cshtml)
+    const isProduction = document.documentElement.getAttribute('data-env') !== 'Development';
+    
+    if (isProduction) {
+        // Zachowaj console.error dla krytycznych błędów (opcjonalnie)
+        const originalError = console.error.bind(console);
+        
+        // Nadpisz wszystkie metody console (oprócz error)
+        console.log = function() {};
+        console.debug = function() {};
+        console.info = function() {};
+        console.warn = function() {};
+        
+        // Opcjonalnie: wyłącz też console.error (odkomentuj jeśli chcesz)
+        // console.error = function() {};
+    }
+})();
 
 const notifications = {
 
@@ -123,17 +139,35 @@ function reflow(element) {
     void (element.offsetHeight);
 }
 
-function sidebarChangeState(event) {
-    let sidebar = $("#sidebar");
-    let button = $("#sidebar-expand-checkbox");
 
-    // Sidebar expanded
-    if (button.is(":checked")) {
-        sidebar.removeClass(sidebarWidthClass.collapsed).addClass(sidebarWidthClass.expanded);
-    }
-    // Sidebar collapsed
-    else {
-        sidebar.removeClass(sidebarWidthClass.expanded).addClass(sidebarWidthClass.collapsed);
+window.getContrastColor = function(hexColor) {
+    if (!hexColor) return '#000000';
+
+    // Remove the hash symbol if present
+    hexColor = hexColor.replace('#', '');
+
+    // Convert hex to RGB
+    const r = parseInt(hexColor.substr(0, 2), 16);
+    const g = parseInt(hexColor.substr(2, 2), 16);
+    const b = parseInt(hexColor.substr(4, 2), 16);
+    
+    // Calculate the luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return black for light colors and white for dark colors
+    return luminance > 0.5 ? '#18181b' : '#ecf9ff';
+}
+
+window.declinateWord = function(count, singular, pluralFew, pluralMany) {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (mod10 === 1 && mod100 !== 11) {
+        return singular;
+    } else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+        return pluralFew;
+    } else {
+        return pluralMany;
     }
 }
 
@@ -141,3 +175,31 @@ function registerVueApp(appElementId) {
     let appElement = $(`#${appElementId}`);
     appElement.attr("data-is-loaded", "true");
 }
+
+function initThemeToggle() {
+    const toggle = $("#theme-toggle");
+    const label = $("#theme-label");
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    
+    // Set initial state
+    if (currentTheme === "dark") {
+        toggle.prop("checked", true);
+        label.text("Tryb jasny");
+    } else {
+        toggle.prop("checked", false);
+        label.text("Tryb ciemny");
+    }
+    
+    // Handle toggle change
+    toggle.parent().parent().on("click", function() {
+        toggle.prop("checked", !toggle.prop("checked"));
+        const newTheme = toggle.prop("checked") ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.theme = newTheme;
+        label.text(toggle.prop("checked") ? "Tryb jasny" : "Tryb ciemny");
+    });
+}
+
+$(function() {
+    initThemeToggle();
+});

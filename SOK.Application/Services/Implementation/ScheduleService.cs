@@ -35,7 +35,7 @@ namespace SOK.Application.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task CreateScheduleAsync(Schedule schedule)
+        public Task CreateScheduleAsync(Schedule schedule)
         {
             throw new NotImplementedException();
         }

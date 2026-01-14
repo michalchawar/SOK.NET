@@ -31,5 +31,33 @@ namespace SOK.Application.Common.Interface
         /// lub <see cref="null"/> w przeciwnym przypadku.
         /// </returns>
         Task<ParishMember?> CreateMemberWithUserAccountAsync(string displayName, IEnumerable<Role> roles);
+
+        /// <summary>
+        /// Pobiera użytkownika centralnego (User) po jego Id.
+        /// </summary>
+        /// <param name="userId">Identyfikator użytkownika centralnego.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task">, reprezentujący asynchroniczną operację, którego wartością jest
+        /// obiekt <see cref="User"/>, lub <see cref="null"/>, jeśli użytkownik nie istnieje.
+        /// </returns>
+        Task<User?> GetUserByIdAsync(string userId);
+
+        /// <summary>
+        /// Aktualizuje dane użytkownika centralnego (User).
+        /// </summary>
+        /// <param name="user">Użytkownik do zaktualizowania.</param>
+        /// <returns>Obiekt <see cref="Task">, reprezentujący asynchroniczną operację.</returns>
+        Task UpdateUserAsync(User user);
+
+        /// <summary>
+        /// Ustawia nowe hasło dla użytkownika.
+        /// </summary>
+        /// <param name="user">Użytkownik, dla którego ustawiamy hasło.</param>
+        /// <param name="newPassword">Nowe hasło.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task">, reprezentujący asynchroniczną operację, którego wartością jest
+        /// wynik operacji <see cref="IdentityResult"/>.
+        /// </returns>
+        Task<Microsoft.AspNetCore.Identity.IdentityResult> SetPasswordAsync(User user, string newPassword);
     }
 }

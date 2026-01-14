@@ -58,6 +58,25 @@ namespace SOK.Application.Services.Interface
             int pageSize = 1);
 
         /// <summary>
+        /// Pobiera stronę zgłoszeń z sortowaniem i zwraca również całkowitą liczbę wyników.
+        /// </summary>
+        /// <param name="filter">Filtr, który spełniać mają zgłoszenia.</param>
+        /// <param name="sortBy">Pole sortowania: time, address, submitter</param>
+        /// <param name="order">Kierunek sortowania: asc, desc</param>
+        /// <param name="page">Numer strony.</param>
+        /// <param name="pageSize">Liczba obiektów na stronie.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest krotka z listą obiektów <see cref="Submission"/> i całkowitą liczbą wyników.
+        /// </returns>
+        Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsPaginatedWithSorting(
+            Expression<Func<Submission, bool>>? filter = null,
+            string sortBy = "time",
+            string order = "desc",
+            int page = 1,
+            int pageSize = 1);
+
+        /// <summary>
         /// Zapisuje zgłoszenie w bazie danych.
         /// </summary>
         /// <param name="submissionDto">Obiekt <see cref="SubmissionCreationRequestDto"/> z danymi zgłoszenia, które ma zostać zapisane.</param>
@@ -106,83 +125,29 @@ namespace SOK.Application.Services.Interface
         Task<Submission?> GetRandomSubmissionAsync();
 
         /// <summary>
-        /// Wysyła email potwierdzający zgłoszenie.
+        /// Znajduje zgłoszenie na podstawie adresu.
         /// </summary>
-        /// <param name="submissionId">ID zgłoszenia</param>
-        /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
-        /// którego wartością jest wartość logiczna określająca, czy email został pomyślnie wysłany.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłoszenie o podanym ID nie istnieje.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłaszający nie ma przypisanego adresu email.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
-        /// </exception>
-        Task<bool> SendConfirmationEmailAsync(int submissionId);
-        
+        /// <param name="buildingId">Identyfikator budynku.</param>
+        /// <param name="apartmentNumber">Numer mieszkania.</param>
+        /// <param name="apartmentLetter">Litera mieszkania.</param>
+        /// <returns>Zgłoszenie lub null jeśli nie znaleziono.</returns>
+        Task<Submission?> FindSubmissionByAddressAsync(int buildingId, int? apartmentNumber, string? apartmentLetter);
 
         /// <summary>
-        /// Tworzy podgląd emaila potwierdzającego zgłoszenie.
+        /// Dodaje tekst do AdminNotes zgłoszenia.
         /// </summary>
-        /// <param name="submissionId">ID zgłoszenia</param>
-        /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
-        /// którego wartością jest treść HTML maila.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłoszenie o podanym ID nie istnieje.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłaszający nie ma przypisanego adresu email.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
-        /// </exception>
-        Task<string> PreviewConfirmationEmailAsync(int submissionId);
-        
+        /// <param name="submissionId">Identyfikator zgłoszenia.</param>
+        /// <param name="text">Tekst do dodania.</param>
+        Task AppendAdminNotesAsync(int submissionId, string text);
 
         /// <summary>
-        /// Wysyła email z zapytaniem o błąd we wprowadzaniu adresu mailowego.
+        /// Tworzy nowe zgłoszenie podczas przeprowadzania wizyty (z generycznymi danymi).
         /// </summary>
-        /// <param name="submissionId">ID zgłoszenia</param>
-        /// <param name="to">Adres email nowego odbiorcy</param>
-        /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
-        /// którego wartością jest wartość logiczna określająca, czy email został pomyślnie wysłany.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłoszenie o podanym ID nie istnieje.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłaszający nie ma przypisanego adresu email.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
-        /// </exception>
-        Task<bool> SendInvalidEmailAsync(int submissionId, string to = "");
-
-        /// <summary>
-        /// Tworzy podgląd emaila z zapytaniem o błąd we wprowadzaniu adresu mailowego.
-        /// </summary>
-        /// <param name="submissionId">ID zgłoszenia</param>
-        /// <param name="to">Adres email nowego odbiorcy</param>
-        /// <returns>
-        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
-        /// którego wartością jest treść HTML maila.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłoszenie o podanym ID nie istnieje.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Jeśli zgłaszający nie ma przypisanego adresu email.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        /// Jeśli bazowy URL aplikacji nie został skonfigurowany.
-        /// </exception>
-        Task<string> PreviewInvalidEmailAsync(int submissionId, string to = "");
+        /// <param name="buildingId">Identyfikator budynku.</param>
+        /// <param name="apartmentNumber">Numer mieszkania.</param>
+        /// <param name="apartmentLetter">Litera mieszkania.</param>
+        /// <param name="scheduleId">Identyfikator harmonogramu.</param>
+        /// <returns>Identyfikator utworzonego zgłoszenia.</returns>
+        Task<int> CreateSubmissionDuringVisitAsync(int buildingId, int? apartmentNumber, string? apartmentLetter, int scheduleId);
     }
 }

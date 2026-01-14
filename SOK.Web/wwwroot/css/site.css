@@ -2,6 +2,7 @@
 @source "./wwwroot/**/*.js,./Views/**/*.cshtml";
 @plugin "daisyui";
 
+@custom-variant dark ([data-theme="dark"] &);
 @custom-variant aria-invalid (&[aria-invalid="true"]);
 
 @theme {
@@ -24,7 +25,13 @@ body {
     @apply font-outfit;
 }
 
+main > .container > .card {
+    @apply -mx-[1.625rem];
+    @apply sm:mx-0;
+}
+
 @layer utilities {
+
     .navbar {
         @apply py-1;
         min-height: 2rem;
@@ -47,9 +54,19 @@ body {
         transition: border-color 0.2s, box-shadow 0.2s, outline 0.05s, outline-offset 0.05s;
     }
 
-    .btn:focus {
-        box-shadow: 0 0 0 .1rem #e1e1e1,0 0 0 .25rem var(--color-primary) !important;
+    .divider {
+        @apply text-(--divider-color);
     }
+
+    .tabs-box .tab-active {
+        --tab-bg: var(--color-primary);
+        @apply text-white;
+        @apply font-semibold;
+    }
+
+    /* .btn:focus {
+        box-shadow: 0 0 0 .1rem #e1e1e1,0 0 0 .25rem var(--color-primary) !important;
+    } */
 
     [id$="-app"]:not([data-is-loaded="true"]) {
         @apply relative;
@@ -76,9 +93,9 @@ html {
     }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+/* .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
+} */
 
 html {
     position: relative;
@@ -95,4 +112,8 @@ body {
 
 .collapse-title.p-0::after {
     top: 0;
+}
+
+::picker(select) {
+    max-height: 500px;
 }
