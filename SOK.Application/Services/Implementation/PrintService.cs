@@ -16,6 +16,10 @@ namespace SOK.Application.Services.Implementation
     {
         private readonly IUnitOfWorkParish _uow;
 
+        // Maksymalna liczba wierszy w tabeli przed wymuszeniem nowego rowspan
+        // (zapobiega problemom z łamaniem strony/kolumny w QuestPDF)
+        private const int MAX_ROWS_BEFORE_ROWSPAN_RESET = 18;
+
         static PrintService()
         {
             // Rejestracja czcionki Lato (Google Fonts)
@@ -279,6 +283,7 @@ namespace SOK.Application.Services.Implementation
 
             // Grupuj wizyty według sąsiadujących ulic, a następnie według sąsiadujących bram
             var streetGroups = new List<streetEntryDto>();
+            int buildingRows = 0;
             
             for (int i = 0; i < visits.Count; i++)
             {
@@ -286,7 +291,9 @@ namespace SOK.Application.Services.Implementation
                 var streetName = currentVisit.Submission.Address.StreetName ?? "Nieznana ulica";
                 
                 // Sprawdź czy to nowa ulica (lub pierwsza wizyta)
-                if (i == 0 || streetName != (string)streetGroups.Last().StreetName)
+                if (i == 0 
+                    || streetName != (string)streetGroups.Last().StreetName 
+                    || buildingRows % MAX_ROWS_BEFORE_ROWSPAN_RESET == 0)
                 {
                     // Rozpocznij nową grupę ulicy
                     streetGroups.Add(new streetEntryDto
@@ -312,6 +319,7 @@ namespace SOK.Application.Services.Implementation
                         BuildingLetter = buildingLetter,
                         Visits = new List<Visit> { currentVisit }
                     });
+                    buildingRows++;
                 }
                 else
                 {
@@ -320,7 +328,9 @@ namespace SOK.Application.Services.Implementation
                 }
             }
 
-            column.Item().Table(table =>
+            column.Item()
+                .ExtendHorizontal()
+                .Table(table =>
             {
                 // Definicja kolumn: Ulica (30%), Brama (20%), Mieszkania (50%)
                 table.ColumnsDefinition(columns =>
@@ -345,7 +355,7 @@ namespace SOK.Application.Services.Implementation
                         bool isFirstRow = currentRow == 0;
                         bool isLastRow = currentRow == totalRows - 1;
 
-                        // Komórka z nazwą ulicy (rozciągnięta na wszystkie bramy dla tej ulicy)
+                        // Komórka z nazwą ulicy (rozciągnięta na wszystkie bramy dla tej ulicy lub do limitu)
                         if (isFirstBuilding)
                         {
                             // Sprawdź czy ostatni wiersz tego rowspana to ostatni wiersz tabeli
