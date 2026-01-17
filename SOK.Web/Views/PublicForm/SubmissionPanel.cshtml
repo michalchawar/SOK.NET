@@ -5,7 +5,7 @@
     ViewData["Title"] = "Panel zgłoszenia";
     Layout = "_LayoutPublic";
 }
-<div class="w-full max-w-5xl">
+<div class="w-full max-w-5xl p-4 mx-auto">
     <!-- Nagłówek z informacjami o planie i harmonogramie -->
     <div class="bg-base-300 rounded-lg p-6 mb-6 shadow-md text-center">
         <h3 class="opacity-70 text-lg">Panel zgłoszenia</h3>
@@ -222,21 +222,29 @@
                     else if (Model.Visit.Status == SOK.Domain.Enums.VisitStatus.Withdrawn)
                     {
                         <div class="flex flex-col items-center gap-4">
-                            <i class="bi bi-x-circle-fill text-6xl text-neutral"></i>
-                            <h3 class="text-xl font-semibold text-neutral">Zgłoszenie wstrzymane.</h3>
+                            <i class="bi bi-x-circle-fill text-6xl text-info/75"></i>
+                            <h3 class="text-xl font-semibold text-info/75">Zgłoszenie anulowane.</h3>
+                            <p class="opacity-70">
+                                Jeśli chcesz przywrócić zgłoszenie i umówić się na wizytę, skontaktuj się z nami:
+                                <a href="mailto:@Model.Parish.Email" class="opacity-80">@Model.Parish.Email</a>
+                            </p>
                         </div>
                     }
 
-                    <div class="divider my-2"></div>
 
                     <!-- Informacja o harmonogramie -->
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        <div>
-                            <h4 class="font-semibold">Harmonogram</h4>
-                            <p class="text-sm">@Model.PlanSchedule.ScheduleName</p>
+                    @if (Model.PlanSchedule.ScheduleName != null)
+                    {
+                        <div class="divider my-2"></div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <div>
+                                <h4 class="font-semibold">Harmonogram</h4>
+                                <p class="text-sm">@Model.PlanSchedule.ScheduleName</p>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>

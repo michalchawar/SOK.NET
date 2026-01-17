@@ -296,7 +296,7 @@ namespace SOK.Web.Controllers
             vm.PlanSchedule = new PlanScheduleInfoVM
             {
                 PlanName = submission.Plan?.Name ?? "N/A",
-                ScheduleName = submission.Visit.Schedule?.Name ?? "N/A",
+                ScheduleName = submission.Visit.Schedule?.Name,
                 ScheduleShortName = submission.Visit.Schedule?.ShortName
             };
 

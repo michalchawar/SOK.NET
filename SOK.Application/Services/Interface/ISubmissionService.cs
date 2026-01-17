@@ -113,6 +113,24 @@ namespace SOK.Application.Services.Interface
         Task UpdateSubmissionAsync(Submission submission);
 
         /// <summary>
+        /// Wycofuje zgłoszenie (ustawia status wizyty na <see cref="VisitStatus.Withdrawn"/>).
+        /// </summary>
+        /// <param name="id">Identyfikator zgłoszenia.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task WithdrawSubmissionAsync(int id);
+
+        /// <summary>
+        /// Przywraca zgłoszenie (ustawia status wizyty na <see cref="VisitStatus.Unplanned"/> w domyślnym harmonogramie).
+        /// </summary>
+        /// <param name="id">Identyfikator zgłoszenia.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task RestoreSubmissionAsync(int id);
+
+        /// <summary>
         /// Pobiera losowe zgłoszenie z bazy danych.
         /// </summary>
         /// <returns>

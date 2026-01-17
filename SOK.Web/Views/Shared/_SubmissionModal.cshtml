@@ -272,11 +272,36 @@
                                 <div class="card-body gap-y-3">
                                     <div class="flex gap-3 items-center justify-between">
                                         <h4 class="card-title"><i class="bi bi-calendar2-plus"></i> Wizyta</h4>
-                                        <p class="grow-0 badge badge-lg" :class="visitStatusClass(data.visit.status)">
-                                            {{ visitStatusLabel(data.visit.status) }}
-                                        </p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="grow-0 badge badge-lg" :class="visitStatusClass(data.visit.status)">
+                                                {{ visitStatusLabel(data.visit.status) }}
+                                            </p>
+                                            <div class="dropdown dropdown-bottom dropdown-end">
+                                                <div tabindex="0" role="button" class="btn btn-ghost size-9"><i
+                                                        class="bi bi-three-dots-vertical text-lg "></i></div>
+                                                <ul tabindex="-1"
+                                                    class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 gap-y-0.5 shadow-sm">
+                                                    <li v-if="isEditing && sendDataChangeEmail">
+                                                        <button @@click="previewDataChangeEmail" :disabled="!hasEmailChanges"   
+                                                            class="bg-primary hover:bg-primary/50 text-white disabled:text-base-content/50 disabled:cursor-not-allowed disabled:bg-base-300/50">
+                                                            <i class="bi bi-arrow-left-right"></i> Zobacz podgląd maila
+                                                        </button>
+                                                    </li>
+                                                    <li v-if="data.visit.status === 5">
+                                                        <button @@click="restoreVisit">
+                                                            <i class="bi bi-arrow-clockwise"></i> Przywróć zgłoszenie
+                                                        </button>
+                                                    </li>
+                                                    <li v-else>
+                                                        <button @@click="withdrawVisit">
+                                                            <i class="bi bi-backspace"></i> Wycofaj zgłoszenie
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
+                                    <div v-if="data.visit.schedule">
                                         <label class="label">
                                             <span class="label-text font-semibold">
                                                 Harmonogram:
@@ -363,7 +388,7 @@
                                                     </p>
                                                 </div>
                                             </div>
-                                            <a v-if="!isEditing" :href="`/Calendar/AgendaEditor/${data.visit.agendaId}`"
+                                            <a v-if="!isEditing && data.visit.agendaId" :href="`/Calendar/AgendaEditor/${data.visit.agendaId}`"
                                                 class="btn btn-accent btn-soft w-full justify-center" target="_blank">
                                                 <i class="bi bi-journal-text"></i> Przejdź do edytora agendy
                                             </a>
@@ -869,6 +894,70 @@
                         return $(formElement).find('[aria-invalid="true"]').length === 0;
                     }
                     return true;
+                },
+                async withdrawVisit() {
+                    if (!confirm('Czy na pewno chcesz wycofać to zgłoszenie?')) {
+                        return;
+                    }
+
+                    this.isSaving = true;
+                    this.saveMsg = null;
+                    try {
+                        const id = this.data.id;
+
+                        const res = await fetch(`/api/submissions/${id}/withdraw`, {
+                            method: 'PATCH'
+                        });
+                        if (!res.ok) throw new Error('Błąd podczas wycofywania zgłoszenia');
+
+                        // Refresh data
+                        const res2 = await fetch(`/api/submissions/${id}`);
+                        this.data = await res2.json();
+                        this.isEditing = false;
+                        this.sendDataChangeEmail = true;
+                        notifications.success('Zgłoszenie zostało wycofane.');
+
+                        // Trigger callback to refresh list in parent view
+                        if (window.onSubmissionUpdated) {
+                            window.onSubmissionUpdated();
+                        }
+                    } catch (e) {
+                        notifications.error(e.message);
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                async restoreVisit() {
+                    if (!confirm('Czy na pewno chcesz przywrócić to zgłoszenie?')) {
+                        return;
+                    }
+
+                    this.isSaving = true;
+                    this.saveMsg = null;
+                    try {
+                        const id = this.data.id;
+
+                        const res = await fetch(`/api/submissions/${id}/restore`, {
+                            method: 'PATCH'
+                        });
+                        if (!res.ok) throw new Error('Błąd podczas przywracania zgłoszenia');
+
+                        // Refresh data
+                        const res2 = await fetch(`/api/submissions/${id}`);
+                        this.data = await res2.json();
+                        this.isEditing = false;
+                        this.sendDataChangeEmail = true;
+                        notifications.success('Zgłoszenie zostało przywrócone.');
+
+                        // Trigger callback to refresh list in parent view
+                        if (window.onSubmissionUpdated) {
+                            window.onSubmissionUpdated();
+                        }
+                    } catch (e) {
+                        notifications.error(e.message);
+                    } finally {
+                        this.isSaving = false;
+                    }
                 },
                 async save() {
                     if (!this.isFormValid()) {

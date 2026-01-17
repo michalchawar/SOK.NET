@@ -396,5 +396,37 @@ namespace SOK.Application.Services.Implementation
 
             return submissionId.Value;
         }
+
+        /// <inheritdoc />
+        public async Task WithdrawSubmissionAsync(int id)
+        {
+            var submission = await _uow.Submission.GetAsync(
+                filter: s => s.Id == id,
+                includeProperties: "Visit",
+                tracked: true
+            );
+
+            if (submission == null)
+                throw new ArgumentException($"Submission with ID {id} not found.");
+
+            await _uow.Visit.WithdrawAsync(submission.Visit.Id);
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task RestoreSubmissionAsync(int id)
+        {
+            var submission = await _uow.Submission.GetAsync(
+                filter: s => s.Id == id,
+                includeProperties: "Visit",
+                tracked: true
+            );
+
+            if (submission == null)
+                throw new ArgumentException($"Submission with ID {id} not found.");
+
+            await _uow.Visit.SetToUnplannedAsync(submission.Visit.Id);
+            await _uow.SaveAsync();
+        }
     }
 }

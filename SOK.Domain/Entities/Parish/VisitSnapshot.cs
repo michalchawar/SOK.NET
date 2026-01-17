@@ -36,6 +36,12 @@ namespace SOK.Domain.Entities.Parish
         public int? PeopleCount { get; set; }
 
         /// <summary>
+        /// Id harmonogramu, do którego przypisana była wizyta w momencie utworzenia snapshotu.
+        /// Może być null, tylko gdy Status jest równy VisitStatus.Withdrawn.
+        /// </summary>
+        public int? ScheduleId { get; set; } = null;
+        
+        /// <summary>
         /// Nazwa harmonogramu, do którego przypisana była wizyta w momencie utworzenia snapshotu.
         /// Może być null, tylko gdy Status jest równy VisitStatus.Withdrawn.
         /// </summary>

@@ -12,5 +12,7 @@ namespace SOK.Application.Common.Interface
     /// </summary>
     public interface IVisitRepository : IUpdatableRepository<Visit>
     {
+        Task SetToUnplannedAsync(int visitId);
+        Task WithdrawAsync(int visitId);
     }
 }

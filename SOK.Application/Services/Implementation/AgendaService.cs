@@ -358,7 +358,7 @@ namespace SOK.Application.Services.Implementation
 
             // Pobierz wszystkie zgłoszenia dla planu (bez filtrów - filtrujemy po stronie klienta)
             var submissions = await _uow.Submission.GetAllAsync(
-                filter: s => s.PlanId == day.PlanId,
+                filter: s => s.PlanId == day.PlanId && s.Visit.Status != VisitStatus.Withdrawn,
                 includeProperties: "Address.Building.Street.Type,Submitter,Visit.Agenda.Day,Visit.Schedule"
             );
 

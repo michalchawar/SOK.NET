@@ -207,6 +207,42 @@ namespace SOK.Web.Controllers.API
             return Ok(new SubmissionDto(submission));
         }
 
+        [HttpPatch("{id}/withdraw")]
+        public async Task<IActionResult> Withdraw(int id)
+        {
+            Submission? submission = await _submissionService.GetSubmissionAsync(id);
+            if (submission == null)
+            {
+                return NotFound(new { message = "Zgłoszenie nie zostało znalezione." });
+            }
+            if (submission.Visit.Status == VisitStatus.Withdrawn)
+            {
+                return BadRequest(new { message = "Zgłoszenie zostało już wycofane." });
+            }
+
+            await _submissionService.WithdrawSubmissionAsync(id);
+
+            return Ok(new { message = "Zgłoszenie zostało wycofane." });
+        }
+        
+        [HttpPatch("{id}/restore")]
+        public async Task<IActionResult> Restore(int id)
+        {
+            Submission? submission = await _submissionService.GetSubmissionAsync(id);
+            if (submission == null)
+            {
+                return NotFound(new { message = "Zgłoszenie nie zostało znalezione." });
+            }
+            if (submission.Visit.Status != VisitStatus.Withdrawn)
+            {
+                return BadRequest(new { message = "Zgłoszenie nie jest wycofane." });
+            }
+
+            await _submissionService.RestoreSubmissionAsync(id);
+
+            return Ok(new { message = "Zgłoszenie zostało przywrócone." });
+        }
+
         private string GetNotesStatusLabel(NotesFulfillmentStatus status)
         {
             return status switch
