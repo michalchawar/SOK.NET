@@ -121,6 +121,6 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// Powiązane zgłoszenie główne (relacja nawigacyjna).
         /// </summary>
-        public Submission? Submission { get; set; } = default!;
+        public Submission Submission { get; set; } = default!;
     }
 }

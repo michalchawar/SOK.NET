@@ -306,7 +306,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 await entry.Reference(nameof(Visit.Agenda)).LoadAsync();
 
             // Pobierz datę z Day (przez Agenda)
-            DateTime? visitDate = null;
+            DateOnly? visitDate = null;
             bool? dateVisibility = null;
 
             if (visit.Agenda != null)
@@ -317,7 +317,7 @@ namespace SOK.Infrastructure.Persistence.Context
 
                 if (visit.Agenda.Day != null)
                 {
-                    visitDate = visit.Agenda.Day.Date.ToDateTime(TimeOnly.MinValue);
+                    visitDate = visit.Agenda.Day.Date;
                     dateVisibility = !visit.Agenda.HideVisits;
                 }
             }

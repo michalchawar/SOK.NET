@@ -58,11 +58,6 @@ namespace SOK.Domain.Entities.Parish
         public ICollection<Agenda> Agendas { get; set; } = new List<Agenda>();
 
         /// <summary>
-        /// Lista zgłoszeń powiązanych z harmonogramem.
-        /// </summary>
-        public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
-
-        /// <summary>
         /// Lista wizyt mających ustawiony ten harmonogram.
         /// Bezpośrednio z wizytami powiązane są zgłoszenia.
         /// </summary>

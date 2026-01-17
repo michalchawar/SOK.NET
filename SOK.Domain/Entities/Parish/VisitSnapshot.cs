@@ -22,7 +22,7 @@ namespace SOK.Domain.Entities.Parish
         /// Numer porządkowy wizyty w ramach agendy w momencie utworzenia snapshotu.
         /// </summary>
         [Range(1, 300)]
-        public short OrdinalNumber { get; set; }
+        public int? OrdinalNumber { get; set; }
 
         /// <summary>
         /// Status wizyty w momencie utworzenia snapshotu.
@@ -49,7 +49,7 @@ namespace SOK.Domain.Entities.Parish
         /// <summary>
         /// Data wizyty w momencie utworzenia snapshotu (jeśli dotyczy).
         /// </summary>
-        public DateTime? Date { get; set; }
+        public DateOnly? Date { get; set; }
 
         /// <summary>
         /// Czy data wizyty była widoczna dla użytkownika w momencie utworzenia snapshotu.
