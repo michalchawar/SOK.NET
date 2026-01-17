@@ -34,8 +34,9 @@ namespace SOK.Web.Controllers
                 var pdfBytes = await _printService.GenerateAgendaPdfAsync(id, index);
                 
                 var fileName = $"Agenda_Ksiadz_{index}.pdf";
+                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
 
-                return File(pdfBytes, "application/pdf", fileName);
+                return File(pdfBytes, "application/pdf");
             }
             catch (ArgumentException ex)
             {
@@ -63,8 +64,9 @@ namespace SOK.Web.Controllers
                 var day = await _planService.GetDayAsync(id);
                 string dateString = day?.Date.ToString("yyyyMMdd") ?? "?";
                 var fileName = $"Plan_Dnia_{dateString}.pdf";
+                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
 
-                return File(pdfBytes, "application/pdf", fileName);
+                return File(pdfBytes, "application/pdf");
             }
             catch (ArgumentException ex)
             {
