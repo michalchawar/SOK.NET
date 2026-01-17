@@ -224,6 +224,7 @@ namespace SOK.Web.Controllers
                                     PriestName = agenda.Priest?.DisplayName,
                                     VisitsCount = agenda.VisitsCount,
                                     ShowHours = agenda.ShowHours,
+                                    IsOfficial = agenda.IsOfficial,
                                     IsPast = day.Date < today
                                 });
                             }

@@ -77,6 +77,7 @@ namespace SOK.Web.ViewModels.Home
         public string? PriestName { get; set; }
         public int VisitsCount { get; set; }
         public bool ShowHours { get; set; }
+        public bool IsOfficial { get; set; }
         public bool IsPast { get; set; }
     }
 }

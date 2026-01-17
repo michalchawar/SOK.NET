@@ -263,7 +263,8 @@ namespace SOK.Web.Controllers
                     EndHourOverride = a.EndHourOverride,
                     VisitsCount = a.VisitsCount,
                     ShowsAssignment = !a.HideVisits,
-                    ShowHours = a.ShowHours, 
+                    ShowHours = a.ShowHours,
+                    IsOfficial = a.IsOfficial,
                     GatheredFunds = a.GatheredFunds ?? 0f
                 }).ToList()
             };

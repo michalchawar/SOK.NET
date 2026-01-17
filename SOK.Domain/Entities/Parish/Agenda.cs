@@ -57,6 +57,12 @@ namespace SOK.Domain.Entities.Parish
         public bool ShowHours { get; set; } = false;
 
         /// <summary>
+        /// Określa, czy agenda jest agendą oficjalną, czy indywidualną/prywatną.
+        /// </summary>
+        [DefaultValue(true)]
+        public bool IsOfficial { get; set; } = true;
+
+        /// <summary>
         /// Identyfikator dnia, do którego przypisana jest agenda.
         /// </summary>
         public int DayId { get; set; }
