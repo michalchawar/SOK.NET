@@ -105,7 +105,9 @@ namespace SOK.Web.Controllers
                     if (upcomingDayEntity != null)
                     {
                         // Pobierz agendy dla tego dnia
-                        var agendas = await _agendaService.GetAgendasForDayAsync(upcomingDayEntity.Id);
+                        var agendas = (await _agendaService.GetAgendasForDayAsync(upcomingDayEntity.Id))
+                            .Where(a => a.IsOfficial) // Tylko oficjalne
+                            .ToList();
                         var totalVisitsPlanned = agendas.Sum(a => a.VisitsCount);
 
                         var agendaCards = new List<AgendaCardVM>();
@@ -154,7 +156,9 @@ namespace SOK.Web.Controllers
                     // Przygotuj listę wszystkich dni
                     foreach (var day in sortedDays)
                     {
-                        var dayAgendas = await _agendaService.GetAgendasForDayAsync(day.Id);
+                        var dayAgendas = (await _agendaService.GetAgendasForDayAsync(day.Id))
+                            .Where(a => a.IsOfficial) // Tylko oficjalne
+                            .ToList();
                         var visitsPlanned = dayAgendas.Sum(a => a.VisitsCount);
                         
                         // Policz wizyty odbyte (dla dni które minęły)

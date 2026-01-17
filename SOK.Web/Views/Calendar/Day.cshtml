@@ -111,7 +111,8 @@
                         @foreach ((AgendaItemVM agenda, int index) in agendas.Agendas.WithIndex())
                         {
                             <a asp-action="AgendaEditor" asp-route-id="@agenda.Id" 
-                               class="group card bg-base-300 hover:bg-primary/20 transition-colors cursor-pointer relative">
+                               class="group card bg-base-300 hover:bg-primary/20 transition-colors cursor-pointer relative
+                                @(agenda.IsOfficial ? "border-l-5 border-l-primary" : "border-l-5 border-l-neutral")">
                                 <div class="card-body flex flex-col sm:flex-row justify-start sm:justify-between p-4">
                                     <div class="">
                                         <h3 class="mb-3 text-2xl flex w-full sm:w-auto items-center">
@@ -165,6 +166,13 @@
                                                 <span class="badge badge-sm badge-error tooltip"
                                                     data-tip="Ta agenda jest ukryta. Zgłaszający nie widzą informacji o przypisaniu do tej agendy, wyświetlany jest komunikat o oczekiwaniu na zaplanowanie wizyty.">
                                                     Niepubliczna
+                                                </span>
+                                            }
+                                            @if (!agenda.IsOfficial)
+                                            {
+                                                <span class="badge badge-sm badge-neutral tooltip"
+                                                    data-tip="Ta agenda jest nieoficjalna. Nie wyświetla się na stronie głównej dla danego dnia i nie liczy się w statystykach (choć jej wizyty nadal są liczone)">
+                                                    Nieoficjalna
                                                 </span>
                                             }
                                             @if (agenda.ShowHours)
