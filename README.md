@@ -44,7 +44,7 @@ docker compose up --build
 To enable hot-reload functionality, you can use the `docker-compose.vs-code.yml` file as an override to the base compose file:
 
 ```shell
-docker compose -f docker-compose.yml -f docker-compose.vs-code.yml up
+docker compose -f docker-compose.yml -f docker-compose.vs-code.yml up --build
 ```
 
 This will mount the source code from your host machine into the application container, allowing changes to be reflected immediately without rebuilding the container.
