@@ -39,63 +39,67 @@ namespace SOK.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var activePlan = await _planService.GetActivePlanAsync();
+
             DateTime now = DateTime.UtcNow;
             DateTime last24h = now.AddHours(-24);
             DateOnly last30Days = DateOnly.FromDateTime(now.AddDays(-29));
             DateOnly today = DateOnly.FromDateTime(now);
 
-            // Pobierz wszystkie zgłoszenia z metodą zgłoszenia
-            var submissions = (await _submissionService.GetSubmissionsPaginated(
-                    page: 1,
-                    pageSize: int.MaxValue))
-                .Select(s => new
-                {
-                    s.SubmitTime,
-                    Method = s.FormSubmission?.Method ?? SubmitMethod.NotRegistered
-                }).ToList();
-
-            var stats = new SubmissionsStatsVM
-            {
-                TotalCount = submissions.Count,
-                TotalLast24h = submissions.Count(s => s.SubmitTime >= last24h),
-                WebFormCount = submissions.Count(s => s.Method == SubmitMethod.WebForm),
-                WebFormLast24h = submissions.Count(s => s.Method == SubmitMethod.WebForm && s.SubmitTime >= last24h),
-                OtherCount = submissions.Count(s => s.Method != SubmitMethod.WebForm),
-                OtherLast24h = submissions.Count(s => s.Method != SubmitMethod.WebForm && s.SubmitTime >= last24h)
-            };
-
-            // Dane dzienne dla wykresu (ostatnie 30 dni)
-            var dailyData = submissions
-                .Where(s => s.SubmitTime >= last30Days.ToDateTime(TimeOnly.MinValue))
-                .GroupBy(s => s.SubmitTime.Date)
-                .Select(g => new DailySubmissionsVM
-                {
-                    Date = DateOnly.FromDateTime(g.Key),
-                    WebFormCount = g.Count(s => s.Method == SubmitMethod.WebForm),
-                    OtherCount = g.Count(s => s.Method != SubmitMethod.WebForm)
-                })
-                .OrderBy(d => d.Date)
-                .ToList();
-
-            // Uzupełnij brakujące dni zerami
-            var allDays = Enumerable.Range(0, 30)
-                .Select(i => last30Days.AddDays(i))
-                .ToList();
-
-            var completeData = allDays
-                .Select(date => dailyData.FirstOrDefault(d => d.Date == date) ?? new DailySubmissionsVM { Date = date })
-                .ToList();
-
             // Pobierz dane o kolędzie (tylko dla administratorów i księży)
+            SubmissionsStatsVM? stats = null;
+            List<DailySubmissionsVM> completeData = new();
             UpcomingDayVM? upcomingDay = null;
             List<CalendarDayVM> calendarDays = new();
             List<MinisterAgendaVM> ministerAgendas = new();
 
             if (User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest)))
             {
-                var activePlan = await _planService.GetActivePlanAsync();
                 if (activePlan != null)
                 {
+
+                    // Pobierz wszystkie zgłoszenia z metodą zgłoszenia
+                    var submissions = (await _submissionService.GetSubmissionsPaginated(
+                            page: 1,
+                            pageSize: int.MaxValue))
+                        .Select(s => new
+                        {
+                            s.SubmitTime,
+                            Method = s.FormSubmission?.Method ?? SubmitMethod.NotRegistered
+                        }).ToList();
+
+                    stats = new SubmissionsStatsVM
+                    {
+                        TotalCount = submissions.Count,
+                        TotalLast24h = submissions.Count(s => s.SubmitTime >= last24h),
+                        WebFormCount = submissions.Count(s => s.Method == SubmitMethod.WebForm),
+                        WebFormLast24h = submissions.Count(s => s.Method == SubmitMethod.WebForm && s.SubmitTime >= last24h),
+                        OtherCount = submissions.Count(s => s.Method != SubmitMethod.WebForm),
+                        OtherLast24h = submissions.Count(s => s.Method != SubmitMethod.WebForm && s.SubmitTime >= last24h)
+                    };
+
+                    // Dane dzienne dla wykresu (ostatnie 30 dni)
+                    var dailyData = submissions
+                        .Where(s => s.SubmitTime >= last30Days.ToDateTime(TimeOnly.MinValue))
+                        .GroupBy(s => s.SubmitTime.Date)
+                        .Select(g => new DailySubmissionsVM
+                        {
+                            Date = DateOnly.FromDateTime(g.Key),
+                            WebFormCount = g.Count(s => s.Method == SubmitMethod.WebForm),
+                            OtherCount = g.Count(s => s.Method != SubmitMethod.WebForm)
+                        })
+                        .OrderBy(d => d.Date)
+                        .ToList();
+
+                    // Uzupełnij brakujące dni zerami
+                    var allDays = Enumerable.Range(0, 30)
+                        .Select(i => last30Days.AddDays(i))
+                        .ToList();
+
+                    completeData = allDays
+                        .Select(date => dailyData.FirstOrDefault(d => d.Date == date) ?? new DailySubmissionsVM { Date = date })
+                        .ToList();
+
                     var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
                     var sortedDays = days.OrderBy(d => d.Date).ToList();
 
@@ -195,7 +199,6 @@ namespace SOK.Web.Controllers
                 {
                     var userId = parishMember.Id;
 
-                    var activePlan = await _planService.GetActivePlanAsync();
                     if (activePlan != null)
                     {
                     var days = await _planService.GetDaysForPlanAsync(activePlan.Id);

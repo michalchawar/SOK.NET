@@ -348,7 +348,7 @@
     }
 
     <!-- Kafelek ze statystykami zgłoszeń (dla Admin, Priest, SubmitSupport) -->
-    @if (isAdminOrPriest || isSubmitSupport)
+    @if ((isAdminOrPriest || isSubmitSupport) && Model.SubmissionsStats is not null)
     {
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">

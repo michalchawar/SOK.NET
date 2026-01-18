@@ -4,7 +4,7 @@ namespace SOK.Web.ViewModels.Home
 {
     public class DashboardVM
     {
-        public SubmissionsStatsVM SubmissionsStats { get; set; } = new();
+        public SubmissionsStatsVM? SubmissionsStats { get; set; } = new();
         public List<DailySubmissionsVM> DailySubmissions { get; set; } = new();
         public UpcomingDayVM? UpcomingDay { get; set; }
         public List<CalendarDayVM> AllDays { get; set; } = new();
