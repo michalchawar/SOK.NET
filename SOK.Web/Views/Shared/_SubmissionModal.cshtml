@@ -268,7 +268,8 @@
                                 </div>
                             </div>
                             <!-- Harmonogram i wizyta -->
-                            <div class="card bg-base-200 lg:[grid-area:d]">
+                            <div class="card bg-base-200 lg:[grid-area:d]"
+                                :class="{ 'opacity-60': isEditing }">
                                 <div class="card-body gap-y-3">
                                     <div class="flex gap-3 items-center justify-between">
                                         <h4 class="card-title"><i class="bi bi-calendar2-plus"></i> Wizyta</h4>
@@ -276,17 +277,12 @@
                                             <p class="grow-0 badge badge-lg" :class="visitStatusClass(data.visit.status)">
                                                 {{ visitStatusLabel(data.visit.status) }}
                                             </p>
-                                            <div class="dropdown dropdown-bottom dropdown-end">
+                                            <div class="dropdown dropdown-bottom dropdown-end"
+                                                v-if="!isEditing">
                                                 <div tabindex="0" role="button" class="btn btn-ghost size-9"><i
                                                         class="bi bi-three-dots-vertical text-lg "></i></div>
                                                 <ul tabindex="-1"
                                                     class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 gap-y-0.5 shadow-sm">
-                                                    <li v-if="isEditing && sendDataChangeEmail">
-                                                        <button @@click="previewDataChangeEmail" :disabled="!hasEmailChanges"   
-                                                            class="bg-primary hover:bg-primary/50 text-white disabled:text-base-content/50 disabled:cursor-not-allowed disabled:bg-base-300/50">
-                                                            <i class="bi bi-arrow-left-right"></i> Zobacz podgląd maila
-                                                        </button>
-                                                    </li>
                                                     <li v-if="data.visit.status === 5">
                                                         <button @@click="restoreVisit">
                                                             <i class="bi bi-arrow-clockwise"></i> Przywróć zgłoszenie
@@ -777,7 +773,7 @@
                     if (e.adminMessage.trim() !== (d.adminMessage || '')) return true;
                     if (parseInt(e.notesStatus) !== d.notesStatus) return true;
                     if (parseInt(e.submitMethod) !== d.submitMethod) return true;
-                    if ((e.scheduleId ? parseInt(e.scheduleId) : null) !== d.visit.schedule.id) return true;
+                    if ((e.scheduleId ? parseInt(e.scheduleId) : null) !== (d.visit.schedule?.id ?? null)) return true;
 
                     return false;
                 },
@@ -864,7 +860,7 @@
                         adminNotes: d.adminNotes || '',
                         notesStatus: d.notesStatus,
                         submitMethod: d.submitMethod,
-                        scheduleId: d.visit.schedule.id || null
+                        scheduleId: d.visit.schedule?.id || null
                     };
 
                     // Initialize registerBuildingPicker after Vue renders selects
@@ -998,12 +994,12 @@
 
                         if (this.edit.notesStatus !== d.notesStatus) payload.notesStatus = parseInt(this.edit.notesStatus);
                         if (this.edit.submitMethod !== d.submitMethod) payload.submitMethod = parseInt(this.edit.submitMethod);
-                        if (this.edit.scheduleId !== d.visit.scheduleId) payload.scheduleId = this.edit.scheduleId ? parseInt(this.edit.scheduleId) : null;
+                        if (this.edit.scheduleId !== (d.visit.scheduleId ?? null)) payload.scheduleId = this.edit.scheduleId ? parseInt(this.edit.scheduleId) : null;
 
                         // Only send PATCH if there are changes
                         if (Object.keys(payload).length > 0) {
                             // Dodaj flagę wysyłania emaila o zmianach
-                            payload.sendDataChangeEmail = this.sendDataChangeEmail;
+                            payload.sendDataChangeEmail = this.edit.email !== '' && this.sendDataChangeEmail;
 
                             const res = await fetch(`/api/submissions/${id}`, {
                                 method: 'PATCH',
@@ -1088,7 +1084,7 @@
                         oldSubmitterNotes: d.submitterNotes || '',
                         oldNotesStatus: this.notesStatusLabel(d.notesStatus),
                         oldAdminMessage: d.adminMessage || '',
-                        oldSchedule: d.visit.schedule.name || 'Brak',
+                        oldSchedule: d.visit.schedule?.name || 'Brak',
                         newName: `${this.edit.name} ${this.edit.surname}`,
                         newAddress: `${this.streets.find(s => s.id == this.edit.streetId)?.type || ''} ${this.streets.find(s => s.id == this.edit.streetId)?.name || ''} ${document.getElementById('edit-building-select')?.options[document.getElementById('edit-building-select')?.selectedIndex]?.text || ''} / ${this.edit.apartment}`,
                         newEmail: this.edit.email || '',
