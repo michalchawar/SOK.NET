@@ -1,11 +1,11 @@
 ﻿networks:
-  web:    # sieć publiczna dla Traefika
-    name: web  # Nazwa bez prefiksu projektu
+  web:
+    name: web
     driver: bridge
-  internal: # sieć prywatna między app a db
+  internal:
     driver: bridge
     internal: true
-  db_management: # sieć dla dostępu z hosta (SSH tunnel)
+  db_management:
     driver: bridge
 
 services:
@@ -78,12 +78,18 @@ services:
       ACCEPT_EULA: Y
       MSSQL_SA_PASSWORD: ${SA_PASSWORD}
     ports:
-      - "127.0.0.1:1433:1433"  # Expose SQL Server port only on localhost
+      - "127.0.0.1:1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
       - internal
-      - db_management  # Dodatkowa sieć dla dostępu z hosta
+      - db_management
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
 
 volumes:
   mssql_data:
