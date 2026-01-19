@@ -1,19 +1,17 @@
 @using Microsoft.IdentityModel.Tokens
 @using SOK.Application.Common.Helpers
-@using SOK.Domain.Entities.Parish;
 @using SOK.Infrastructure.Extensions
 @using System.Globalization
+@model SOK.Web.ViewModels.Parish.PlansIndexVM
 @{
     ViewData["Title"] = "Aktywuj plan";
-}
 
-@{
-    var plans = ViewData["Plans"] as IEnumerable<SOK.Domain.Entities.Parish.Plan>;
-    int? activePlanId = ViewData["ActivePlanId"] as int?;
+    bool hasDefaultSchedule = Model.ActivePlan?.Schedules
+        .FirstOrDefault(s => s.Id == Model.ActivePlan.DefaultScheduleId) != null;
 }
 
 <div class="overflow-x-auto h-full">
-    @if (plans.IsNullOrEmpty())
+    @if (Model.Plans.IsNullOrEmpty())
     {
         <div class="min-h-full flex flex-col items-center justify-center">
             <h2 class="text-center text-xl font-semibold">
@@ -31,18 +29,163 @@
     else
     {
         <div class="min-h-full w-full flex flex-col items-center justify-start">
-            <div class="flex-1 max-h-1/2 flex flex-col items-center justify-center">
-                <h2 class="text-center text-xl font-semibold">
-                    Utwórz nowy plan
-                </h2>
-                <h4 class="text-center text-lg opacity-70">
-                    Rozpocznij nową kolędę, tworząc nowy plan kolędowy na ten rok.
-                </h4>
-                <a asp-action="Create" class="btn btn-primary mt-4">
-                    <i class="bi bi-plus"></i>
-                    Utwórz
-                </a>
-            </div>
+            @if (Model.ActivePlan != null)
+            {
+                <div class="flex-1 max-h-2/3 flex flex-col md:flex-row gap-8 w-5/6 my-8">
+                    <div class="flex flex-col items-start justify-center gap-8 flex-1">
+                        <div>
+                            <span class="badge badge-lg badge-primary">Aktywny plan</span>
+                        </div>
+                        <div class="flex flex-col items-center md:items-start gap-1">
+                            <h1 class="text-4xl font-bold">
+                                @Model.ActivePlan.Name
+                            </h1>
+                            <div class="opacity-70">
+                                <p class="text-sm">
+                                    <i class="bi bi-calendar-event mr-2"></i>
+                                    Utworzono: @Model.ActivePlan.CreationTime.ToString("d MMMM yyyy", CultureInfo.CreateSpecificCulture("pl-PL"))
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <h2 class="text-md opacity-80">
+                                Harmonogramy:
+                            </h2>
+                            @foreach (var schedule in Model.ActivePlan.Schedules)
+                            {
+                                <span class="badge badge-lg badge-soft">
+                                    <div class="size-5 inline-block mr-2 rounded-full" style="background-color: @schedule.Color;">
+                                    </div>
+                                    @schedule.Name
+                                    @if (schedule.Id == Model.ActivePlan.DefaultScheduleId)
+                                    {
+                                        <i class="bi bi-star-fill ml-1"></i>
+                                    }
+                                </span>
+                            }
+
+                            @if (!hasDefaultSchedule)
+                            {
+                                <p class="text-sm text-warning">
+                                    <i class="bi bi-exclamation-triangle mr-1"></i> 
+                                    Domyślny harmonogram nie został wybrany, zatem formularz publiczny
+                                    został wyłączony. Aby włączyć przyjmowanie zgłoszeń, edytuj plan i 
+                                    wybierz domyślny harmonogram.
+                                </p>
+                            }
+                        </div>
+
+                        <div class="flex md:flex-col md:justify-start gap-3">
+                            <a asp-action="Edit" asp-route-id="@Model.ActivePlan.Id" class="btn btn-primary">
+                                <i class="bi bi-pencil"></i>
+                                Edytuj
+                            </a>
+                            
+                            <form asp-action="TogglePublicFormSending" asp-route-id="@Model.ActivePlan.Id" method="post">
+                                @if (!hasDefaultSchedule)
+                                {
+                                    <button type="submit" class="btn btn-disabled btn-soft border-error" disabled>
+                                        <i class="bi bi-toggle-off"></i>
+                                        Przyjmowanie zgłoszeń wyłączone
+                                    </button>
+                                }
+                                else if (Model.ActivePlan.IsPublicFormEnabled)
+                                {
+                                    <button type="submit" class="btn btn-success btn-soft">
+                                        <i class="bi bi-toggle-on"></i>
+                                        Przyjmowanie zgłoszeń włączone
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-error btn-soft">
+                                        <i class="bi bi-toggle-off"></i>
+                                        Przyjmowanie zgłoszeń wyłączone
+                                    </button>
+                                }
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="divider md:divider-horizontal"></div>
+
+                    <div class="flex flex-col items-center justify-center gap-6">
+                        <h2 class="text-2xl font-semibold">
+                            Statystyki
+                        </h2>
+                        
+                        <div class="flex gap-3">
+                            <div class="stats stats-vertical">
+                                <div class="stat">
+                                    <div class="stat-figure text-primary">
+                                        <i class="bi bi-inbox text-4xl"></i>
+                                    </div>
+                                    <div class="stat-title">Wszystkie zgłoszenia</div>
+                                    <div class="stat-value text-primary">@Model.ActivePlan.VisitsPlanned</div>
+                                </div>
+                                <div class="stat opacity-80">
+                                    <div class="stat-figure">
+                                        <i class="bi bi-house-check text-2xl text-success"></i>
+                                    </div>
+                                    <div class="stat-title">Odwiedzone</div>
+                                    <div class="stat-value text-xl">@Model.ActivePlan.VisitsSucceeded</div>
+                                </div>
+                            
+                                <div class="stat opacity-50 py-2">
+                                    <div class="stat-figure">
+                                        <i class="bi bi-house-dash text-xl text-error"></i>
+                                    </div>
+                                    <div class="stat-title">Odrzucone</div>
+                                    <div class="stat-value text-lg">@Model.ActivePlan.VisitsRejected</div>
+                                </div>
+                            </div>
+                            <div class="stats stats-vertical">
+                                <div class="stat">
+                                    <div class="stat-figure text-accent">
+                                        <i class="bi bi-currency-dollar text-4xl"></i>
+                                    </div>
+                                    <div class="stat-title">Zebrane środki</div>
+                                    <div class="stat-value text-accent">
+                                        @Model.ActivePlan.TotalFunds.ToString("N2") zł
+                                    </div>
+                                </div>
+                                <div class="stat opacity-80">
+                                    <div class="stat-figure">
+                                        <i class="bi bi-list-ol text-2xl text-info"></i>
+                                    </div>
+                                    <div class="stat-title">Liczba agend</div>
+                                    <div class="stat-value text-xl">@Model.ActivePlan.AgendasCount</div>
+                                </div>
+                            
+                                <div class="stat opacity-50 py-2">
+                                    <div class="stat-figure">
+                                        <i class="bi bi-people text-xl text-info/55"></i>
+                                    </div>
+                                    <div class="stat-title">Liczba kolęd ministrantów</div>
+                                    <div class="stat-value text-lg">@Model.ActivePlan.SupportersCount</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else 
+            {
+                <div class="flex-1 max-h-1/2 flex flex-col items-center justify-center">
+                    <h2 class="text-center text-xl font-semibold">
+                        Utwórz nowy plan
+                    </h2>
+                    <h4 class="text-center text-lg opacity-70">
+                        Rozpocznij nową kolędę, tworząc nowy plan kolędowy na ten rok.
+                    </h4>
+                    <a asp-action="Create" class="btn btn-primary mt-4">
+                        <i class="bi bi-plus"></i>
+                        Utwórz
+                    </a>
+                </div>
+
+            }
 
             <div class="divider self-auto w-5/6">
                 <span class="opacity-60">
@@ -74,22 +217,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var (plan, index) in plans!.WithIndex())
+                    @foreach (var (plan, index) in Model.Plans.WithIndex())
                     {
-                        <tr class="@(activePlanId == plan.Id ? "bg-primary/10" : "") hover:bg-base-300">
+                        <tr class="@(plan.IsActive ? "bg-primary/10" : "") hover:bg-base-300">
                             <th>@(index + 1)</th>
                             <td>@plan.Name</td>
                             <td>@plan.CreationTime.ToString("y", CultureInfo.CreateSpecificCulture("pl-PL"))</td>
-                            <td>@(plan.Author?.DisplayName ?? "-")</td>
-                            <td>@plan.Submissions.Count</td>
-                            <td>@plan.Days.Count</td>
+                            <td>@(plan.AuthorName ?? "-")</td>
+                            <td>@plan.SubmissionsCount</td>
+                            <td>@plan.DaysCount</td>
                             <td>
                                 <a asp-action="Edit" asp-route-id="@plan.Id" class="btn btn-neutral btn-soft text-base-content">
                                     <i class="bi bi-pencil-square"></i> Edytuj
                                 </a>
                             </td>
                             <td>
-                                @if (activePlanId != plan.Id)
+                                @if (!plan.IsActive)
                                 {
                                     <form asp-action="Activate" asp-route-id="@plan.Id" method="post">
                                         <button type="submit" class="btn btn-primary btn-soft">

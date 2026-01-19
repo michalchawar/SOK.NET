@@ -249,6 +249,14 @@ namespace SOK.Web.Controllers
                 MinisterAgendas = ministerAgendas
             };
 
+            if (activePlan != null)
+            {
+                viewModel.HasActivePlan = true;
+
+                var submissionGathering = await _planService.IsSubmissionGatheringEnabledAsync(activePlan);
+                viewModel.IsPublicFormEnabled = activePlan.DefaultScheduleId is not null && submissionGathering;
+            }
+
             return View(viewModel);
         }
 

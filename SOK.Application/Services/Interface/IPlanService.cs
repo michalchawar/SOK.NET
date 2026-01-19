@@ -114,6 +114,26 @@ namespace SOK.Application.Services.Interface
         Task ClearActivePlanAsync();
 
         /// <summary>
+        /// Włącza lub wyłącza zbieranie zgłoszeń dla podanego planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego włączane lub wyłączane jest zbieranie zgłoszeń.</param>
+        /// <param name="isEnabled">Wartość określająca, czy zbieranie zgłoszeń ma być włączone (true) czy wyłączone (false).</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
+        /// </returns>
+        Task ToggleSubmissionGatheringAsync(Plan plan, bool isEnabled);
+        
+        /// <summary>
+        /// Sprawdza, czy zbieranie zgłoszeń jest włączone dla podanego planu.
+        /// </summary>
+        /// <param name="plan">Plan, dla którego sprawdzane jest zbieranie zgłoszeń.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest wartość logiczna określająca, czy zbieranie zgłoszeń jest włączone.
+        /// </returns>
+        Task<bool> IsSubmissionGatheringEnabledAsync(Plan plan);
+
+        /// <summary>
         /// Pobiera wartość metadanej typu <see cref="DateTime"/> dla planu.
         /// </summary>
         /// <param name="plan">Plan, dla którego pobierana jest metadana.</param>

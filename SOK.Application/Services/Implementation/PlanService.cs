@@ -106,7 +106,9 @@ namespace SOK.Application.Services.Implementation
             }
 
             int planId = int.Parse(planIdStr);
-            return await _uow.Plan.GetAsync(p => p.Id == planId);
+            return await _uow.Plan.GetAsync(
+                filter: p => p.Id == planId, 
+                includeProperties: "Schedules");
         }
 
         /// <inheritdoc />
@@ -114,6 +116,26 @@ namespace SOK.Application.Services.Implementation
         {
             await _uow.ParishInfo.ClearValueAsync("ActivePlanId");
             await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task ToggleSubmissionGatheringAsync(Plan plan, bool enabled)
+        {
+            await _uow.ParishInfo.SetMetadataAsync(plan, "IsSubmissionGatheringEnabled", enabled.ToString());
+            await _uow.SaveAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> IsSubmissionGatheringEnabledAsync(Plan plan)
+        {
+            string? value = await _uow.ParishInfo.GetMetadataAsync(plan, "IsSubmissionGatheringEnabled");
+            if (string.IsNullOrEmpty(value))
+                return false;
+
+            if (bool.TryParse(value, out bool result))
+                return result;
+
+            return false;
         }
 
         /// <inheritdoc />
@@ -182,6 +204,11 @@ namespace SOK.Application.Services.Implementation
             }
 
             await _uow.SaveAsync();
+
+            // Włącz przyjmowanie zgłoszeń, domyślnie
+            await _uow.ParishInfo.SetMetadataAsync(plan, "IsSubmissionGatheringEnabled", true.ToString());
+            await _uow.SaveAsync();
+
             await transaction.CommitAsync();
             await transactionCentral.CommitAsync();
         }
@@ -355,6 +382,7 @@ namespace SOK.Application.Services.Implementation
         {
             var days = await _uow.Day.GetAllAsync(
                 filter: d => d.PlanId == planId,
+                includeProperties: "Agendas.Visits",
                 orderBy: d => d.Date
             );
             return days.OrderBy(d => d.Date).ToList();

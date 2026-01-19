@@ -9,6 +9,8 @@ namespace SOK.Web.ViewModels.Home
         public UpcomingDayVM? UpcomingDay { get; set; }
         public List<CalendarDayVM> AllDays { get; set; } = new();
         public List<MinisterAgendaVM> MinisterAgendas { get; set; } = new();
+        public bool IsPublicFormEnabled { get; set; } = false;
+        public bool HasActivePlan { get; set; } = false;
     }
 
     public class SubmissionsStatsVM

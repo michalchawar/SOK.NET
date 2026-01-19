@@ -33,11 +33,52 @@ namespace SOK.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var plans = await _planService.GetPlansPaginatedAsync(pageSize: 20);
+            var activePlan = await _planService.GetActivePlanAsync();
 
-            ViewData["Plans"] = plans;
-            ViewData["ActivePlanId"] = (await _planService.GetActivePlanAsync())?.Id ?? -1;
+            var vm = new PlansIndexVM
+            {
+                Plans = plans.Select(p => new PlanListItemVM
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    CreationTime = p.CreationTime,
+                    AuthorName = p.Author?.DisplayName,
+                    SubmissionsCount = p.Submissions.Count,
+                    DaysCount = p.Days.Count,
+                    IsActive = activePlan?.Id == p.Id
+                }).ToList()
+            };
 
-            return View();
+            if (activePlan != null)
+            {
+                // Załaduj powiązane dane aktywnego planu
+                var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
+
+                vm.ActivePlan = new ActivePlanVM
+                {
+                    Id = activePlan.Id,
+                    Name = activePlan.Name,
+                    CreationTime = activePlan.CreationTime,
+                    Schedules = activePlan.Schedules.Select(s => new ScheduleVM
+                    {
+                        Id = s.Id,
+                        Name = s.Name,
+                        ShortName = s.ShortName,
+                        Color = s.Color,
+                        IsDefault = s.Id == activePlan.DefaultScheduleId
+                    }).ToList(),
+                    DefaultScheduleId = activePlan.DefaultScheduleId,
+                    VisitsPlanned = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count)),
+                    VisitsSucceeded = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count(v => v.Status == VisitStatus.Visited))),
+                    VisitsRejected = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count(v => v.Status == VisitStatus.Rejected))),
+                    AgendasCount = days.Sum(d => d.Agendas.Count(a => a.IsOfficial)),
+                    SupportersCount = days.Sum(d => d.Agendas.Where(a => a.IsOfficial).Sum(a => Math.Max(a.AssignedMembers.Count - 1, 0))),
+                    TotalFunds = (decimal)days.Sum(d => d.Agendas.Sum(a => a.GatheredFunds ?? 0f)),
+                    IsPublicFormEnabled = await _planService.IsSubmissionGatheringEnabledAsync(activePlan)
+                };
+            }
+
+            return View(vm);
         }
 
         [HttpPost]
@@ -72,6 +113,25 @@ namespace SOK.Web.Controllers
             await _planService.ClearActivePlanAsync();
 
             TempData["info"] = "Żaden plan nie jest obecnie aktywny.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TogglePublicFormSending(int id)
+        {
+            var plan = await _planService.GetPlanAsync(id);
+            if (plan == null)
+            {
+                TempData["error"] = "Nie znaleziono planu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            bool isEnabled = await _planService.IsSubmissionGatheringEnabledAsync(plan);
+            await _planService.ToggleSubmissionGatheringAsync(plan, !isEnabled);
+
+            TempData["success"] = isEnabled
+                ? "Zbieranie zgłoszeń zostało wyłączone."
+                : "Zbieranie zgłoszeń zostało włączone.";
             return RedirectToAction(nameof(Index));
         }
 

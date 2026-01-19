@@ -44,8 +44,11 @@ namespace SOK.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            string? parishUid = await _parishInfoService.GetValueAsync(InfoKeys.Parish.UniqueId);
+            ViewData["ParishUid"] = parishUid;
+
             return View();
         }
 

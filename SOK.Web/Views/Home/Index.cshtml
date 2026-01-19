@@ -13,6 +13,40 @@
     {
         <!-- Kafelki dla administratorów i księży -->
         <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] items-start gap-6">
+            @if (!Model.HasActivePlan)
+            {
+                <div class="lg:col-span-2">
+                    <div class="alert alert-info py-1.5 text-base font-normal">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>
+                            <span class="font-semibold">Brak aktywnego planu kolędowego.</span> 
+                            Przejdź do zarządzania planami aby utworzyć lub aktywować plan.
+                        </span>
+                        <a asp-controller="Plans" asp-action="Index" class="btn btn-info ml-4 self-end">
+                            Przejdź
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+            @if (Model.HasActivePlan && !Model.IsPublicFormEnabled)
+            {
+                <div class="lg:col-span-2">
+                    <div class="alert alert-warning py-1.5 alert-soft text-base font-normal">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>
+                            <span class="font-semibold">Formularz zgłoszeniowy jest wyłączony.</span> 
+                            Aby umożliwić parafianom składanie zgłoszeń, włącz
+                            przyjmowanie zgłoszeń w ustawieniach aktywnego planu kolędowego.
+                        </span>
+                        <a asp-controller="Plans" asp-action="Index" class="btn btn-warning ml-4 self-end">
+                            Zobacz
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+
             <!-- Kafelek z najbliższym dniem kolędowym -->
             @if (Model.UpcomingDay != null)
             {
@@ -240,16 +274,6 @@
                                 <span>Brak zaplanowanych dni kolędowych</span>
                             </div>
                         }
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="lg:col-span-2">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill"></i>
-                        <span>Brak aktywnego planu kolędowego. Przejdź do zarządzania planami aby utworzyć lub aktywować
-                            plan.</span>
                     </div>
                 </div>
             }

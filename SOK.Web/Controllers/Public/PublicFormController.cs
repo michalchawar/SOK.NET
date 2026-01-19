@@ -73,6 +73,11 @@ namespace SOK.Web.Controllers
             {
                 return View("PlanError");
             }
+            bool isSubmissionGatheringEnabled = await _planService.IsSubmissionGatheringEnabledAsync(activePlan);
+            if (!isSubmissionGatheringEnabled)
+            {
+                return View("FormDisabled");
+            }
             Schedule? defaultSchedule = await _scheduleService.GetDefaultScheduleAsync();
             if (defaultSchedule is null)
             {
@@ -101,6 +106,11 @@ namespace SOK.Web.Controllers
             if (activePlan is null)
             {
                 return View("PlanError");
+            }
+            bool isSubmissionGatheringEnabled = await _planService.IsSubmissionGatheringEnabledAsync(activePlan);
+            if (!isSubmissionGatheringEnabled)
+            {
+                return View("FormDisabled");
             }
             Schedule? defaultSchedule = await _scheduleService.GetDefaultScheduleAsync();
             if (defaultSchedule is null)
