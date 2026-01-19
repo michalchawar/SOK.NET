@@ -141,14 +141,14 @@ namespace SOK.Application.Services.Implementation
             if (submitter == null) 
                 submitter = submissionDto.Submitter;
 
-            submissionDto.Submitter.Name = submissionDto.Submitter.Name.Trim([' ', '\n', '\r']).FirstCharToUpper();
-            submissionDto.Submitter.Surname = submissionDto.Submitter.Surname.Trim([' ', '\n', '\r']).FirstCharToUpper();
-            submissionDto.Submitter.Email = string.IsNullOrWhiteSpace(submissionDto.Submitter.Email) ? null : submissionDto.Submitter.Email.Trim([' ', '\n', '\r']).ToLower();
-            submissionDto.Submitter.Phone = string.IsNullOrWhiteSpace(submissionDto.Submitter.Phone) ? null : submissionDto.Submitter.Phone.Trim([' ', '\n', '\r']);
+            submissionDto.Submitter.Name = submissionDto.Submitter.Name.Trim().FirstCharToUpper();
+            submissionDto.Submitter.Surname = submissionDto.Submitter.Surname.Trim().FirstCharToUpper();
+            submissionDto.Submitter.Email = submissionDto.Submitter.Email.NullOrTrimmed()?.ToLower();
+            submissionDto.Submitter.Phone = submissionDto.Submitter.Phone.NullOrTrimmed();
 
-            submissionDto.SubmitterNotes = string.IsNullOrWhiteSpace(submissionDto.SubmitterNotes) ? null : submissionDto.SubmitterNotes.Trim([' ', '\n', '\r']);
-            submissionDto.AdminNotes = string.IsNullOrWhiteSpace(submissionDto.AdminNotes) ? null : submissionDto.AdminNotes.Trim([' ', '\n', '\r']);
-            submissionDto.ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']).ToLower();
+            submissionDto.SubmitterNotes = submissionDto.SubmitterNotes.NullOrTrimmed();
+            submissionDto.AdminNotes = submissionDto.AdminNotes.NullOrTrimmed();
+            submissionDto.ApartmentLetter = submissionDto.ApartmentLetter.NullOrTrimmed()?.ToLower();
 
             // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
             Submission submission = new Submission(schedule.Plan, submissionDto.Created)
@@ -187,7 +187,7 @@ namespace SOK.Application.Services.Implementation
                 address = new Address
                 {
                     ApartmentNumber = submissionDto.ApartmentNumber,
-                    ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim([' ', '\n', '\r']),
+                    ApartmentLetter = string.IsNullOrWhiteSpace(submissionDto.ApartmentLetter) ? null : submissionDto.ApartmentLetter.Trim(),
                     Building = building,
                     Submissions = [submission]
                 };
@@ -327,7 +327,14 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<Submission?> GetRandomSubmissionAsync()
         {
-            return await _uow.Submission.GetRandomAsync();
+            string? activePlanIdStr = await _uow.ParishInfo.GetValueAsync("ActivePlanId");
+            if (string.IsNullOrEmpty(activePlanIdStr))
+                return null;
+
+            if (!int.TryParse(activePlanIdStr, out int activePlanId))
+                return null;
+
+            return await _uow.Submission.GetRandomAsync(s => s.PlanId == activePlanId);
         }
 
         /// <inheritdoc />

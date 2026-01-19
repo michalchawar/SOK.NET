@@ -38,7 +38,11 @@ namespace SOK.Application.Services.Implementation
         public async Task<ParishMember?> GetParishMemberAsync(ClaimsPrincipal userClaim)
         {
             string? userUid = _userManager.GetUserId(userClaim);
-            return userUid != null ? await _uow.ParishMember.GetAsync(pm => pm.CentralUserId.ToString() == userUid) : null;
+            return userUid != null ? 
+                await _uow.ParishMember.GetAsync(
+                    filter: pm => pm.CentralUserId.ToString() == userUid,
+                    tracked: true) : 
+                null;
         }
 
         /// <inheritdoc />
@@ -53,7 +57,7 @@ namespace SOK.Application.Services.Implementation
         {
             var centralPriestIds = (await _userManager.GetUsersInRoleAsync(role.ToString())).Select(u => u.Id);
             var parishMembers = await _uow.ParishMember.GetAllAsync(
-                pm => centralPriestIds.Contains(pm.CentralUserId.ToString()),
+                filter: pm => centralPriestIds.Contains(pm.CentralUserId.ToString()),
                 includeProperties: "AssignedPlans");
 
             return parishMembers;

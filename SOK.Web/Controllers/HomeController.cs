@@ -57,9 +57,9 @@ namespace SOK.Web.Controllers
             {
                 if (activePlan != null)
                 {
-
-                    // Pobierz wszystkie zgłoszenia z metodą zgłoszenia
+                    // Pobierz wszystkie zgłoszenia z metodą zgłoszenia z aktywnego planu
                     var submissions = (await _submissionService.GetSubmissionsPaginated(
+                            filter: s => s.PlanId == activePlan.Id,
                             page: 1,
                             pageSize: int.MaxValue))
                         .Select(s => new

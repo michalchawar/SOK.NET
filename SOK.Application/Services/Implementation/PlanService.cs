@@ -171,6 +171,9 @@ namespace SOK.Application.Services.Implementation
                 {
                     // Utwórz nowego użytkownika z generycznymi danymi
                     priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
+                    
+                    // Zapisz, aby wygenerować Id przed dodaniem do kolekcji
+                    await _uow.SaveAsync();
                 }
 
                 // Dodaj użytkownika do planu
@@ -270,6 +273,9 @@ namespace SOK.Application.Services.Implementation
                 {
                     // Utwórz nowego użytkownika z generycznymi danymi
                     priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
+                    
+                    // Zapisz, aby wygenerować Id przed dodaniem do kolekcji
+                    await _uow.SaveAsync();
                 }
 
                 if (priest is not null)

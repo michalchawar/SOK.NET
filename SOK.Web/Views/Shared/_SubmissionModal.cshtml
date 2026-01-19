@@ -262,6 +262,8 @@
                                                 <option value="2">Formularz internetowy</option>
                                                 <option value="3">Telefonicznie</option>
                                                 <option value="4">Osobiście</option>
+                                                <option value="5">Mailowo</option>
+                                                <option value="6">Podczas kolędy</option>
                                             </select>
                                         </div>
                                     </div>
@@ -1299,11 +1301,15 @@
                         case 2: return 'Formularz internetowy';
                         case 3: return 'Telefonicznie';
                         case 4: return 'Osobiście';
+                        case 5: return 'Mailowo';
+                        case 6: return 'Podczas kolędy';
                         case "NotRegistered": return 'Nie zarejestrowano';
                         case "PaperForm": return 'Formularz papierowy';
                         case "WebForm": return 'Formularz internetowy';
                         case "Phone": return 'Telefonicznie';
                         case "Stationary": return 'Osobiście';
+                        case "Email": return 'Mailowo';
+                        case "DuringVisits": return 'Podczas kolędy';
                         default: return 'N/A';
                     }
                 },

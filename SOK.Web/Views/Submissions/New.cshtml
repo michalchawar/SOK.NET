@@ -139,6 +139,9 @@
                         <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.Phone)"
                             class="join-item btn not-checked:btn-soft checked:btn-accent" id="method-phone"
                             value="@((int)SubmitMethod.Phone)" aria-label="Telefonicznie" />
+                        <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.Email)"
+                            class="join-item btn not-checked:btn-soft checked:btn-accent" id="method-email"
+                            value="@((int)SubmitMethod.Email)" aria-label="Mailowo" />
                         <input asp-for="Method" type="radio" checked="@(Model.Method == SubmitMethod.NotRegistered)"
                             class="join-item btn btn-dash checked:btn-accent" id="method-not-registered"
                             value="@((int)SubmitMethod.NotRegistered)" aria-label="Nie zarejestrowano" />

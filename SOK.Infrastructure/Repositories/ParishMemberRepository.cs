@@ -126,16 +126,16 @@ namespace SOK.Infrastructure.Repositories
                 ParishId = parish.Id,
             };
 
+            var result = await _userManager.CreateAsync(newUser);
+
+            if (!result.Succeeded)
+                return null;
+
             ParishMember newMember = new()
             {
                 DisplayName = newUser.DisplayName,
                 CentralUserId = newUser.Id,
             };
-
-            var result = await _userManager.CreateAsync(newUser);
-
-            if (!result.Succeeded)
-                return null;
 
             dbSet.Add(newMember);
             await _userManager.AddToRolesAsync(newUser, roles.Select(r => r.ToString()));

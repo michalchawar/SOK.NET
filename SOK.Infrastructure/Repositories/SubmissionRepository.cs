@@ -165,15 +165,23 @@ namespace SOK.Infrastructure.Repositories
             return (submissions, totalCount);
         }
 
-        public async Task<Submission?> GetRandomAsync()
+        public async Task<Submission?> GetRandomAsync(Expression<Func<Submission, bool>>? filter = null)
         {
             var query = GetQueryable(tracked: false);
             query = query
                 .Include(s => s.Address)
                 .Include(s => s.Submitter);
 
+            if (filter != null)
+                query = query.Where(filter);
+            
             var rand = new Random();
-            var skipCount = (int)(rand.NextDouble() * dbSet.Count());
+            var filteredCount = await query.CountAsync();
+            
+            if (filteredCount == 0)
+                return null;
+
+            var skipCount = (int)(rand.NextDouble() * filteredCount);
 
             query = query.Skip(skipCount);
 
