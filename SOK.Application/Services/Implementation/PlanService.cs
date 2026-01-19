@@ -382,7 +382,7 @@ namespace SOK.Application.Services.Implementation
         {
             var days = await _uow.Day.GetAllAsync(
                 filter: d => d.PlanId == planId,
-                includeProperties: "Agendas.Visits",
+                includeProperties: "Agendas.Visits,Agendas.AssignedMembers",
                 orderBy: d => d.Date
             );
             return days.OrderBy(d => d.Date).ToList();
