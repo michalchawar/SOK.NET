@@ -22,7 +22,7 @@
         }
     </script>
 </head>
-<body class="max-h-screen overflow-hidden">
+<body class="max-h-dvh overflow-hidden">
     <header class="fixed top-0 left-0 z-10 w-full">
         <partial name="_Header" />
     </header>
@@ -34,7 +34,7 @@
     <div class="drawer lg:drawer-open">
         <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
         
-        <div class="drawer-content flex flex-col h-screen w-full overflow-y-hidden has-[main_.container>.card.bg-base-100]:bg-base-200">
+        <div class="drawer-content flex flex-col h-dvh w-full overflow-y-hidden has-[main_.container>.card.bg-base-100]:bg-base-200">
             <main role="main" class="container mx-auto min-h-full overflow-y-scroll px-2.5 pt-16 pb-16">
                 @RenderBody()
             </main>
