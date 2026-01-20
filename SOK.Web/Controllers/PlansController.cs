@@ -53,6 +53,7 @@ namespace SOK.Web.Controllers
             {
                 // Załaduj powiązane dane aktywnego planu
                 var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
+                var users = await _parishMemberService.GetAllInRoleAsync(Role.VisitSupport);
 
                 vm.ActivePlan = new ActivePlanVM
                 {
@@ -72,7 +73,8 @@ namespace SOK.Web.Controllers
                     VisitsSucceeded = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count(v => v.Status == VisitStatus.Visited))),
                     VisitsRejected = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count(v => v.Status == VisitStatus.Rejected))),
                     AgendasCount = days.Sum(d => d.Agendas.Count(a => a.IsOfficial)),
-                    SupportersCount = days.Sum(d => d.Agendas.Where(a => a.IsOfficial).Sum(a => Math.Max(a.AssignedMembers.Count - 1, 0))),
+                    SupportersCount = days.Sum(d => d.Agendas.Where(a => a.IsOfficial).SelectMany(a => a.AssignedMembers)
+                        .Count(m => users.Any(u => u.Id == m.Id))),
                     TotalFunds = (decimal)days.Sum(d => d.Agendas.Sum(a => a.GatheredFunds ?? 0f)),
                     IsPublicFormEnabled = await _planService.IsSubmissionGatheringEnabledAsync(activePlan)
                 };
@@ -262,6 +264,43 @@ namespace SOK.Web.Controllers
             }
             TempData["success"] = "Plan został zaktualizowany pomyślnie.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet("{id}/supporters")]
+        public async Task<IActionResult> SupportersStats(int id)
+        {
+            var plan = await _planService.GetPlanAsync(id);
+            if (plan == null)
+            {
+                TempData["error"] = "Nie ma aktywnego planu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var days = await _planService.GetDaysForPlanAsync(plan.Id);
+            var users = await _parishMemberService.GetAllInRoleAsync(Role.VisitSupport);
+
+            // Pobierz wszystkich ministrantów z oficjalnych agend i policz ich wizyty
+            var supportersStats = days
+                .SelectMany(d => d.Agendas.Where(a => a.IsOfficial))
+                .SelectMany(a => a.AssignedMembers)
+                .Where(m => users.Any(u => u.Id == m.Id))
+                .GroupBy(m => m.Id)
+                .Select(g => new SupporterStatsItemVM
+                {
+                    DisplayName = g.First().DisplayName,
+                    VisitCount = g.Count()
+                })
+                .OrderByDescending(s => s.VisitCount)
+                .ThenBy(s => s.DisplayName)
+                .ToList();
+
+            var vm = new SupportersStatsVM
+            {
+                PlanName = plan.Name,
+                Supporters = supportersStats
+            };
+
+            return View(vm);
         }
 
         private async Task<IEnumerable<ParishMemberVM>> GetPriests(int? planId = null)

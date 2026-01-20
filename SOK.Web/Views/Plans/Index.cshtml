@@ -115,7 +115,7 @@
                             Statystyki
                         </h2>
                         
-                        <div class="flex gap-3">
+                        <div class="flex flex-col items-center md:flex-row gap-3">
                             <div class="stats stats-vertical">
                                 <div class="stat">
                                     <div class="stat-figure text-primary">
@@ -166,6 +166,13 @@
                                     <div class="stat-value text-lg">@Model.ActivePlan.SupportersCount</div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a asp-action="SupportersStats" asp-route-id=@Model.ActivePlan.Id class="btn btn-info btn-soft">
+                                <i class="bi bi-bar-chart"></i>
+                                Zobacz statystyki ministrantów
+                            </a>
                         </div>
                     </div>
                 </div>
