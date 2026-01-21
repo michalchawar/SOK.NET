@@ -7,6 +7,7 @@ using SOK.Web.ViewModels.VisitControl;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.VisitSupport, Role.Priest, Role.Administrator)]
+    [RequireParish]
     public class VisitControlController : Controller
     {
         private readonly IAgendaService _agendaService;

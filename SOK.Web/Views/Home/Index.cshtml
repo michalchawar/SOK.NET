@@ -3,7 +3,9 @@
 @model SOK.Web.ViewModels.Home.DashboardVM
 @{
     ViewData["Title"] = "Przegląd";
-    var isAdminOrPriest = User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest));
+    var isAdminOrPriest = User.IsInRole(nameof(Role.Administrator)) 
+        || User.IsInRole(nameof(Role.SuperAdmin))
+        || User.IsInRole(nameof(Role.Priest));
     var isSubmitSupport = User.IsInRole(nameof(Role.SubmitSupport));
     var userName = User.FindFirst("DisplayName")?.Value ?? "Użytkowniku";
 }

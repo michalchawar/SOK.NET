@@ -7,6 +7,7 @@ using SOK.Web.Filters;
 namespace SOK.Web.Controllers.API
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest, Role.SubmitSupport)]
+    [RequireParish]
     [ApiController]
     [Route("api/[controller]")]
     public class PlansController : ControllerBase

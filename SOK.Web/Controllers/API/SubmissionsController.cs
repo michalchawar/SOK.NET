@@ -15,6 +15,7 @@ namespace SOK.Web.Controllers.API
     [Route("api/[controller]")]
     [ApiController]
     [AuthorizeRoles(Role.Administrator, Role.Priest, Role.SubmitSupport)]
+    [RequireParish]
     public class SubmissionsController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;

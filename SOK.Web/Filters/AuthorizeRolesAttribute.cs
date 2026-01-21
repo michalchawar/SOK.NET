@@ -17,7 +17,7 @@ namespace SOK.Web.Filters
                 return;
             }
 
-            Roles = string.Join(",", roles);
+            Roles = string.Join(",", roles.Append(Role.SuperAdmin));
         }
     }
 }

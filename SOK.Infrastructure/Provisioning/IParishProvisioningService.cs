@@ -16,13 +16,15 @@ namespace SOK.Infrastructure.Provisioning
         /// </summary>
         /// <param name="parishUid">Publiczny unikalny identyfikator parafii (<c>UID</c>).</param>
         /// <param name="parishName">Nazwa parafii.</param>
+        /// <param name="createAdmin">Czy utworzyć konto administratora dla parafii. Jeśli null, użyta zostanie wartość z konfiguracji.</param>
+        /// <param name="seedExampleData">Czy załadować przykładowe dane do bazy parafii. Jeśli null, użyta zostanie wartość z konfiguracji.</param>
         /// <returns>
         /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację,
         /// którego zawartością jest nowo utworzony wpis <see cref="ParishEntry"/>.
         /// </returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="SystemException"></exception>
-        Task<ParishEntry> CreateParishAsync(string parishUid, string parishName);
+        Task<ParishEntry> CreateParishAsync(string parishUid, string parishName, bool? createAdmin = null, bool? seedExampleData = null);
 
         /// <summary>
         /// Sprawdza, czy wszystkie parafialne bazy istnieją i mają aktualne migracje.

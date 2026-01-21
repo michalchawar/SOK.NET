@@ -17,6 +17,7 @@ using SOK.Web.ViewModels.Parish;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
     [ActivePage("Settings")]
     public class SettingsController : Controller
     {

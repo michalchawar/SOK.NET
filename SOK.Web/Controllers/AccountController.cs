@@ -43,6 +43,16 @@ namespace SOK.Web.Controllers
 
                 if (result.Succeeded)
                 {
+                    // Sprawdź czy użytkownik jest SuperAdmin
+                    var isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
+                    
+                    if (isSuperAdmin)
+                    {
+                        // Przekieruj SuperAdmina do wyboru parafii, chyba że ma returnUrl
+                        TempData["success"] = "Zostałeś zalogowany jako Superadministrator.";
+                        return Redirect(returnUrl ?? "/ParishManagement");
+                    }
+                    
                     TempData["success"] = "Zostałeś zalogowany.";
                     return Redirect(returnUrl ?? "/");
                 }

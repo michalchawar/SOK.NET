@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Web.Controllers.API
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
     [Route("api/[controller]")]
     [ApiController]
     public class CalendarController : ControllerBase

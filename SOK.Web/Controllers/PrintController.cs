@@ -7,6 +7,7 @@ using SOK.Web.Filters;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
     [ActivePage("Calendar")]
     public class PrintController : Controller
     {

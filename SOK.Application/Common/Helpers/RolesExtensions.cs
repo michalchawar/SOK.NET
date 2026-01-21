@@ -135,6 +135,7 @@ namespace SOK.Application.Common.Helpers
         {
             return role switch
             {
+                Role.SuperAdmin => "Superadministrator",
                 Role.Administrator => "Administrator",
                 Role.Priest => "Ksiądz",
                 Role.SubmitSupport => "Wsparcie zgłoszeń",
@@ -153,6 +154,7 @@ namespace SOK.Application.Common.Helpers
         {
             return role switch
             {
+                Role.SuperAdmin => "bg-rose-600 border-rose-600 text-white",
                 Role.Administrator => "bg-red-500 border-red-500 text-white",
                 Role.Priest => "bg-purple-500 border-purple-500 text-white",
                 Role.SubmitSupport => "bg-blue-500 border-blue-500 text-white",
@@ -171,6 +173,7 @@ namespace SOK.Application.Common.Helpers
         {
             return role switch
             {
+                Role.SuperAdmin => 0,
                 Role.Administrator => 1,
                 Role.Priest => 2,
                 Role.SubmitSupport => 3,
@@ -189,6 +192,7 @@ namespace SOK.Application.Common.Helpers
         {
             return role switch
             {
+                Role.SuperAdmin => "bi-shield-lock-fill",
                 Role.Administrator => "bi-shield-fill-check",
                 Role.Priest => "bi-book",
                 Role.SubmitSupport => "bi-clipboard-check",

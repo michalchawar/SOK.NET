@@ -12,6 +12,7 @@ using SOK.Web.Filters;
 namespace SOK.Web.Controllers.Api
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest, Role.SubmitSupport)]
+    [RequireParish]
     [ApiController]
     [Route("api/email")]
     public class EmailApiController : ControllerBase

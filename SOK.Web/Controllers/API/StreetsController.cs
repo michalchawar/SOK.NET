@@ -10,6 +10,7 @@ namespace SOK.Web.Controllers.API
     [Route("api/[controller]")]
     [ApiController]
     [AuthorizeRoles]
+    [RequireParish]
     public class StreetsController : ControllerBase
     {
         private readonly IStreetService _streetService;

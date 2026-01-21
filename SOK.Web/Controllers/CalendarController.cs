@@ -19,6 +19,8 @@ using SOK.Web.ViewModels.Calendar;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
+    [RequireActivePlan]
     [ActivePage("Calendar")]
     public class CalendarController : Controller
     {

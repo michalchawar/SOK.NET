@@ -11,6 +11,7 @@ using System.Diagnostics;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles]
+    [RequireParish]
     [ActivePage("Home")]
     public class HomeController : Controller
     {
@@ -53,7 +54,9 @@ namespace SOK.Web.Controllers
             List<CalendarDayVM> calendarDays = new();
             List<MinisterAgendaVM> ministerAgendas = new();
 
-            if (User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest)))
+            if (User.IsInRole(nameof(Role.Administrator)) 
+             || User.IsInRole(nameof(Role.SuperAdmin))
+             || User.IsInRole(nameof(Role.Priest)))
             {
                 if (activePlan != null)
                 {
