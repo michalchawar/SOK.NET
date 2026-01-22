@@ -304,6 +304,20 @@ namespace SOK.Web.Controllers
             return View(vm);
         }
 
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> VisitStats(int id)
+        {
+            var stats = await _planService.GetVisitStatsAsync(id);
+            if (stats == null)
+            {
+                TempData["error"] = "Nie znaleziono planu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var vm = new VisitStatsVM(stats);
+            return View(vm);
+        }
+
         private async Task<IEnumerable<ParishMemberVM>> GetPriests(int? planId = null)
         {
             return (await _parishMemberService.GetAllInRoleAsync(Domain.Enums.Role.Priest))

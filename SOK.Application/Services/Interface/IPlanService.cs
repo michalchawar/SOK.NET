@@ -219,5 +219,15 @@ namespace SOK.Application.Services.Interface
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
         /// </returns>
         Task ManageDaysAsync(int planId, List<Day> days, DateTime visitsStartDate, DateTime visitsEndDate);
+
+        /// <summary>
+        /// Pobiera statystyki kolędy dla planu.
+        /// </summary>
+        /// <param name="planId">Identyfikator planu.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną,
+        /// którego zawartością jest obiekt <see cref="VisitStatsDto"/> lub <see cref="null"/>.
+        /// </returns>
+        Task<VisitStatsDto?> GetVisitStatsAsync(int planId);
     }
 }

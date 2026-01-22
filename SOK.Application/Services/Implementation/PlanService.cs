@@ -445,5 +445,129 @@ namespace SOK.Application.Services.Implementation
             await _uow.SaveAsync();
             await transaction.CommitAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<VisitStatsDto?> GetVisitStatsAsync(int planId)
+        {
+            var plan = await _uow.Plan.GetAsync(p => p.Id == planId, includeProperties: "Submissions.Visit");
+            if (plan == null)
+                return null;
+
+            // Pobierz dni z pełnymi danymi
+            var days = await _uow.Day.GetAllAsync(
+                filter: d => d.PlanId == planId,
+                includeProperties: "Agendas.Visits.Submission.FormSubmission",
+                orderBy: d => d.Date
+            );
+
+            var allSubmissions = plan.Submissions.ToList();
+            var allVisits = allSubmissions.Select(s => s.Visit).ToList();
+            
+            // Ogólne statystyki
+            var plannedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Planned || v.Status == VisitStatus.Visited || v.Status == VisitStatus.Rejected);
+            var visitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited);
+            var unplannedVisitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited && v.Submission.FormSubmission.Method == SubmitMethod.DuringVisits);
+            var rejectedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Rejected);
+            var totalPeopleVisited = allVisits.Where(v => v.Status == VisitStatus.Visited && v.PeopleCount.HasValue)
+                .Sum(v => v.PeopleCount ?? 0);
+            var visitedWithPeopleCount = allVisits.Count(v => v.Status == VisitStatus.Visited && v.PeopleCount.HasValue && v.PeopleCount > 0);
+
+            var rejectionPercentage = plannedSubmissions > 0 
+                ? Math.Round((decimal)rejectedSubmissions / plannedSubmissions * 100, 2) 
+                : 0;
+            var averagePeoplePerApartment = visitedWithPeopleCount > 0 
+                ? Math.Round((decimal)totalPeopleVisited / visitedWithPeopleCount, 2) 
+                : 0;
+
+            // Średnio dziennie (tylko dni kolędowe, które mają zaplanowane wizyty)
+            var daysWithVisits = days.Count(d => d.Agendas.Any(a => a.Visits.Any() && a.IsOfficial));
+            var averagePlannedPerDay = daysWithVisits > 0 
+                ? Math.Round((decimal)plannedSubmissions / daysWithVisits, 2) 
+                : 0;
+            var averageVisitedPerDay = daysWithVisits > 0 
+                ? Math.Round((decimal)visitedSubmissions / daysWithVisits, 2) 
+                : 0;
+            var averagePeoplePerDay = daysWithVisits > 0 
+                ? Math.Round((decimal)totalPeopleVisited / daysWithVisits, 2) 
+                : 0;
+
+            // Statystyki dzienne - pierwsza tabela
+            var dayStats = days.Select(day =>
+            {
+                var dayVisits = day.Agendas.Where(a => a.IsOfficial).SelectMany(a => a.Visits).ToList();
+                var dayPlanned = dayVisits.Count(v => v.Status == VisitStatus.Planned || v.Status == VisitStatus.Visited || v.Status == VisitStatus.Rejected);
+                var dayAccepted = dayVisits.Count(v => v.Status == VisitStatus.Visited);
+                var dayRejected = dayVisits.Count(v => v.Status == VisitStatus.Rejected);
+                var dayPeople = dayVisits.Where(v => v.Status == VisitStatus.Visited && v.PeopleCount.HasValue)
+                    .Sum(v => v.PeopleCount ?? 0);
+                var dayVisitedWithPeople = dayVisits.Count(v => v.Status == VisitStatus.Visited && v.PeopleCount.HasValue && v.PeopleCount > 0);
+                var dayPriestsCount = day.Agendas.Count(a => a.IsOfficial);
+
+                return new DayStatsDto
+                {
+                    Date = day.Date,
+                    DayOfWeek = day.Date.DayOfWeek.ToString(),
+                    PlannedSubmissions = dayPlanned,
+                    AcceptedSubmissions = dayAccepted,
+                    RejectionPercentage = dayPlanned > 0 ? Math.Round((decimal)dayRejected / dayPlanned * 100, 2) : 0,
+                    PeopleVisited = dayPeople,
+                    PeoplePerApartment = dayVisitedWithPeople > 0 ? Math.Round((decimal)dayPeople / dayVisitedWithPeople, 2) : 0,
+                    PriestsCount = dayPriestsCount
+                };
+            }).ToList();
+
+            // Druga tabela - statystyki według metod zgłoszeń
+            // Znajdź zakres dat od pierwszego zgłoszenia do ostatniego lub dni kolędowych
+            var firstSubmissionDate = allSubmissions.Any() 
+                ? DateOnly.FromDateTime(allSubmissions.Min(s => s.SubmitTime))
+                : (days.Any() ? days.Min(d => d.Date) : DateOnly.FromDateTime(DateTime.Today));
+            var lastSubmissionDate = allSubmissions.Any() 
+                ? DateOnly.FromDateTime(allSubmissions.Max(s => s.SubmitTime))
+                : (days.Any() ? days.Max(d => d.Date) : DateOnly.FromDateTime(DateTime.Today));
+            var lastDayDate = days.Any() ? days.Max(d => d.Date) : DateOnly.FromDateTime(DateTime.Today);
+
+            var startDate = firstSubmissionDate < (days.Any() ? days.Min(d => d.Date) : firstSubmissionDate) 
+                ? firstSubmissionDate 
+                : (days.Any() ? days.Min(d => d.Date) : firstSubmissionDate);
+            var endDate = lastSubmissionDate > lastDayDate ? lastSubmissionDate : lastDayDate;
+
+            var submissionMethodStats = new List<SubmissionMethodStatsDto>();
+            for (var date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                var dateTime = date.ToDateTime(TimeOnly.MinValue);
+                var daySubmissions = allSubmissions.Where(s => DateOnly.FromDateTime(s.SubmitTime) == date).ToList();
+
+                var webFormCount = daySubmissions.Count(s => s.FormSubmission?.Method == SubmitMethod.WebForm);
+                var otherMethodCount = daySubmissions.Count(s => s.FormSubmission?.Method != SubmitMethod.WebForm 
+                    && s.FormSubmission?.Method != SubmitMethod.DuringVisits);
+                var duringVisitCount = daySubmissions.Count(s => s.FormSubmission?.Method == SubmitMethod.DuringVisits);
+
+                submissionMethodStats.Add(new SubmissionMethodStatsDto
+                {
+                    Date = date,
+                    DayOfWeek = date.DayOfWeek.ToString(),
+                    WebFormSubmissions = webFormCount,
+                    OtherMethodSubmissions = otherMethodCount,
+                    DuringVisitSubmissions = duringVisitCount
+                });
+            }
+
+            return new VisitStatsDto
+            {
+                PlanName = plan.Name,
+                PlannedSubmissions = plannedSubmissions,
+                VisitedSubmissions = visitedSubmissions,
+                UnplannedVisitedSubmissions = unplannedVisitedSubmissions,
+                RejectionPercentage = rejectionPercentage,
+                TotalPeopleVisited = totalPeopleVisited,
+                AveragePeoplePerApartment = averagePeoplePerApartment,
+                AveragePlannedSubmissionsPerDay = averagePlannedPerDay,
+                AverageVisitedSubmissionsPerDay = averageVisitedPerDay,
+                AveragePeoplePerDay = averagePeoplePerDay,
+                TotalVisitDays = days.Count(),
+                DayStats = dayStats,
+                SubmissionMethodStats = submissionMethodStats
+            };
+        }
     }
 }
