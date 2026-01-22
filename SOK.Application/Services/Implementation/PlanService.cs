@@ -449,7 +449,9 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<VisitStatsDto?> GetVisitStatsAsync(int planId)
         {
-            var plan = await _uow.Plan.GetAsync(p => p.Id == planId, includeProperties: "Submissions.Visit");
+            var plan = await _uow.Plan.GetAsync(
+                p => p.Id == planId, 
+                includeProperties: "Submissions.Visit,Submissions.FormSubmission");
             if (plan == null)
                 return null;
 
@@ -466,7 +468,7 @@ namespace SOK.Application.Services.Implementation
             // Ogólne statystyki
             var plannedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Planned || v.Status == VisitStatus.Visited || v.Status == VisitStatus.Rejected);
             var visitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited);
-            var unplannedVisitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited && v.Submission.FormSubmission.Method == SubmitMethod.DuringVisits);
+            var unplannedVisitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited && v.Submission.FormSubmission?.Method == SubmitMethod.DuringVisits);
             var rejectedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Rejected);
             var totalPeopleVisited = allVisits.Where(v => v.Status == VisitStatus.Visited && v.PeopleCount.HasValue)
                 .Sum(v => v.PeopleCount ?? 0);
