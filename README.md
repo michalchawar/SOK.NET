@@ -77,3 +77,11 @@ The command brings up three services:
 
 > [!IMPORTANT]
 > Make sure to properly set all environment variables in the `.env` file before running in production mode (especially first time).
+
+## Unit tests
+
+There is a separate project for unit tests named `SOK.Tests`. To run the tests, you can use the .NET CLI:
+
+```shell
+dotnet test SOK.Tests
+```
