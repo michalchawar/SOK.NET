@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Edytuj użytkownika";
     var allRoles = ViewData["AllRoles"] as List<Role> ?? new List<Role>();
+    allRoles.Remove(Role.SuperAdmin);
 
     string GetBadgeColorClass(Role role)
     {
