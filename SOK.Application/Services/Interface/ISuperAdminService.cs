@@ -1,4 +1,3 @@
-using SOK.Application.Common.DTO;
 using SOK.Domain.Entities.Central;
 
 namespace SOK.Application.Services.Interface

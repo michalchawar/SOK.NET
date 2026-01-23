@@ -1,12 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Enums;
-using SOK.Infrastructure.Persistence.Context;
 using SOK.Web.Filters;
-using SOK.Web.ViewModels.Home;
-using System.Diagnostics;
+using SOK.Web.ViewModels.Dashboard;
 
 namespace SOK.Web.Controllers
 {

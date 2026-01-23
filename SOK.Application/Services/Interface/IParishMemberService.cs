@@ -1,4 +1,4 @@
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.ParishMember;
 using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;

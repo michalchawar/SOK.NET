@@ -1,6 +1,6 @@
 ﻿@using SOK.Application.Common.Helpers
 @using SOK.Domain.Enums
-@model SOK.Web.ViewModels.Home.DashboardVM
+@model SOK.Web.ViewModels.Dashboard.DashboardVM
 @{
     ViewData["Title"] = "Przegląd";
     var isAdminOrPriest = User.IsInRole(nameof(Role.Administrator)) 

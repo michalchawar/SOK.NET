@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Parish;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
 using SOK.Infrastructure.Persistence.Context;

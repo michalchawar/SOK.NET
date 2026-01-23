@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Services.Interface;

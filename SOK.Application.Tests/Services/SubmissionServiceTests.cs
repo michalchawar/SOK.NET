@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Moq;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Implementation;

@@ -1,4 +1,5 @@
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Agenda;
+using SOK.Application.Common.DTO.Address;
 using SOK.Domain.Enums;
 
 namespace SOK.Web.ViewModels.VisitControl

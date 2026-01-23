@@ -1,4 +1,3 @@
-using SOK.Application.Common.DTO;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Domain.Entities.Parish;
 

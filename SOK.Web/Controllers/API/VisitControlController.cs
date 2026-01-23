@@ -3,6 +3,7 @@ using SOK.Application.Services.Interface;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using SOK.Web.ViewModels.VisitControl;
+using SOK.Web.ViewModels.Api.VisitControl;
 
 namespace SOK.Web.Controllers.API
 {

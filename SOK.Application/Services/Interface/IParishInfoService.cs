@@ -1,4 +1,4 @@
-﻿using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Parish;
 using SOK.Domain.Entities.Parish;
 
 namespace SOK.Application.Services.Interface

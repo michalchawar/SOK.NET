@@ -5,6 +5,7 @@ using SOK.Application.Services.Interface;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
 using System.ComponentModel.DataAnnotations;
+using SOK.Web.ViewModels.Api.ParishMember;
 
 namespace SOK.Web.Controllers.API
 {
@@ -92,15 +93,5 @@ namespace SOK.Web.Controllers.API
                 return StatusCode(500, new { error = "Wystąpił błąd podczas zapisywania danych.", details = ex.Message });
             }
         }
-    }
-
-    /// <summary>
-    /// DTO do ustawiania jednostki czasowej.
-    /// </summary>
-    public class SetMinutesPerVisitDto
-    {
-        [Required]
-        [Range(3, 20)]
-        public int MinutesPerVisit { get; set; }
     }
 }

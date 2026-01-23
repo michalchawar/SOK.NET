@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
-using SOK.Application.Common.DTO;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Common.Interface;

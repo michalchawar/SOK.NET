@@ -1,4 +1,4 @@
-﻿using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Submission;
 using SOK.Domain.Entities.Parish;
 using System.Linq.Expressions;
 

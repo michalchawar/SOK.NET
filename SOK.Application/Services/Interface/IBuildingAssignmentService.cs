@@ -1,5 +1,4 @@
-using SOK.Application.Common.DTO;
-using SOK.Domain.Entities.Parish;
+using SOK.Application.Common.DTO.BuildingAssignment;
 
 namespace SOK.Application.Services.Interface
 {

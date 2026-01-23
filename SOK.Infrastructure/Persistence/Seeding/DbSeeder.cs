@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
-using SOK.Infrastructure.Extensions;
 using SOK.Infrastructure.Persistence.Context;
 using SOK.Infrastructure.Provisioning;
 

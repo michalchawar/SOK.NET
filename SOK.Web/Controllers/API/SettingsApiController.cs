@@ -7,6 +7,7 @@ using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
+using SOK.Web.ViewModels.Api.Settings;
 
 namespace SOK.Web.Controllers.Api
 {
@@ -73,16 +74,5 @@ namespace SOK.Web.Controllers.Api
                 return StatusCode(500, new { success = false, message = $"Błąd podczas aktualizacji: {ex.Message}" });
             }
         }
-    }
-
-    public class UpdateSettingRequest
-    {
-        public string Key { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
-    }
-
-    public class UpdateSettingsRequest
-    {
-        public List<UpdateSettingRequest> Settings { get; set; } = new();
     }
 }

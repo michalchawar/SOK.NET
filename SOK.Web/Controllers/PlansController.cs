@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Plan;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
-using SOK.Web.ViewModels.Parish;
+using SOK.Web.ViewModels.Plan;
+using SOK.Web.ViewModels.ParishManagement;
 
 namespace SOK.Web.Controllers
 {

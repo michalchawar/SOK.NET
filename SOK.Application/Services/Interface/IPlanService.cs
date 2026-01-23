@@ -1,4 +1,5 @@
-﻿using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Plan;
+using SOK.Application.Common.DTO.Visit;
 using SOK.Domain.Entities.Parish;
 using System.Linq.Expressions;
 

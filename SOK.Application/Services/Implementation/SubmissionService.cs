@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
 using SOK.Application.Common.Interface;
@@ -116,7 +115,7 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<int?> CreateSubmissionAsync(SubmissionCreationRequestDto submissionDto)
         {
-            // Budynek musi istnieć w momencie tworzenia zgłoszenia
+            // Budynek musi istnie� w momencie tworzenia zg�oszenia
             Building? building = await _uow.Building
                 .GetAsync(b => b.Id == submissionDto.Building.Id, includeProperties: "Addresses", tracked: true);
 
@@ -127,7 +126,7 @@ namespace SOK.Application.Services.Implementation
             Street? street = await _uow.Street
                 .GetAsync(s => s.Id == building.StreetId, includeProperties: "Type,City", tracked: true);
 
-            // Harmonogram również musi istnieć w momencie tworzenia zgłoszenia
+            // Harmonogram r�wnie� musi istnie� w momencie tworzenia zg�oszenia
             Schedule? schedule = await _uow.Schedule
                 .GetAsync(s => s.Id == submissionDto.Schedule.Id, includeProperties: "Plan", tracked: true);
 
@@ -135,7 +134,7 @@ namespace SOK.Application.Services.Implementation
                 throw new ArgumentException($"Cannot create submission for non-existent schedule " +
                     $"(schedule '{submissionDto.Schedule.Name}')");
 
-            // Sprawdzamy, czy zgłaszający figuruje już w bazie
+            // Sprawdzamy, czy zg�aszaj�cy figuruje ju� w bazie
             Submitter? submitter = await _uow.Submitter
                 .GetAsync(Submitter.IsEqualExpression(submissionDto.Submitter), tracked: true);
             if (submitter == null) 
@@ -150,7 +149,7 @@ namespace SOK.Application.Services.Implementation
             submissionDto.AdminNotes = submissionDto.AdminNotes.NullOrTrimmed();
             submissionDto.ApartmentLetter = submissionDto.ApartmentLetter.NullOrTrimmed()?.ToLower();
 
-            // Tworzymy zgłoszenie (jeszcze nie do końca zaludnione)
+            // Tworzymy zg�oszenie (jeszcze nie do ko�ca zaludnione)
             Submission submission = new Submission(schedule.Plan, submissionDto.Created)
             {
                 Submitter = submitter,
@@ -171,7 +170,7 @@ namespace SOK.Application.Services.Implementation
                 .FirstOrDefault(a => a.ApartmentNumber == submissionDto.ApartmentNumber
                                   && a.ApartmentLetter == submissionDto.ApartmentLetter);
             
-            // Jeśli adres istnieje, to nie może mieć zgłoszenia
+            // Je�li adres istnieje, to nie mo�e mie� zg�oszenia
             if (address != null)
             {
                 address = await _uow.Address.GetAsync(a => a.Id == address.Id, includeProperties: "Submissions", tracked: true);
@@ -181,7 +180,7 @@ namespace SOK.Application.Services.Implementation
                 address.Submissions.Add(submission);
                 submission.Address = address;
             }
-            // Jeśli adres nie istnieje to utwórz
+            // Je�li adres nie istnieje to utw�rz
             else
             {
                 address = new Address
@@ -215,7 +214,7 @@ namespace SOK.Application.Services.Implementation
             };
             submission.FormSubmission = fs;
 
-            // Tworzymy wizytę
+            // Tworzymy wizyt�
             Visit visit = new Visit
             {
                 OrdinalNumber = null,
@@ -226,7 +225,7 @@ namespace SOK.Application.Services.Implementation
             };
             submission.Visit = visit;
 
-            // Automatycznie dodadzą się powiązane obiekty
+            // Automatycznie dodadz� si� powi�zane obiekty
             _uow.Submission.Add(submission);
             await _uow.SaveAsync();
 
@@ -238,7 +237,7 @@ namespace SOK.Application.Services.Implementation
                 formSubmission: true
             )).FirstOrDefault()!;
 
-            // Sprawdź czy istnieje BuildingAssignment z włączonym auto-assign
+            // Sprawd� czy istnieje BuildingAssignment z w��czonym auto-assign
             var buildingAssignment = await _uow.BuildingAssignment.GetAsync(
                 filter: ba => 
                     ba.BuildingId == building.Id &&
@@ -258,29 +257,29 @@ namespace SOK.Application.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    // Logowanie błędu - ale nie przerywamy procesu tworzenia zgłoszenia
+                    // Logowanie b��du - ale nie przerywamy procesu tworzenia zg�oszenia
                     Console.WriteLine($"Failed to auto-assign visit {submission.Visit.Id} to day {buildingAssignment.DayId}: {ex.Message}");
                 }
             }
 
-            // Wysyłanie emaila potwierdzającego (jeśli włączone)
+            // Wysy�anie emaila potwierdzaj�cego (je�li w��czone)
             if (submissionDto.SendConfirmationEmail && !string.IsNullOrWhiteSpace(submitter.Email))
             {
                 try
                 {
-                    // Sprawdź czy wysyłanie emaili jest włączone globalnie
+                    // Sprawd� czy wysy�anie emaili jest w��czone globalnie
                     var emailEnabled = await _parishInfoService.GetValueAsync(InfoKeys.Email.EnableEmailSending);
                     if (emailEnabled == "true" || emailEnabled == "True")
                     {
                         var controlLinkBase = await _parishInfoService.GetValueAsync(InfoKeys.EmbeddedApplication.ControlPanelBaseUrl);
 
-                        // Utwórz typ emaila confirmation
+                        // Utw�rz typ emaila confirmation
                         var confirmationEmail = new ConfirmationEmail(
                             submission: submission,
                             controlLinkBase: controlLinkBase ?? string.Empty
                         );
 
-                        // Kolejkuj email - dane zostaną automatycznie wypełnione z submission
+                        // Kolejkuj email - dane zostan� automatycznie wype�nione z submission
                         await _emailService.QueueEmailAsync(
                             emailType: confirmationEmail,
                             submission: submission,
@@ -290,7 +289,7 @@ namespace SOK.Application.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    // Logowanie błędu, ale nie przerywamy procesu tworzenia zgłoszenia
+                    // Logowanie b��du, ale nie przerywamy procesu tworzenia zg�oszenia
                     Console.WriteLine($"Failed to send confirmation email: {ex.Message}");
                 }
             }
@@ -377,7 +376,7 @@ namespace SOK.Application.Services.Implementation
         /// <inheritdoc />
         public async Task<int> CreateSubmissionDuringVisitAsync(int buildingId, int? apartmentNumber, string? apartmentLetter, int scheduleId)
         {
-            // Utwórz zgłoszenie z danymi
+            // Utw�rz zg�oszenie z danymi
             int? submissionId = await CreateSubmissionAsync(new SubmissionCreationRequestDto
             {
                 Building = new Building { Id = buildingId },

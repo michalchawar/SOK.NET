@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SOK.Domain.Entities.Central;
-using SOK.Web.ViewModels.Central;
+using SOK.Web.ViewModels.Account;
 
 namespace SOK.Web.Controllers
 {

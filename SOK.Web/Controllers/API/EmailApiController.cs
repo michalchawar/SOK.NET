@@ -8,6 +8,7 @@ using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
+using SOK.Web.ViewModels.Api.Email;
 
 namespace SOK.Web.Controllers.Api
 {
@@ -181,29 +182,5 @@ namespace SOK.Web.Controllers.Api
                 return StatusCode(500, new { success = false, message = $"Błąd podczas wysyłania emaila: {ex.Message}" });
             }
         }
-    }
-
-    public abstract class EmailRequest {
-        public int SubmissionId { get; set; }
-        public int Priority { get; set; } = 5;
-        public bool ForceSend { get; set; } = true;
-    } 
-
-    public class ConfirmationEmailRequest : EmailRequest
-    {
-    }
-
-    public class VisitPlannedEmailRequest : EmailRequest
-    {
-    }
-
-    public class InvalidEmailRequest : EmailRequest
-    {
-        public string To { get; set; } = string.Empty;
-    }
-
-    public class DataChangeEmailRequest : EmailRequest
-    {
-        public Application.Common.Helpers.EmailTypes.DataChanges Changes { get; set; } = new();
     }
 }

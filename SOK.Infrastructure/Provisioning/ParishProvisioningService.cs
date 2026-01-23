@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SOK.Application.Common.DTO;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;

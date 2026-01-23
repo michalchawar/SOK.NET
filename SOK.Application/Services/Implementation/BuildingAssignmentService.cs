@@ -1,5 +1,5 @@
-using SOK.Application.Common.DTO;
-using SOK.Application.Common.Helpers.EmailTypes;
+using SOK.Application.Common.DTO.Agenda;
+using SOK.Application.Common.DTO.BuildingAssignment;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;

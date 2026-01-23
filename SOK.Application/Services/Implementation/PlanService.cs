@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Plan;
+using SOK.Application.Common.DTO.Visit;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
-using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using System.Linq.Expressions;
@@ -191,21 +190,21 @@ namespace SOK.Application.Services.Implementation
                 ParishMember? priest = existingPriests.FirstOrDefault(pm => pm.Id == newPriest.Id);
                 if (priest is null)
                 {
-                    // Utwórz nowego użytkownika z generycznymi danymi
+                    // Utw�rz nowego u�ytkownika z generycznymi danymi
                     priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
                     
-                    // Zapisz, aby wygenerować Id przed dodaniem do kolekcji
+                    // Zapisz, aby wygenerowa� Id przed dodaniem do kolekcji
                     await _uow.SaveAsync();
                 }
 
-                // Dodaj użytkownika do planu
+                // Dodaj u�ytkownika do planu
                 if (priest is not null)
                     plan.ActivePriests.Add(priest);
             }
 
             await _uow.SaveAsync();
 
-            // Włącz przyjmowanie zgłoszeń, domyślnie
+            // W��cz przyjmowanie zg�osze�, domy�lnie
             await _uow.ParishInfo.SetMetadataAsync(plan, "IsSubmissionGatheringEnabled", true.ToString());
             await _uow.SaveAsync();
 
@@ -228,7 +227,7 @@ namespace SOK.Application.Services.Implementation
 
             await using var transaction = await _uow.BeginTransactionAsync();
 
-            // Pobierz obiekt planu z relacją ActivePriests
+            // Pobierz obiekt planu z relacj� ActivePriests
             Plan? plan = await _uow.Plan.GetAsync(
                 filter: p => p.Id == planDto.Id, 
                 includeProperties: "ActivePriests",
@@ -236,18 +235,18 @@ namespace SOK.Application.Services.Implementation
             if (planDto.Id is null || plan is null)
                 throw new ArgumentException("Cannot update plan: plan with set id not found.");
 
-            // Zaktualizuj nazwę
+            // Zaktualizuj nazw�
             plan.Name = planDto.Name;
             plan.DefaultScheduleId = null;
 
-            // Określ zbiór z ID-kami istniejących planów i pobierz je na jego podstawie
+            // Okre�l zbi�r z ID-kami istniej�cych plan�w i pobierz je na jego podstawie
             var existingScheduleIds = planDto.Schedules.Where(s => s.Id is not null).Select(s => s.Id ?? -1);
             var existingSchedules = await _uow.Schedule.GetAllAsync(
                 filter: s => existingScheduleIds.Contains(s.Id), 
                 includeProperties: "Plan",
                 tracked: true);
 
-            // Dla każdego DTO harmonogramu określ, czy mamy je już w bazie (na podstawie pobranych) i odpowiednio zaktualizuj lub dodaj
+            // Dla ka�dego DTO harmonogramu okre�l, czy mamy je ju� w bazie (na podstawie pobranych) i odpowiednio zaktualizuj lub dodaj
             foreach (PlanScheduleDto newSchedule in planDto.Schedules)
             {
                 Schedule? schedule = existingSchedules.FirstOrDefault(s => s.Id == newSchedule.Id);
@@ -274,7 +273,7 @@ namespace SOK.Application.Services.Implementation
                     plan.DefaultScheduleId = schedule.Id;
             }
 
-            // Usuń harmonogramy, które nie występują w DTO
+            // Usu� harmonogramy, kt�re nie wyst�puj� w DTO
             var includedScheduleIds = planDto.Schedules.Where(s => s.Id is not null).Select(s => s.Id ?? -1);
             var schedulesToRemove = await _uow.Schedule.GetAllAsync(s => s.PlanId == plan.Id && !includedScheduleIds.Contains(s.Id));
             foreach (Schedule scheduleToRemove in schedulesToRemove)
@@ -284,7 +283,7 @@ namespace SOK.Application.Services.Implementation
 
             await _uow.SaveAsync();
 
-            // Przygotuj listę księży do aktualizacji
+            // Przygotuj list� ksi�y do aktualizacji
             var existingPriestIds = planDto.ActivePriests.Where(pm => pm.Id is not null).Select(pm => pm.Id ?? -1);
             var existingPriests = await _uow.ParishMember.GetAllAsync(
                 filter: pm => existingPriestIds.Contains(pm.Id));
@@ -298,10 +297,10 @@ namespace SOK.Application.Services.Implementation
                 ParishMember? priest = existingPriests.FirstOrDefault(pm => pm.Id == newPriest.Id);
                 if (priest is null)
                 {
-                    // Utwórz nowego użytkownika z generycznymi danymi
+                    // Utw�rz nowego u�ytkownika z generycznymi danymi
                     priest = await _uow.ParishMember.CreateMemberWithUserAccountAsync(newPriest.DisplayName, [Role.Priest]);
                     
-                    // Zapisz, aby wygenerować Id przed dodaniem do kolekcji
+                    // Zapisz, aby wygenerowa� Id przed dodaniem do kolekcji
                     await _uow.SaveAsync();
                 }
 
@@ -309,14 +308,14 @@ namespace SOK.Application.Services.Implementation
                     priestsToKeep.Add(priest);
             }
 
-            // Usuń księży, którzy nie są w nowej liście
+            // Usu� ksi�y, kt�rzy nie s� w nowej li�cie
             var priestsToRemove = plan.ActivePriests.Where(p => !priestsToKeep.Any(pk => pk.Id == p.Id)).ToList();
             foreach (var priest in priestsToRemove)
             {
                 plan.ActivePriests.Remove(priest);
             }
 
-            // Dodaj nowych księży (tylko tych, którzy jeszcze nie są w kolekcji)
+            // Dodaj nowych ksi�y (tylko tych, kt�rzy jeszcze nie s� w kolekcji)
             foreach (var priest in priestsToKeep)
             {
                 if (!plan.ActivePriests.Any(p => p.Id == priest.Id))
@@ -408,14 +407,14 @@ namespace SOK.Application.Services.Implementation
             await SetDateTimeMetadataAsync(plan, Common.Helpers.PlanMetadataKeys.VisitsStartDate, visitsStartDate);
             await SetDateTimeMetadataAsync(plan, Common.Helpers.PlanMetadataKeys.VisitsEndDate, visitsEndDate);
 
-            // Pobierz istniejące dni dla tego planu
+            // Pobierz istniej�ce dni dla tego planu
             var existingDays = await _uow.Day.GetAllAsync(d => d.PlanId == planId);
             var existingDaysDict = existingDays.ToDictionary(d => d.Date);
 
-            // Przygotuj słownik nowych dni
+            // Przygotuj s�ownik nowych dni
             var newDaysDict = days.ToDictionary(d => d.Date);
 
-            // Usuń dni, które nie są w nowej liście
+            // Usu� dni, kt�re nie s� w nowej li�cie
             foreach (var existingDay in existingDays)
             {
                 if (!newDaysDict.ContainsKey(existingDay.Date))
@@ -424,12 +423,12 @@ namespace SOK.Application.Services.Implementation
                 }
             }
 
-            // Aktualizuj istniejące lub dodaj nowe
+            // Aktualizuj istniej�ce lub dodaj nowe
             foreach (var day in days)
             {
                 if (existingDaysDict.TryGetValue(day.Date, out var existingDay))
                 {
-                    // Aktualizuj istniejący
+                    // Aktualizuj istniej�cy
                     existingDay.StartHour = day.StartHour;
                     existingDay.EndHour = day.EndHour;
                     _uow.Day.Update(existingDay);
@@ -455,7 +454,7 @@ namespace SOK.Application.Services.Implementation
             if (plan == null)
                 return null;
 
-            // Pobierz dni z pełnymi danymi
+            // Pobierz dni z pe�nymi danymi
             var days = await _uow.Day.GetAllAsync(
                 filter: d => d.PlanId == planId,
                 includeProperties: "Agendas.Visits.Submission.FormSubmission",
@@ -465,7 +464,7 @@ namespace SOK.Application.Services.Implementation
             var allSubmissions = plan.Submissions.ToList();
             var allVisits = allSubmissions.Select(s => s.Visit).ToList();
             
-            // Ogólne statystyki
+            // Og�lne statystyki
             var plannedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Planned || v.Status == VisitStatus.Visited || v.Status == VisitStatus.Rejected);
             var visitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited);
             var unplannedVisitedSubmissions = allVisits.Count(v => v.Status == VisitStatus.Visited && v.Submission.FormSubmission?.Method == SubmitMethod.DuringVisits);
@@ -481,7 +480,7 @@ namespace SOK.Application.Services.Implementation
                 ? Math.Round((decimal)totalPeopleVisited / visitedWithPeopleCount, 2) 
                 : 0;
 
-            // Średnio dziennie (tylko dni kolędowe, które mają zaplanowane wizyty)
+            // �rednio dziennie (tylko dni kol�dowe, kt�re maj� zaplanowane wizyty)
             var daysWithVisits = days.Count(d => d.Agendas.Any(a => a.Visits.Any() && a.IsOfficial));
             var averagePlannedPerDay = daysWithVisits > 0 
                 ? Math.Round((decimal)plannedSubmissions / daysWithVisits, 2) 
@@ -518,8 +517,8 @@ namespace SOK.Application.Services.Implementation
                 };
             }).ToList();
 
-            // Druga tabela - statystyki według metod zgłoszeń
-            // Znajdź zakres dat od pierwszego zgłoszenia do ostatniego lub dni kolędowych
+            // Druga tabela - statystyki wed�ug metod zg�osze�
+            // Znajd� zakres dat od pierwszego zg�oszenia do ostatniego lub dni kol�dowych
             var firstSubmissionDate = allSubmissions.Any() 
                 ? DateOnly.FromDateTime(allSubmissions.Min(s => s.SubmitTime))
                 : (days.Any() ? days.Min(d => d.Date) : DateOnly.FromDateTime(DateTime.Today));

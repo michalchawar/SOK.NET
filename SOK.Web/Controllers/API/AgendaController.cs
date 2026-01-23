@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Agenda;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;

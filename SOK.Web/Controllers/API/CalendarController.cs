@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.BuildingAssignment;
+using SOK.Web.ViewModels.Api.Calendar;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
@@ -28,38 +29,6 @@ namespace SOK.Web.Controllers.API
             _planService = planService;
             _buildingAssignmentService = buildingAssignmentService;
             _streetService = streetService;
-        }
-
-        /// <summary>
-        /// DTO dla zapisu dni.
-        /// </summary>
-        public class SaveDaysRequest
-        {
-            [Required]
-            public int PlanId { get; set; }
-
-            [Required]
-            public DateTime VisitsStartDate { get; set; }
-
-            [Required]
-            public DateTime VisitsEndDate { get; set; }
-
-            [Required]
-            public List<DayDto> Days { get; set; } = new();
-        }
-
-        public class DayDto
-        {
-            public int? Id { get; set; }
-
-            [Required]
-            public DateOnly Date { get; set; }
-
-            [Required]
-            public TimeOnly StartHour { get; set; }
-
-            [Required]
-            public TimeOnly EndHour { get; set; }
         }
 
         /// <summary>

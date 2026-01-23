@@ -1,5 +1,3 @@
-using SOK.Application.Common.DTO;
-using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 
 namespace SOK.Application.Services.Interface

@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Mvc.ViewComponents;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.ParishMember;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;

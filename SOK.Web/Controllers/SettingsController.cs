@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Logging;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
-using SOK.Web.ViewModels.Parish;
+using SOK.Web.ViewModels.Settings;
 
 namespace SOK.Web.Controllers
 {

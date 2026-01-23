@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using SOK.Application.Common.DTO;
-using SOK.Application.Common.Interface;
+using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
 using SOK.Web.Filters;
-using SOK.Web.ViewModels.Parish;
+using SOK.Web.ViewModels.Submission;
 
 namespace SOK.Web.Controllers
 {

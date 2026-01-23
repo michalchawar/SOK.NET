@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Identity;
-using SOK.Application.Common.DTO;
-using SOK.Application.Common.Helpers;
+using SOK.Application.Common.DTO.ParishMember;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
 using SOK.Domain.Enums;
-using System.Drawing;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Cryptography;

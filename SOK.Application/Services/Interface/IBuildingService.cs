@@ -1,6 +1,5 @@
-using SOK.Application.Common.DTO;
+using SOK.Application.Common.DTO.Address;
 using SOK.Domain.Entities.Parish;
-using System.Linq.Expressions;
 
 namespace SOK.Application.Services.Interface
 {
