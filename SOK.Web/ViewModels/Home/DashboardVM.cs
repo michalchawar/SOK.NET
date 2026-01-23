@@ -4,11 +4,13 @@ namespace SOK.Web.ViewModels.Home
 {
     public class DashboardVM
     {
-        public SubmissionsStatsVM SubmissionsStats { get; set; } = new();
+        public SubmissionsStatsVM? SubmissionsStats { get; set; } = new();
         public List<DailySubmissionsVM> DailySubmissions { get; set; } = new();
         public UpcomingDayVM? UpcomingDay { get; set; }
         public List<CalendarDayVM> AllDays { get; set; } = new();
         public List<MinisterAgendaVM> MinisterAgendas { get; set; } = new();
+        public bool IsPublicFormEnabled { get; set; } = false;
+        public bool HasActivePlan { get; set; } = false;
     }
 
     public class SubmissionsStatsVM
@@ -77,6 +79,7 @@ namespace SOK.Web.ViewModels.Home
         public string? PriestName { get; set; }
         public int VisitsCount { get; set; }
         public bool ShowHours { get; set; }
+        public bool IsOfficial { get; set; }
         public bool IsPast { get; set; }
     }
 }

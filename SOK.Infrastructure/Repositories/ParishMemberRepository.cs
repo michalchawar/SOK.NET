@@ -121,21 +121,21 @@ namespace SOK.Infrastructure.Repositories
 
             User newUser = new()
             {
-                UserName = CreateUserNameFromDisplayName(displayName),
+                UserName = await CreateUserNameFromDisplayName(displayName),
                 DisplayName = displayName,
                 ParishId = parish.Id,
-            };
-
-            ParishMember newMember = new()
-            {
-                DisplayName = newUser.DisplayName,
-                CentralUserId = newUser.Id,
             };
 
             var result = await _userManager.CreateAsync(newUser);
 
             if (!result.Succeeded)
                 return null;
+
+            ParishMember newMember = new()
+            {
+                DisplayName = newUser.DisplayName,
+                CentralUserId = newUser.Id,
+            };
 
             dbSet.Add(newMember);
             await _userManager.AddToRolesAsync(newUser, roles.Select(r => r.ToString()));
@@ -167,18 +167,26 @@ namespace SOK.Infrastructure.Repositories
             return await _userManager.AddPasswordAsync(user, newPassword);
         }
 
-        private string CreateUserNameFromDisplayName(string displayName)
+        private async Task<string> CreateUserNameFromDisplayName(string displayName)
         {
             char joinCharacter = '-';
 
-            string baseUserName = displayName.Replace(" ", string.Empty).Replace(",", string.Empty).Replace(".", string.Empty).NormalizePolishDiacritics().ToLower();
-            string userName = string.Join(joinCharacter, baseUserName.Split([' ', '-', '/'], StringSplitOptions.TrimEntries).TakeLast(2));
-            int suffix = 1;
+            string baseUserName = displayName
+                .Replace(" ", string.Empty)
+                .Replace(",", string.Empty)
+                .Replace(".", string.Empty)
+                .NormalizePolishDiacritics()
+                .ToLower();
 
-            while (_userManager.FindByNameAsync(userName).Result is not null)
+            string userName = string.Join(
+                joinCharacter, 
+                baseUserName.Split([' ', '-', '/'], 
+                StringSplitOptions.TrimEntries).TakeLast(2)
+            );
+
+            while (await _userManager.FindByNameAsync(userName) is not null)
             {
                 userName = $"{baseUserName}{joinCharacter}{_random.Next(1000, 9999)}";
-                suffix++;
             }
 
             return userName;

@@ -11,6 +11,7 @@ using System.Diagnostics;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles]
+    [RequireParish]
     [ActivePage("Home")]
     public class HomeController : Controller
     {
@@ -39,63 +40,69 @@ namespace SOK.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var activePlan = await _planService.GetActivePlanAsync();
+
             DateTime now = DateTime.UtcNow;
             DateTime last24h = now.AddHours(-24);
             DateOnly last30Days = DateOnly.FromDateTime(now.AddDays(-29));
             DateOnly today = DateOnly.FromDateTime(now);
 
-            // Pobierz wszystkie zgłoszenia z metodą zgłoszenia
-            var submissions = (await _submissionService.GetSubmissionsPaginated(
-                    page: 1,
-                    pageSize: int.MaxValue))
-                .Select(s => new
-                {
-                    s.SubmitTime,
-                    Method = s.FormSubmission?.Method ?? SubmitMethod.NotRegistered
-                }).ToList();
-
-            var stats = new SubmissionsStatsVM
-            {
-                TotalCount = submissions.Count,
-                TotalLast24h = submissions.Count(s => s.SubmitTime >= last24h),
-                WebFormCount = submissions.Count(s => s.Method == SubmitMethod.WebForm),
-                WebFormLast24h = submissions.Count(s => s.Method == SubmitMethod.WebForm && s.SubmitTime >= last24h),
-                OtherCount = submissions.Count(s => s.Method != SubmitMethod.WebForm),
-                OtherLast24h = submissions.Count(s => s.Method != SubmitMethod.WebForm && s.SubmitTime >= last24h)
-            };
-
-            // Dane dzienne dla wykresu (ostatnie 30 dni)
-            var dailyData = submissions
-                .Where(s => s.SubmitTime >= last30Days.ToDateTime(TimeOnly.MinValue))
-                .GroupBy(s => s.SubmitTime.Date)
-                .Select(g => new DailySubmissionsVM
-                {
-                    Date = DateOnly.FromDateTime(g.Key),
-                    WebFormCount = g.Count(s => s.Method == SubmitMethod.WebForm),
-                    OtherCount = g.Count(s => s.Method != SubmitMethod.WebForm)
-                })
-                .OrderBy(d => d.Date)
-                .ToList();
-
-            // Uzupełnij brakujące dni zerami
-            var allDays = Enumerable.Range(0, 30)
-                .Select(i => last30Days.AddDays(i))
-                .ToList();
-
-            var completeData = allDays
-                .Select(date => dailyData.FirstOrDefault(d => d.Date == date) ?? new DailySubmissionsVM { Date = date })
-                .ToList();
-
             // Pobierz dane o kolędzie (tylko dla administratorów i księży)
+            SubmissionsStatsVM? stats = null;
+            List<DailySubmissionsVM> completeData = new();
             UpcomingDayVM? upcomingDay = null;
             List<CalendarDayVM> calendarDays = new();
             List<MinisterAgendaVM> ministerAgendas = new();
 
-            if (User.IsInRole(nameof(Role.Administrator)) || User.IsInRole(nameof(Role.Priest)))
+            if (User.IsInRole(nameof(Role.Administrator)) 
+             || User.IsInRole(nameof(Role.SuperAdmin))
+             || User.IsInRole(nameof(Role.Priest)))
             {
-                var activePlan = await _planService.GetActivePlanAsync();
                 if (activePlan != null)
                 {
+                    // Pobierz wszystkie zgłoszenia z metodą zgłoszenia z aktywnego planu
+                    var submissions = (await _submissionService.GetSubmissionsPaginated(
+                            filter: s => s.PlanId == activePlan.Id,
+                            page: 1,
+                            pageSize: int.MaxValue))
+                        .Select(s => new
+                        {
+                            s.SubmitTime,
+                            Method = s.FormSubmission?.Method ?? SubmitMethod.NotRegistered
+                        }).ToList();
+
+                    stats = new SubmissionsStatsVM
+                    {
+                        TotalCount = submissions.Count,
+                        TotalLast24h = submissions.Count(s => s.SubmitTime >= last24h),
+                        WebFormCount = submissions.Count(s => s.Method == SubmitMethod.WebForm),
+                        WebFormLast24h = submissions.Count(s => s.Method == SubmitMethod.WebForm && s.SubmitTime >= last24h),
+                        OtherCount = submissions.Count(s => s.Method != SubmitMethod.WebForm),
+                        OtherLast24h = submissions.Count(s => s.Method != SubmitMethod.WebForm && s.SubmitTime >= last24h)
+                    };
+
+                    // Dane dzienne dla wykresu (ostatnie 30 dni)
+                    var dailyData = submissions
+                        .Where(s => s.SubmitTime >= last30Days.ToDateTime(TimeOnly.MinValue))
+                        .GroupBy(s => s.SubmitTime.Date)
+                        .Select(g => new DailySubmissionsVM
+                        {
+                            Date = DateOnly.FromDateTime(g.Key),
+                            WebFormCount = g.Count(s => s.Method == SubmitMethod.WebForm),
+                            OtherCount = g.Count(s => s.Method != SubmitMethod.WebForm)
+                        })
+                        .OrderBy(d => d.Date)
+                        .ToList();
+
+                    // Uzupełnij brakujące dni zerami
+                    var allDays = Enumerable.Range(0, 30)
+                        .Select(i => last30Days.AddDays(i))
+                        .ToList();
+
+                    completeData = allDays
+                        .Select(date => dailyData.FirstOrDefault(d => d.Date == date) ?? new DailySubmissionsVM { Date = date })
+                        .ToList();
+
                     var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
                     var sortedDays = days.OrderBy(d => d.Date).ToList();
 
@@ -105,7 +112,9 @@ namespace SOK.Web.Controllers
                     if (upcomingDayEntity != null)
                     {
                         // Pobierz agendy dla tego dnia
-                        var agendas = await _agendaService.GetAgendasForDayAsync(upcomingDayEntity.Id);
+                        var agendas = (await _agendaService.GetAgendasForDayAsync(upcomingDayEntity.Id))
+                            .Where(a => a.IsOfficial) // Tylko oficjalne
+                            .ToList();
                         var totalVisitsPlanned = agendas.Sum(a => a.VisitsCount);
 
                         var agendaCards = new List<AgendaCardVM>();
@@ -154,7 +163,9 @@ namespace SOK.Web.Controllers
                     // Przygotuj listę wszystkich dni
                     foreach (var day in sortedDays)
                     {
-                        var dayAgendas = await _agendaService.GetAgendasForDayAsync(day.Id);
+                        var dayAgendas = (await _agendaService.GetAgendasForDayAsync(day.Id))
+                            .Where(a => a.IsOfficial) // Tylko oficjalne
+                            .ToList();
                         var visitsPlanned = dayAgendas.Sum(a => a.VisitsCount);
                         
                         // Policz wizyty odbyte (dla dni które minęły)
@@ -191,7 +202,6 @@ namespace SOK.Web.Controllers
                 {
                     var userId = parishMember.Id;
 
-                    var activePlan = await _planService.GetActivePlanAsync();
                     if (activePlan != null)
                     {
                     var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
@@ -224,6 +234,7 @@ namespace SOK.Web.Controllers
                                     PriestName = agenda.Priest?.DisplayName,
                                     VisitsCount = agenda.VisitsCount,
                                     ShowHours = agenda.ShowHours,
+                                    IsOfficial = agenda.IsOfficial,
                                     IsPast = day.Date < today
                                 });
                             }
@@ -240,6 +251,14 @@ namespace SOK.Web.Controllers
                 AllDays = calendarDays,
                 MinisterAgendas = ministerAgendas
             };
+
+            if (activePlan != null)
+            {
+                viewModel.HasActivePlan = true;
+
+                var submissionGathering = await _planService.IsSubmissionGatheringEnabledAsync(activePlan);
+                viewModel.IsPublicFormEnabled = activePlan.DefaultScheduleId is not null && submissionGathering;
+            }
 
             return View(viewModel);
         }

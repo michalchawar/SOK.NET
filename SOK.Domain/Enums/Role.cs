@@ -6,6 +6,7 @@ namespace SOK.Domain.Enums
         VisitSupport,
         SubmitSupport,
         Priest,
-        Administrator
+        Administrator,
+        SuperAdmin
     }
 }

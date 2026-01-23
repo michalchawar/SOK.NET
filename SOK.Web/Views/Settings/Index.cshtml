@@ -1,6 +1,8 @@
 @using NuGet.Configuration
 @{
     ViewData["Title"] = "Ustawienia";
+
+    string? parishUid = ViewData["ParishUid"] as string;
 }
 
 @functions {
@@ -9,6 +11,7 @@
         public string Description { get; set; } = string.Empty;
         public string? Controller { get; set; } = null;
         public string Action { get; set; } = string.Empty;
+        public Dictionary<string, string> RouteData { get; set; } = new Dictionary<string, string>();
         public string Icon { get; set; } = string.Empty;
     }
 }
@@ -16,17 +19,16 @@
 @{
     var settingsItems = new List<SettingsOption> {
         new SettingsOption() {
+            Name = "Ustawienia systemowe",
+            Description = "Zaktualizuj różne ustawienia ogólnosystemowe.",
+            Action = "General",
+            Icon = "gear-fill",
+        },
+        new SettingsOption() {
             Name = "Użytkownicy",
             Description = "Zarządzaj użytkownikami twojej parafii. Dodawaj i usuwaj członków, a także edytuj ich dane i przypisuj im role.",
             Action = "Users",
             Icon = "person-lines-fill",
-        },
-        new SettingsOption() {
-            Name = "Plany",
-            Description = "Przeglądaj utworzone plany, twórz nowe, edytuj i aktywuj.",
-            Controller = "Plans",
-            Action = "Index",
-            Icon = "list-check",
         },
         new SettingsOption() {
             Name = "Adresy",
@@ -35,10 +37,14 @@
             Icon = "building-fill-gear",
         },
         new SettingsOption() {
-            Name = "Ustawienia systemowe",
-            Description = "Zaktualizuj różne ustawienia ogólnosystemowe.",
-            Action = "General",
-            Icon = "gear-fill",
+            Name = "Formularz zgłoszeniowy",
+            Description = "Przejdź do publicznego formularza zgłoszeniowego.",
+            Controller = "PublicForm",
+            Action = "New",
+            RouteData = new Dictionary<string, string> {
+                { "parishUid", parishUid ?? string.Empty }
+            },
+            Icon = "input-cursor-text",
         },
     };
 }
@@ -46,7 +52,7 @@
 <div class="overflow-x-auto h-full">
     <div class="min-h-full flex flex-col items-center justify-start min-w-1/2 max-w-full md:max-w-5/6 lg:max-w-4/5 px-10 gap-2.5 mx-auto">
         @foreach (SettingsOption option in settingsItems) {
-            <a asp-action="@option.Action" asp-controller="@(option.Controller ?? "Settings")" 
+            <a asp-action="@option.Action" asp-controller="@(option.Controller ?? "Settings")" asp-all-route-data="option.RouteData"
                 class="flex flex-col md:flex-row justify-start items-center gap-6 p-10 bg-base-300 hover:bg-base-200 transition-colors w-full">
                 <i class="bi bi-@option.Icon text-7xl text-center font-bold opacity-80"></i>
                 <div class="flex-1 flex flex-col gap-1 text-center md:text-left">

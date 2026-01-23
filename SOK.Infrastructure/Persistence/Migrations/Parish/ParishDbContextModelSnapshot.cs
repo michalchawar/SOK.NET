@@ -138,6 +138,9 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Property<bool>("HideVisits")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsOfficial")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ScheduleId")
                         .HasColumnType("int");
 
@@ -667,9 +670,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Property<int>("PlanId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ScheduleId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("SubmitTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -690,8 +690,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.HasIndex("AddressId");
 
                     b.HasIndex("PlanId");
-
-                    b.HasIndex("ScheduleId");
 
                     b.HasIndex("SubmitterId");
 
@@ -931,14 +929,14 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("Date")
+                        .HasColumnType("date");
 
                     b.Property<bool?>("DateVisibility")
                         .HasColumnType("bit");
 
-                    b.Property<short>("OrdinalNumber")
-                        .HasColumnType("smallint");
+                    b.Property<int?>("OrdinalNumber")
+                        .HasColumnType("int");
 
                     b.Property<int?>("PeopleCount")
                         .HasColumnType("int");
@@ -948,6 +946,9 @@ namespace SOK.Infrastructure.Migrations.Parish
 
                     b.Property<bool?>("PredictedTimeVisibility")
                         .HasColumnType("bit");
+
+                    b.Property<int?>("ScheduleId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ScheduleName")
                         .HasColumnType("nvarchar(max)");
@@ -1162,10 +1163,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SOK.Domain.Entities.Parish.Schedule", null)
-                        .WithMany("Submissions")
-                        .HasForeignKey("ScheduleId");
-
                     b.HasOne("SOK.Domain.Entities.Parish.Submitter", "Submitter")
                         .WithMany("Submissions")
                         .HasForeignKey("SubmitterId")
@@ -1302,8 +1299,6 @@ namespace SOK.Infrastructure.Migrations.Parish
                     b.Navigation("Agendas");
 
                     b.Navigation("BuildingAssignments");
-
-                    b.Navigation("Submissions");
 
                     b.Navigation("Visits");
                 });

@@ -7,6 +7,7 @@ using SOK.Web.ViewModels.VisitControl;
 namespace SOK.Web.Controllers.API
 {
     [AuthorizeRoles(Role.VisitSupport, Role.Priest, Role.Administrator)]
+    [RequireParish]
     [Route("api/[controller]")]
     [ApiController]
     public class VisitControlController : ControllerBase

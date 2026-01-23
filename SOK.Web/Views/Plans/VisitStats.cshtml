@@ -1,0 +1,229 @@
+@using SOK.Application.Common.Helpers
+@using SOK.Infrastructure.Extensions
+@using System.Globalization
+@model SOK.Web.ViewModels.Parish.VisitStatsVM
+@{
+    ViewData["Title"] = "Statystyki kolędy";
+}
+
+<div class="overflow-x-auto h-full">
+    <div class="min-h-full w-full flex flex-col items-center justify-start py-8">
+        <div class="w-11/12 mb-6 flex flex-col lg:flex-row lg:justify-between gap-2">
+            <div class="">
+                <h1 class="text-3xl font-bold mb-2">
+                    Statystyki kolędy
+                </h1>
+                <p class="text-lg opacity-70">
+                    Plan: <span class="font-semibold">@Model.PlanName</span>
+                </p>
+            </div>
+            <a asp-action="Index" class="btn btn-soft">
+                <i class="bi bi-arrow-left"></i>
+                Powrót do planów
+            </a>
+        </div>
+
+        <!-- Ogólne statystyki -->
+        <div class="w-11/12 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Podsumowanie</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Wiersz 1 -->
+                <div class="stats stats-vertical shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-primary">
+                            <i class="bi bi-clipboard-check text-4xl"></i>
+                        </div>
+                        <div class="stat-title">Zaplanowane zgłoszenia</div>
+                        <div class="stat-value text-primary">@Model.PlannedSubmissions</div>
+                    </div>
+                </div>
+
+                <div class="stats stats-vertical shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-success">
+                            <i class="bi bi-house-check text-4xl"></i>
+                        </div>
+                        <div class="stat-title">Odwiedzone zgłoszenia</div>
+                        <div class="stat-value text-success">@Model.VisitedSubmissions</div>
+                    </div>
+                </div>
+
+                <div class="stats stats-vertical shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-info">
+                            <i class="bi bi-house-add text-4xl"></i>
+                        </div>
+                        <div class="stat-title">Niezaplanowane odw. zgł.</div>
+                        <div class="stat-value text-info">@Model.UnplannedVisitedSubmissions</div>
+                        <div class="stat-desc">Dodane podczas kolędy</div>
+                    </div>
+                </div>
+
+                <!-- Wiersz 2 -->
+                <div class="stats stats-vertical shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-error">
+                            <i class="bi bi-x-circle text-4xl"></i>
+                        </div>
+                        <div class="stat-title">Procent nieprzyjętych kolęd</div>
+                        <div class="stat-value text-error">@Model.RejectionPercentage%</div>
+                    </div>
+                </div>
+
+                <div class="stats stats-vertical shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-accent">
+                            <i class="bi bi-people text-4xl"></i>
+                        </div>
+                        <div class="stat-title">Odwiedzeni mieszkańcy</div>
+                        <div class="stat-value text-accent">@Model.TotalPeopleVisited</div>
+                    </div>
+                </div>
+
+                <div class="stats stats-vertical shadow">
+                    <div class="stat">
+                        <div class="stat-figure">
+                            <i class="bi bi-calculator text-3xl opacity-70"></i>
+                        </div>
+                        <div class="stat-title">Średnio na mieszkanie</div>
+                        <div class="stat-value text-2xl">@Model.AveragePeoplePerApartment</div>
+                        <div class="stat-desc">osób</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Średnio dziennie -->
+        <div class="w-11/12 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Średnio dziennie odwiedzane</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Zaplanowane zgłoszenia</div>
+                        <div class="stat-value text-lg">@Model.AveragePlannedSubmissionsPerDay</div>
+                        <div class="stat-desc">na @Model.TotalVisitDays @(LanguageExtensions.GetDeclination(Model.TotalVisitDays, "dzień", "dni", "dni"))</div>
+                    </div>
+                </div>
+
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Odwiedzone zgłoszenia</div>
+                        <div class="stat-value text-lg">@Model.AverageVisitedSubmissionsPerDay</div>
+                        <div class="stat-desc">na @Model.TotalVisitDays @(LanguageExtensions.GetDeclination(Model.TotalVisitDays, "dzień", "dni", "dni"))</div>
+                    </div>
+                </div>
+
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-title">Mieszkańcy</div>
+                        <div class="stat-value text-lg">@Model.AveragePeoplePerDay</div>
+                        <div class="stat-desc">na @Model.TotalVisitDays @(LanguageExtensions.GetDeclination(Model.TotalVisitDays, "dzień", "dni", "dni"))</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liczba dni kolędowych -->
+        <div class="w-11/12 mb-8">
+            <div class="alert alert-info">
+                <i class="bi bi-calendar3 text-2xl"></i>
+                <span class="text-lg">
+                    <strong>Liczba dni kolędowych:</strong> @Model.TotalVisitDays @(LanguageExtensions.GetDeclination(Model.TotalVisitDays, "dzień", "dni", "dni"))
+                </span>
+            </div>
+        </div>
+
+        <!-- Tabela 1: Statystyki dzienne wizyt -->
+        <div class="w-11/12 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Statystyki dzienne wizyt</h2>
+            
+            @if (Model.DayStats.Any())
+            {
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Dzień tygodnia</th>
+                                <th>Zaplanowane</th>
+                                <th>Przyjęte</th>
+                                <th>Procent nieprzyjętych</th>
+                                <th>Odwiedzeni mieszkańcy</th>
+                                <th>Mieszkańcy na mieszkanie</th>
+                                <th>Liczba księży</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in Model.DayStats)
+                            {
+                                <tr class="hover">
+                                    <td>@day.Date.ToString("dd.MM.yyyy")</td>
+                                    <td>@day.Date.DayOfWeek.GetPolishName()</td>
+                                    <td>@day.PlannedSubmissions</td>
+                                    <td>@day.AcceptedSubmissions</td>
+                                    <td>@day.RejectionPercentage%</td>
+                                    <td>@day.PeopleVisited</td>
+                                    <td>@day.PeoplePerApartment</td>
+                                    <td>@day.PriestsCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Brak dni kolędowych w planie.</span>
+                </div>
+            }
+        </div>
+
+        <!-- Tabela 2: Statystyki metod zgłoszeń -->
+        <div class="w-11/12 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Statystyki zgłoszeń według metody</h2>
+            <p class="text-sm opacity-70 mb-4">
+                Zakres dat: od pierwszego zgłoszenia (lub pierwszego dnia kolędowego) do ostatniego zgłoszenia (lub ostatniego dnia)
+            </p>
+            
+            @if (Model.SubmissionMethodStats.Any())
+            {
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Dzień tygodnia</th>
+                                <th>Internetowe</th>
+                                <th>Papierowe/mailowe</th>
+                                <th>Niezaplanowane</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in Model.SubmissionMethodStats)
+                            {
+                                <tr class="hover">
+                                    <td>@day.Date.ToString("dd.MM.yyyy")</td>
+                                    <td>@day.Date.DayOfWeek.GetPolishName()</td>
+                                    <td>@day.WebFormSubmissions</td>
+                                    <td>@day.OtherMethodSubmissions</td>
+                                    <td>@day.DuringVisitSubmissions</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Brak zgłoszeń w planie.</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>

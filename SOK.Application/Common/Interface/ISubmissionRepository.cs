@@ -36,6 +36,6 @@ namespace SOK.Application.Common.Interface
             bool plan = false,
             bool tracked = false);
 
-        Task<Submission?> GetRandomAsync();
+        Task<Submission?> GetRandomAsync(Expression<Func<Submission, bool>>? filter = null);
     }
 }

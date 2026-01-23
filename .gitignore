@@ -54,6 +54,7 @@ nunit-*.xml
 *.user
 *.userosscache
 *.sln.docstates
+.env
 
 # Mono
 mono_crash.*

@@ -288,6 +288,8 @@ namespace SOK.Infrastructure.Persistence.Context
                     == entry.CurrentValues.GetValue<VisitStatus>(nameof(Visit.Status)) &&
                 entry.OriginalValues.GetValue<int?>(nameof(Visit.PeopleCount)) 
                     == entry.CurrentValues.GetValue<int?>(nameof(Visit.PeopleCount)) &&
+                entry.OriginalValues.GetValue<int?>(nameof(Visit.ScheduleId)) 
+                    == entry.CurrentValues.GetValue<int?>(nameof(Visit.ScheduleId)) &&
                 entry.OriginalValues.GetValue<int?>(nameof(Visit.AgendaId)) 
                     == entry.CurrentValues.GetValue<int?>(nameof(Visit.AgendaId))
             )
@@ -297,7 +299,7 @@ namespace SOK.Infrastructure.Persistence.Context
 
             var originalValues = entry.OriginalValues;
 
-            // Załaduj Schedule jeśli nie jest załadowany (potrzebujemy Schedule.Name)
+            // Załaduj Schedule jeśli nie jest załadowany
             if (visit.ScheduleId.HasValue && !entry.Reference(nameof(Visit.Schedule)).IsLoaded)
                 await entry.Reference(nameof(Visit.Schedule)).LoadAsync();
 
@@ -306,7 +308,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 await entry.Reference(nameof(Visit.Agenda)).LoadAsync();
 
             // Pobierz datę z Day (przez Agenda)
-            DateTime? visitDate = null;
+            DateOnly? visitDate = null;
             bool? dateVisibility = null;
 
             if (visit.Agenda != null)
@@ -317,7 +319,7 @@ namespace SOK.Infrastructure.Persistence.Context
 
                 if (visit.Agenda.Day != null)
                 {
-                    visitDate = visit.Agenda.Day.Date.ToDateTime(TimeOnly.MinValue);
+                    visitDate = visit.Agenda.Day.Date;
                     dateVisibility = !visit.Agenda.HideVisits;
                 }
             }
@@ -328,6 +330,7 @@ namespace SOK.Infrastructure.Persistence.Context
                 OrdinalNumber = (short)(originalValues.GetValue<int?>(nameof(Visit.OrdinalNumber)) ?? 0),
                 Status = originalValues.GetValue<VisitStatus>(nameof(Visit.Status)),
                 PeopleCount = originalValues.GetValue<int?>(nameof(Visit.PeopleCount)),
+                ScheduleId = originalValues.GetValue<int?>(nameof(Visit.ScheduleId)),
                 ScheduleName = visit.Schedule?.Name,
                 AgendaId = originalValues.GetValue<int?>(nameof(Visit.AgendaId)),
                 Date = visitDate,

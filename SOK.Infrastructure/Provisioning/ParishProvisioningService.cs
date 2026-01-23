@@ -1,9 +1,15 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SOK.Application.Common.DTO;
+using SOK.Application.Common.Helpers;
+using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
+using SOK.Domain.Entities.Parish;
+using SOK.Domain.Enums;
 using SOK.Infrastructure.Persistence.Context;
 using System.Security.Cryptography;
 
@@ -31,8 +37,12 @@ namespace SOK.Infrastructure.Provisioning
         }
 
         /// <inheritdoc/>
-        public async Task<ParishEntry> CreateParishAsync(string parishUid, string parishName)
+        public async Task<ParishEntry> CreateParishAsync(string parishUid, string parishName, bool? createAdmin = null, bool? seedExampleData = null)
         {
+            // Ustal wartości domyślne z konfiguracji, jeśli nie podano
+            bool shouldCreateAdmin = createAdmin ?? _cfg.GetValue<bool>("Admin:CreateParishAdmin", true);
+            bool shouldSeedData = seedExampleData ?? _cfg.GetValue<bool>("Admin:SeedExampleData", false);
+
             // Sprawdź czy parafia już istnieje
             var entry = await _central.Parishes.SingleOrDefaultAsync(p => p.UniqueId.ToString() == parishUid);
             if (entry != null)
@@ -65,10 +75,31 @@ namespace SOK.Infrastructure.Provisioning
                 ParishName = parishName,
                 EncryptedConnectionString = _crypto.Encrypt(cs)
             };
-            //return parish;
             _central.Parishes.Add(parish);
-
             await _central.SaveChangesAsync();
+
+            // Opcjonalnie utwórz użytkownika administratora dla tej parafii
+            string? adminUserId = null;
+            if (shouldCreateAdmin)
+            {
+                adminUserId = await CreateParishAdminAsync(parish);
+            }
+
+            // Opcjonalnie załaduj przykładowe dane
+            if (shouldSeedData)
+            {
+                using IServiceScope scope = _services.CreateScope();
+                IDbSeeder seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder>();
+                await seeder.SeedParishDbAsync(
+                    parish.UniqueId.ToString(), 
+                    adminUserId ?? string.Empty, 
+                    !shouldSeedData);
+            }
+
+            parish = await _central.Parishes
+                .AsNoTracking()
+                .Include(p => p.Users)
+                .SingleAsync(p => p.UniqueId.ToString() == parishUid);
 
             return parish;
         }
@@ -249,6 +280,84 @@ namespace SOK.Infrastructure.Provisioning
         /// </returns>
         private static string GetServerFromConnectionString(string connectionString)
             => new SqlConnectionStringBuilder(connectionString).DataSource;
-    }
 
+        /// <summary>
+        /// Tworzy użytkownika administratora dla nowo utworzonej parafii.
+        /// Generuje login na podstawie nazwy parafii, tworzy konto centralne (User) oraz
+        /// odpowiadający mu wpis w parafialnej bazie (ParishMember).
+        /// </summary>
+        /// <param name="parish">Parafia, dla której tworzone jest konto administratora.</param>
+        /// <returns>
+        /// Obiekt <see cref="Task"/>, reprezentujący asynchroniczną operację,
+        /// której wartością jest Id utworzonego użytkownika.
+        /// </returns>
+        private async Task<string> CreateParishAdminAsync(ParishEntry parish)
+        {
+            using var scope = _services.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+            var currentParishService = scope.ServiceProvider.GetRequiredService<ICurrentParishService>();
+            
+            // Ustaw kontekst parafii
+            await currentParishService.SetParishAsync(parish.UniqueId.ToString());
+
+            // Generuj login i nazwę wyświetlaną
+            string baseUserName = parish.ParishName
+                .Replace(" ", string.Empty)
+                .Replace(",", string.Empty)
+                .Replace(".", string.Empty)
+                .NormalizePolishDiacritics()
+                .ToLower();
+            
+            string userName = $"{baseUserName}-admin";
+            int suffix = 1;
+            
+            while (await userManager.FindByNameAsync(userName) != null)
+            {
+                userName = $"{baseUserName}-admin{suffix}";
+                suffix++;
+            }
+
+            // Generuj silne hasło
+            string password = RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxyz0123456789!@#$%", 16);
+
+            // Utwórz użytkownika centralnego
+            var adminUser = new User
+            {
+                UserName = userName,
+                DisplayName = $"Administrator",
+                ParishId = parish.Id
+            };
+
+            var createResult = await userManager.CreateAsync(adminUser, password);
+
+            if (!createResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create admin user for parish {parish.ParishName}: " +
+                    string.Join(", ", createResult.Errors.Select(e => e.Description)));
+            }
+
+            // Przypisz rolę administratora
+            await userManager.AddToRoleAsync(adminUser, Role.Administrator);
+
+            // Utwórz ParishMember w bazie parafialnej
+            var parishDbContext = scope.ServiceProvider.GetRequiredService<ParishDbContext>();
+            var parishMember = new ParishMember
+            {
+                CentralUserId = adminUser.Id,
+                DisplayName = adminUser.DisplayName
+            };
+
+            parishDbContext.Members.Add(parishMember);
+            await parishDbContext.SaveChangesAsync();
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"✓ Created admin user for parish '{parish.ParishName}'");
+            Console.WriteLine($"  Username: {userName}");
+            Console.WriteLine($"  Password: {password}");
+            Console.ResetColor();
+
+            return adminUser.Id;
+        }
+    }
 }

@@ -116,6 +116,7 @@
         <div class="flex-grow overflow-y-auto py-2 px-2 lg:ps-2 lg:pe-4" v-if="submissions.length > 0 || !isDataLoaded">
             <div class="flex flex-col gap-2">
                 <div v-for="s in submissions" :key="s.id" @@click="openModal(s.id)"
+                    :class="{'opacity-60': s.visit.status === 5}"
                     class="submission-card bg-base-200 flex px-3 py-4 sm:px-4 cursor-pointer transition-colors hover:bg-base-300">
                     <div class="flex-1 flex flex-col gap-y-0">
                         <div class="opacity-40 text-xs sm:text-sm">
@@ -131,6 +132,11 @@
                         <div class="text-sm sm:text-md opacity-80">
                             <b>{{ s.submitter.surname }}</b> {{ s.submitter.name }}
                         </div>
+                    </div>
+                    <div v-if="s.visit.status === 5" 
+                        class="flex! items-center justify-end gap-1 px-2 sm:px-5 lg:tooltip lg:tooltip-bottom" 
+                        data-tip="Zgłoszenie wycofane">
+                        <i class="bi bi-backspace-fill text-lg sm:text-2xl text-info/75"></i>
                     </div>
                     <div v-if="s.submitterNotes && s.submitterNotes.length > 0"
                         class="flex! items-center justify-end gap-1 px-2 sm:px-5 lg:tooltip lg:tooltip-bottom"

@@ -1,17 +1,69 @@
 ﻿@{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Błąd";
 }
 
-<h1 class="">Error.</h1>
-<h2 class="">An error occurred while processing your request.</h2>
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-2xl w-full text-center">
+        <div class="mb-8">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-error/10 rounded-full mb-6">
+                <i class="bi bi-exclamation-triangle-fill text-6xl text-error"></i>
+            </div>
+            
+            <h1 class="text-4xl font-bold mb-4">
+                Ups! Coś poszło nie tak
+            </h1>
+            
+            <p class="text-lg opacity-70 mb-8">
+                Wystąpił błąd podczas przetwarzania Twojego żądania.
+            </p>
+            
+            <div class="alert alert-error shadow-lg mb-8">
+                <i class="bi bi-bug text-xl"></i>
+                <div class="text-left">
+                    <h3 class="font-semibold">Co się stało?</h3>
+                    <p class="text-sm">
+                        Serwer napotkał nieoczekiwany problem. Nasz zespół został automatycznie powiadomiony
+                        i pracuje nad rozwiązaniem problemu.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="collapse collapse-arrow bg-base-200 mb-6">
+                <input type="checkbox" /> 
+                <div class="collapse-title font-medium">
+                    <i class="bi bi-code-slash"></i>
+                    Informacje dla deweloperów
+                </div>
+                <div class="collapse-content text-left">
+                    <div class="space-y-3">
+                        <p class="text-sm">
+                            Aby zobaczyć szczegółowe informacje o błędzie, przełącz środowisko na <strong>Development</strong>.
+                        </p>
+                        <div class="bg-base-300 p-4 rounded-lg">
+                            <p class="text-xs font-mono mb-2 opacity-60">Ustaw zmienną środowiskową:</p>
+                            <code class="text-sm">ASPNETCORE_ENVIRONMENT = Development</code>
+                        </div>
+                        <div class="alert alert-warning text-sm">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>
+                                <strong>Uwaga:</strong> Tryb Development nie powinien być włączony w aplikacjach produkcyjnych,
+                                ponieważ może ujawnić wrażliwe informacje użytkownikom końcowym.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-house-fill"></i>
+                Powrót do strony głównej
+            </a>
+            <button onclick="window.location.reload()" class="btn btn-ghost">
+                <i class="bi bi-arrow-clockwise"></i>
+                Odśwież stronę
+            </button>
+        </div>
+    </div>
+</div>

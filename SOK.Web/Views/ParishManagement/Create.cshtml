@@ -1,0 +1,124 @@
+@model SOK.Web.ViewModels.ParishManagement.CreateParishViewModel
+@{
+    ViewData["Title"] = "Utwórz parafię";
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="Create" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <!-- === Sekcja 1: Podstawowe dane === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Podstawowe informacje</h2>
+                <p class="text-sm opacity-40">
+                    Podaj nazwę nowej parafii. To będzie nazwa wyświetlana w całym systemie.
+                </p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <label asp-for="ParishName" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.ParishName)</span>
+                    <input asp-for="ParishName" class="input input-lg w-full" placeholder="Np. Parafia pw. Św. Jana" />
+                    <span asp-validation-for="ParishName" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Sekcja 2: Opcje inicjalizacji === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Opcje inicjalizacji</h2>
+                <p class="text-sm opacity-40">
+                    Wybierz, jakie dane mają być automatycznie utworzone dla nowej parafii.
+                </p>
+            </div>
+            <div class="flex flex-col gap-4">
+                <label class="flex items-start gap-3 cursor-pointer p-4 rounded-lg hover:bg-base-200 transition-colors border border-base-300">
+                    <input asp-for="CreateAdmin" type="checkbox" class="checkbox checkbox-primary mt-1" />
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="bi bi-person-fill-gear text-lg"></i>
+                            <span class="label-text font-semibold">@Html.DisplayNameFor(m => m.CreateAdmin)</span>
+                        </div>
+                        <p class="text-xs opacity-60">
+                            Automatycznie utworzy konto administratora dla tej parafii z losowym hasłem.
+                            Hasło będzie można zresetować po wybraniu parafii i przejściu
+                            do zarządzania użytkownikiem.
+                        </p>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 cursor-pointer p-4 rounded-lg hover:bg-base-200 transition-colors border border-base-300">
+                    <input asp-for="SeedExampleData" type="checkbox" class="checkbox checkbox-primary mt-1" />
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="bi bi-database-fill-add text-lg"></i>
+                            <span class="label-text font-semibold">@Html.DisplayNameFor(m => m.SeedExampleData)</span>
+                        </div>
+                        <p class="text-xs opacity-60">
+                            Załaduje przykładowe dane (ulice, budynki, harmonogramy) do bazy parafii.
+                        </p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Informacja o procesie === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Co zostanie utworzone?</h2>
+                <p class="text-sm opacity-40">
+                    Proces tworzenia parafii obejmuje kilka kroków automatycznych.
+                </p>
+            </div>
+            <div class="bg-base-200 p-4 rounded-lg">
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+                        <span>Nowa baza danych SQL Server z unikalnymi danymi dostępowymi</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+                        <span>Użytkownik bazy danych z odpowiednimi uprawnieniami</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+                        <span>Wszystkie migracje schematu bazy danych</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+                        <span>Wpis w centralnej bazie z zaszyfrowanym ciągiem połączenia</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-0.5" id="admin-check"></i>
+                        <span>Konto administratora parafii (jeśli zaznaczono)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <div asp-validation-summary="ModelOnly" class="text-sm text-error"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="Index" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Anuluj
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Utwórz parafię
+            </button>
+            <a asp-action="Index" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Anuluj
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

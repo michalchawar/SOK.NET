@@ -19,12 +19,14 @@ namespace SOK.Domain.Entities.Central
 
         /// <summary>
         /// Identyfikator parafii, do której przypisany jest użytkownik.
+        /// Null dla użytkowników z rolą SuperAdmin.
         /// </summary>
-        public int ParishId { get; set; }
+        public int? ParishId { get; set; }
 
         /// <summary>
         /// Parafia, do której przypisany jest użytkownik (relacja nawigacyjna).
+        /// Null dla użytkowników z rolą SuperAdmin.
         /// </summary>
-        public ParishEntry Parish { get; set; } = default!;
+        public ParishEntry? Parish { get; set; }
     }
 }

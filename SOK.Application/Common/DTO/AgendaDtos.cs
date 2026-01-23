@@ -21,6 +21,8 @@ namespace SOK.Application.Common.DTO
         public List<int> MinisterIds { get; set; } = new();
 
         public bool HideVisits { get; set; }
+
+        public bool IsOfficial { get; set; }
         
         public bool ShowHours { get; set; }
 
@@ -49,6 +51,7 @@ namespace SOK.Application.Common.DTO
         public float? GatheredFunds { get; set; }
         public bool HideVisits { get; set; }
         public bool ShowHours { get; set; }
+        public bool IsOfficial { get; set; }
         public int VisitsCount { get; set; }
         public string? AssignedPriestName { get; set; }
 

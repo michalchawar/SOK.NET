@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SOK.Web.Controllers.API
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
     [Route("api/[controller]")]
     [ApiController]
     public class AgendaController : ControllerBase
@@ -62,14 +63,10 @@ namespace SOK.Web.Controllers.API
                 var priests = await _agendaService.GetAvailablePriestsForDayAsync(dayId);
                 var ministers = await _agendaService.GetAvailableMinistersAsync();
 
-                var agenda = await _agendaService.GetAgendaAsync(dayId);
-
                 return Ok(new
                 {
                     priests,
                     ministers,
-                    hideVisits = agenda?.HideVisits ?? false,
-                    showHours = agenda?.ShowHours ?? false
                 });
             }
             catch (ArgumentException ex)

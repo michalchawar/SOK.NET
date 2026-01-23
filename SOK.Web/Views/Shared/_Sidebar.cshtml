@@ -11,14 +11,20 @@
 		public bool Disabled { get; set; } = false;
 		public bool Active { get; set; } = false;
 		public bool OffsetSection { get; set; } = false;
+		public bool RequiresParish { get; set; } = true;
 		public Role[]? RequiredRoles { get; set; } = null;
 
-		public bool IsAccessible(System.Security.Claims.ClaimsPrincipal user)
+		public bool IsAccessible(System.Security.Claims.ClaimsPrincipal user, bool hasSelectedParish)
 		{
+			// Jeśli opcja wymaga parafii i użytkownik jest SuperAdmin bez wybranej parafii, ukryj
+			if (RequiresParish && user.IsInRole(Role.SuperAdmin.ToString()) && !hasSelectedParish)
+				return false;
+			
 			if (RequiredRoles == null || RequiredRoles.Length == 0)
 				return true;
 
-			return RequiredRoles.Any(role => user.IsInRole(role.ToString()));
+			return RequiredRoles.Any(role => user.IsInRole(role.ToString()))
+				|| user.IsInRole(Role.SuperAdmin.ToString());
 		}
 	}
 }
@@ -32,6 +38,11 @@
 
 @{
 	var activePage = ViewData["ActivePage"] as string;
+	
+	string selectedParishUid = Context.Request.Cookies.TryGetValue("SelectedParishUid", out var value) ? value : string.Empty;
+	bool hasSelectedParish = !string.IsNullOrWhiteSpace(selectedParishUid);
+
+	bool shouldOffset = false;
 
 	var menuItems = new List<SidebarOption>
 	{
@@ -81,12 +92,22 @@
 		},
 		new SidebarOption() 
 		{
+			DisplayName = "Zarządzanie parafiami",
+			Controller = "ParishManagement",
+			Action = "Index",
+			Icon = "building-fill-gear",
+			Active = activePage == "ParishManagement",
+			OffsetSection = true,
+			RequiresParish = false,
+			RequiredRoles = new[] { Role.SuperAdmin }
+		},
+		new SidebarOption() 
+		{
 			DisplayName = "Ustawienia",
 			Controller = "Settings",
 			Action = "Index",
 			Icon = "gear",
 			Active = activePage == "Settings",
-			OffsetSection = true,
 			RequiredRoles = new[] { Role.Administrator }
 		},
 	};
@@ -95,9 +116,11 @@
 <ul class="menu font-outfit flex-1 gap-1 text-lg font-medium p-0 w-full">
 	@foreach (var option in menuItems)
 	{
-		@if (option.IsAccessible(User))
+		shouldOffset = shouldOffset || option.OffsetSection;
+
+		@if (option.IsAccessible(User, hasSelectedParish))
 		{
-			<li class="@(option.OffsetSection ? "mt-auto" : "")">
+			<li class="@(shouldOffset ? "mt-auto" : "")">
 				<a asp-controller="@option.Controller" asp-action="@option.Action"
 					class="flex items-center gap-3 rounded-md transition-colors whitespace-nowrap 
 						hover:bg-primary hover:text-base-content is-drawer-close:tooltip is-drawer-close:tooltip-right
@@ -109,6 +132,8 @@
 					<span class="is-drawer-close:hidden">@option.DisplayName</span>
 				</a>
 			</li>
+
+			shouldOffset = false;
 		}
 	}
 </ul>

@@ -246,7 +246,7 @@ namespace SOK.Infrastructure.Migrations.Central
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("ParishId")
+                    b.Property<int?>("ParishId")
                         .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
@@ -339,8 +339,7 @@ namespace SOK.Infrastructure.Migrations.Central
                     b.HasOne("SOK.Domain.Entities.Central.ParishEntry", "Parish")
                         .WithMany("Users")
                         .HasForeignKey("ParishId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parish");
                 });

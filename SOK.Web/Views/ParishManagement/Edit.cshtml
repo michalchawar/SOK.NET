@@ -1,0 +1,87 @@
+@model SOK.Web.ViewModels.ParishManagement.EditParishViewModel
+@{
+    ViewData["Title"] = "Edytuj parafię";
+}
+
+<div class="min-h-full w-full flex flex-col items-center justify-center">
+    <form asp-action="Edit" method="post" class="flex flex-col gap-x-3 gap-y-4 w-5/6">
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="UniqueId" type="hidden" />
+
+        <!-- === Sekcja 1: Podstawowe dane === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Edycja parafii</h2>
+                <p class="text-sm opacity-40">
+                    Możesz zmienić nazwę parafii. Pozostałe dane systemowe są niezmienne.
+                </p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <label class="w-full">
+                    <span class="label font-medium mb-1 opacity-60">Identyfikator</span>
+                    <input value="@Model.UniqueId" class="input input-lg w-full" disabled readonly />
+                    <span class="text-xs opacity-50 mt-1">Unikalny identyfikator parafii w systemie (niemodyfikowalny)</span>
+                </label>
+                <label asp-for="ParishName" class="w-full">
+                    <span class="label font-medium mb-1">@Html.DisplayNameFor(m => m.ParishName)</span>
+                    <input asp-for="ParishName" class="input input-lg w-full" placeholder="Np. Parafia pw. Św. Jana" />
+                    <span asp-validation-for="ParishName" class="text-error text-sm"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <!-- === Informacje systemowe === -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+                <h2 class="text-xl font-semibold mb-1">Informacje systemowe</h2>
+                <p class="text-sm opacity-40">
+                    Poniższe elementy są zarządzane automatycznie przez system.
+                </p>
+            </div>
+            <div class="bg-base-200 p-4 rounded-lg">
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-info-circle-fill text-info mt-0.5"></i>
+                        <span>Baza danych i użytkownik SQL są niezależne od nazwy wyświetlanej</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-info-circle-fill text-info mt-0.5"></i>
+                        <span>Ciąg połączenia jest przechowywany w zaszyfrowanej formie</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-info-circle-fill text-info mt-0.5"></i>
+                        <span>Zmiana nazwy nie wpływa na użytkowników ani ich uprawnienia</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="bi bi-lock-fill text-warning mt-0.5"></i>
+                        <span>Usuwanie parafii nie jest możliwe przez interfejs użytkownika</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="divider my-0 opacity-20"></div>
+
+        <div asp-validation-summary="ModelOnly" class="text-sm text-error"></div>
+
+        <!-- === Submit === -->
+        <div class="flex justify-center">
+            <a asp-action="Index" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start mr-auto">
+                <i class="bi bi-caret-left-fill"></i> Anuluj
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i>
+                Zapisz zmiany
+            </button>
+            <a asp-action="Index" type="button" class="btn btn-neutral btn-soft text-base-content font-normal justify-self-start ml-auto invisible">
+                <i class="bi bi-caret-left-fill"></i> Anuluj
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

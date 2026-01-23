@@ -100,6 +100,7 @@ namespace SOK.Application.Services.Implementation
             agenda.EndHourOverride = dto.EndHourOverride;
             agenda.HideVisits = dto.HideVisits;
             agenda.ShowHours = dto.ShowHours;
+            agenda.IsOfficial = dto.IsOfficial;
 
             // Przygotuj listę docelowych ID członków
             var targetMemberIds = new List<int>();
@@ -269,6 +270,7 @@ namespace SOK.Application.Services.Implementation
                 GatheredFunds = agenda.GatheredFunds,
                 HideVisits = agenda.HideVisits,
                 ShowHours = agenda.ShowHours,
+                IsOfficial = agenda.IsOfficial,
                 VisitsCount = agenda.Visits?.Count ?? 0,
                 AssignedPriestName = priest?.DisplayName,
                 Priest = priest == null ? null : new ParishMemberSimpleDto
@@ -358,7 +360,7 @@ namespace SOK.Application.Services.Implementation
 
             // Pobierz wszystkie zgłoszenia dla planu (bez filtrów - filtrujemy po stronie klienta)
             var submissions = await _uow.Submission.GetAllAsync(
-                filter: s => s.PlanId == day.PlanId,
+                filter: s => s.PlanId == day.PlanId && s.Visit.Status != VisitStatus.Withdrawn,
                 includeProperties: "Address.Building.Street.Type,Submitter,Visit.Agenda.Day,Visit.Schedule"
             );
 

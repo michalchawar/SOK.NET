@@ -17,6 +17,7 @@ using SOK.Web.ViewModels.Parish;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
     [ActivePage("Settings")]
     public class SettingsController : Controller
     {
@@ -44,8 +45,11 @@ namespace SOK.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            string? parishUid = await _parishInfoService.GetValueAsync(InfoKeys.Parish.UniqueId);
+            ViewData["ParishUid"] = parishUid;
+
             return View();
         }
 

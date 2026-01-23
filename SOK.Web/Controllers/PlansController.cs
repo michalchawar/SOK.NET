@@ -17,6 +17,7 @@ using SOK.Web.ViewModels.Parish;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
     [ActivePage("Plans")]
     public class PlansController : Controller
     {
@@ -33,11 +34,54 @@ namespace SOK.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var plans = await _planService.GetPlansPaginatedAsync(pageSize: 20);
+            var activePlan = await _planService.GetActivePlanAsync();
 
-            ViewData["Plans"] = plans;
-            ViewData["ActivePlanId"] = (await _planService.GetActivePlanAsync())?.Id ?? -1;
+            var vm = new PlansIndexVM
+            {
+                Plans = plans.Select(p => new PlanListItemVM
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    CreationTime = p.CreationTime,
+                    AuthorName = p.Author?.DisplayName,
+                    SubmissionsCount = p.Submissions.Count,
+                    DaysCount = p.Days.Count,
+                    IsActive = activePlan?.Id == p.Id
+                }).ToList()
+            };
 
-            return View();
+            if (activePlan != null)
+            {
+                // Załaduj powiązane dane aktywnego planu
+                var days = await _planService.GetDaysForPlanAsync(activePlan.Id);
+                var users = await _parishMemberService.GetAllInRoleAsync(Role.VisitSupport);
+
+                vm.ActivePlan = new ActivePlanVM
+                {
+                    Id = activePlan.Id,
+                    Name = activePlan.Name,
+                    CreationTime = activePlan.CreationTime,
+                    Schedules = activePlan.Schedules.Select(s => new ScheduleVM
+                    {
+                        Id = s.Id,
+                        Name = s.Name,
+                        ShortName = s.ShortName,
+                        Color = s.Color,
+                        IsDefault = s.Id == activePlan.DefaultScheduleId
+                    }).ToList(),
+                    DefaultScheduleId = activePlan.DefaultScheduleId,
+                    VisitsPlanned = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count)),
+                    VisitsSucceeded = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count(v => v.Status == VisitStatus.Visited))),
+                    VisitsRejected = days.Sum(d => d.Agendas.Sum(a => a.Visits.Count(v => v.Status == VisitStatus.Rejected))),
+                    AgendasCount = days.Sum(d => d.Agendas.Count(a => a.IsOfficial)),
+                    SupportersCount = days.Sum(d => d.Agendas.Where(a => a.IsOfficial).SelectMany(a => a.AssignedMembers)
+                        .Count(m => users.Any(u => u.Id == m.Id))),
+                    TotalFunds = (decimal)days.Sum(d => d.Agendas.Sum(a => a.GatheredFunds ?? 0f)),
+                    IsPublicFormEnabled = await _planService.IsSubmissionGatheringEnabledAsync(activePlan)
+                };
+            }
+
+            return View(vm);
         }
 
         [HttpPost]
@@ -72,6 +116,25 @@ namespace SOK.Web.Controllers
             await _planService.ClearActivePlanAsync();
 
             TempData["info"] = "Żaden plan nie jest obecnie aktywny.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TogglePublicFormSending(int id)
+        {
+            var plan = await _planService.GetPlanAsync(id);
+            if (plan == null)
+            {
+                TempData["error"] = "Nie znaleziono planu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            bool isEnabled = await _planService.IsSubmissionGatheringEnabledAsync(plan);
+            await _planService.ToggleSubmissionGatheringAsync(plan, !isEnabled);
+
+            TempData["success"] = isEnabled
+                ? "Zbieranie zgłoszeń zostało wyłączone."
+                : "Zbieranie zgłoszeń zostało włączone.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -202,6 +265,57 @@ namespace SOK.Web.Controllers
             }
             TempData["success"] = "Plan został zaktualizowany pomyślnie.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet("{id}/supporters")]
+        public async Task<IActionResult> SupportersStats(int id)
+        {
+            var plan = await _planService.GetPlanAsync(id);
+            if (plan == null)
+            {
+                TempData["error"] = "Nie ma aktywnego planu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var days = await _planService.GetDaysForPlanAsync(plan.Id);
+            var users = await _parishMemberService.GetAllInRoleAsync(Role.VisitSupport);
+
+            // Pobierz wszystkich ministrantów z oficjalnych agend i policz ich wizyty
+            var supportersStats = days
+                .SelectMany(d => d.Agendas.Where(a => a.IsOfficial))
+                .SelectMany(a => a.AssignedMembers)
+                .Where(m => users.Any(u => u.Id == m.Id))
+                .GroupBy(m => m.Id)
+                .Select(g => new SupporterStatsItemVM
+                {
+                    DisplayName = g.First().DisplayName,
+                    VisitCount = g.Count()
+                })
+                .OrderByDescending(s => s.VisitCount)
+                .ThenBy(s => s.DisplayName)
+                .ToList();
+
+            var vm = new SupportersStatsVM
+            {
+                PlanName = plan.Name,
+                Supporters = supportersStats
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> VisitStats(int id)
+        {
+            var stats = await _planService.GetVisitStatsAsync(id);
+            if (stats == null)
+            {
+                TempData["error"] = "Nie znaleziono planu.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var vm = new VisitStatsVM(stats);
+            return View(vm);
         }
 
         private async Task<IEnumerable<ParishMemberVM>> GetPriests(int? planId = null)

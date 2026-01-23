@@ -40,7 +40,7 @@ namespace SOK.Web.ViewModels.Parish
     public class PlanScheduleInfoVM
     {
         public string PlanName { get; set; } = string.Empty;
-        public string ScheduleName { get; set; } = string.Empty;
+        public string? ScheduleName { get; set; }
         public string? ScheduleShortName { get; set; }
     }
 }

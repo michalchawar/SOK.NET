@@ -10,6 +10,7 @@ namespace SOK.Web.ViewModels.Calendar
         public int VisitsCount { get; set; }
         public bool ShowsAssignment { get; set; }
         public bool ShowHours { get; set; }
+        public bool IsOfficial { get; set; }
         public float GatheredFunds { get; set; }
     }
 

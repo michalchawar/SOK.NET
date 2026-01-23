@@ -1,6 +1,7 @@
 using SOK.Application.Common.Helpers;
 using SOK.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace SOK.Application.Common.DTO
 {
@@ -19,14 +20,12 @@ namespace SOK.Application.Common.DTO
         [MaxLength(50, ErrorMessage = "Nazwisko może mieć maksymalnie 50 znaków.")]
         public string? Surname { get; set; }
 
-        [EmailAddress(ErrorMessage = "Podaj poprawny adres e-mail.")]
         [MaxLength(200, ErrorMessage = "Adres e-mail może mieć maksymalnie 200 znaków.")]
-        [RegularExpression(RegExpressions.EmailPattern, ErrorMessage = "Podaj poprawny adres e-mail.")]
+        [RegularExpression("(" + RegExpressions.EmailPattern + ")|(^$)", ErrorMessage = "Podaj poprawny adres e-mail.")]
         public string? Email { get; set; }
 
-        [Phone(ErrorMessage = "Podaj poprawny numer telefonu.")]
         [MaxLength(15, ErrorMessage = "Numer telefonu może mieć maksymalnie 15 znaków.")]
-        [RegularExpression(RegExpressions.PhoneNumberPattern, ErrorMessage = "Podaj poprawny numer telefonu.")]
+        [RegularExpression("(" + RegExpressions.PhoneNumberPattern + ")|(^$)", ErrorMessage = "Podaj poprawny numer telefonu.")]
         public string? Phone { get; set; }
 
         // Adres

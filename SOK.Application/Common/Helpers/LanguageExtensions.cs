@@ -173,5 +173,23 @@ namespace SOK.Application.Common.Helpers
                 return TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(n * Math.Ceiling(timeOnly.ToTimeSpan().TotalMinutes / n)));
             }
         }
+        
+
+        /// <summary>
+        /// Zwraca <see cref="null"/> lub przycina łańcuch znaków.
+        /// </summary>
+        /// <param name="input">Łańcuch znaków do przetworzenia.</param>
+        /// <returns>
+        /// <see cref="null"/>, jeśli <paramref name="input"/> jest <see cref="null"/> lub pusty po przycięciu, 
+        /// w przeciwnym razie przycięty łańcuch znaków.
+        /// </returns>
+        public static string? NullOrTrimmed(this string? input)
+        {
+            if (input == null)
+                return null;
+
+            var trimmed = input.Trim();
+            return trimmed.Length == 0 ? null : trimmed;
+        }
     }
 }

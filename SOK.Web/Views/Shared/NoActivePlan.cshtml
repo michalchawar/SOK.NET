@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Brak aktywnego planu";
+}
+
+<div class="h-full w-full flex flex-col items-center justify-center p-6">
+    <div class="max-w-2xl w-full text-center">
+        <!-- Ikona -->
+        <div class="mb-5">
+            <i class="bi bi-calendar-x text-6xl text-warning opacity-80"></i>
+        </div>
+
+        <!-- Nagłówek -->
+        <h1 class="text-4xl font-bold mb-4">
+            Brak aktywnego planu
+        </h1>
+
+        <!-- Opis problemu -->
+        <p class="text-sm opacity-70 mb-8">
+            Aby mieć dostęp do tej funkcji, musisz najpierw aktywować konkretny plan.
+        </p>
+
+        <!-- Przyciski akcji -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a asp-controller="Plans" asp-action="Index" class="btn btn-primary btn-lg">
+                Przejdź do zarządzania planami
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <!-- Dodatkowa informacja -->
+        <div class="mt-8 text-sm opacity-60">
+            <i class="bi bi-info-circle"></i>
+            Jeśli masz już utworzony plan, upewnij się że jest on zaznaczony jako aktywny.
+        </div>
+    </div>
+</div>

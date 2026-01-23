@@ -83,44 +83,41 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 }
             }
 
-            // 3. Przygotuj konto administratora
-            var adminUserName = string.IsNullOrEmpty(_configuration["Admin:Username"]) ? "admin" : _configuration["Admin:Username"];
-            var adminPassword = string.IsNullOrEmpty(_configuration["Admin:Password"]) ? "admin" : _configuration["Admin:Password"];
-            var adminEmail = string.IsNullOrEmpty(_configuration["Admin:Email"]) ? $"{adminUserName}@system.local" : _configuration["Admin:Email"];
-            var adminDisplayName = string.IsNullOrEmpty(_configuration["Admin:DisplayName"]) ? "System Administrator" : _configuration["Admin:DisplayName"];
-            
-            var adminUser = await _userManager.FindByNameAsync(adminUserName!);
-            bool shouldAdminBeCreated = adminUser is null;
-
-            if (shouldAdminBeCreated)
-            {
-                adminUser = new Domain.Entities.Central.User
-                {
-                    UserName = adminUserName,
-                    Email = adminEmail,
-                    DisplayName = adminDisplayName!,
-                    EmailConfirmed = true
-                };
-            }
-
-            // 4. Upewnij się, że istnieje parafia
+            // 3. Upewnij się, że istnieje parafia
             var parish = await _context.Parishes.FirstOrDefaultAsync();
             if (parish == null)
             {
                 parish = await _parishProvisioning.CreateParishAsync(Guid.NewGuid().ToString(), "Przykładowa parafia");
+                
                 // Zaludnij bazę danych parafii
-                // Można to zrobić zawsze, bo jeśli parafia wcześniej istniała to CreateParishAsync wywali błąd
-                await SeedParishDbAsync(parish.UniqueId.ToString(), adminUser!.Id);
+                // Można to zrobić zawsze, bo parafia nie istniała wcześniej
+                bool seedAll = _configuration.GetValue<bool>("Admin:SeedExampleData", false);
+                await SeedParishDbAsync(parish.UniqueId.ToString(), parish.Users.First().Id, !seedAll);
             }
 
-            // 5. Jeśli jest taka potrzeba, ostatecznie utwórz konto administratora
-            if (shouldAdminBeCreated) {
-                adminUser!.Parish = parish;
+            // 4. Przygotuj konto superadministratora
+            string adminUserName = string.IsNullOrWhiteSpace(_configuration["Admin:Username"]) ? "admin" : _configuration["Admin:Username"]!;
+            string adminPassword = string.IsNullOrWhiteSpace(_configuration["Admin:Password"]) ? "admin" : _configuration["Admin:Password"]!;
+            string adminEmail = string.IsNullOrWhiteSpace(_configuration["Admin:Email"]) ? $"{adminUserName}@system.local" : _configuration["Admin:Email"]!;
+            string adminDisplayName = string.IsNullOrWhiteSpace(_configuration["Admin:DisplayName"]) ? "System Administrator" : _configuration["Admin:DisplayName"]!;
+            
+            // 5. Jeśli jest taka potrzeba, utwórz je
+            var adminUser = await _userManager.FindByNameAsync(adminUserName);
+            bool shouldAdminBeCreated = adminUser is null;
 
-                var result = await _userManager.CreateAsync(adminUser!, adminPassword!);
+            if (shouldAdminBeCreated) {
+                adminUser = new Domain.Entities.Central.User
+                {
+                    UserName = adminUserName,
+                    Email = adminEmail,
+                    DisplayName = adminDisplayName,
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(adminUser, adminPassword!);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(adminUser!, Role.Administrator);
+                    await _userManager.AddToRoleAsync(adminUser, Role.SuperAdmin);
                 }
                 else
                 {
@@ -130,9 +127,10 @@ namespace SOK.Infrastructure.Persistence.Seeding
             }
         }
 
-        private async Task SeedParishDbAsync(string parishUid, string adminId)
+        /// <inheritdoc />
+        public async Task SeedParishDbAsync(string parishUid, string adminId, bool seedOnlyBaseInfo = false)
         {
-            Console.WriteLine("In SeedParishDbAsyc");
+            Console.WriteLine("In SeedParishDbAsync");
 
             try
             {
@@ -144,14 +142,11 @@ namespace SOK.Infrastructure.Persistence.Seeding
                 ParishDbContext context = scope.ServiceProvider.GetRequiredService<ParishDbContext>();
                 ISubmissionService submissionService = scope.ServiceProvider.GetRequiredService<ISubmissionService>();
 
+                var admin = await context.Members.FirstOrDefaultAsync(m => m.CentralUserId == adminId);
+
                 await using var transaction = await context.Database.BeginTransactionAsync();
 
-                ParishMember admin = new ParishMember { CentralUserId = adminId, DisplayName = "Administrator" };
-                context.Add(admin);
-                await context.SaveChangesAsync();
-                
-                bool shouldSeedParishData = _configuration.GetValue<bool>("Admin:SeedExampleData", false);
-                if (!shouldSeedParishData)
+                if (seedOnlyBaseInfo)
                 {
                     context.Add(new ParishInfo { Name = InfoKeys.Parish.UniqueId, Value = parishUid });
 

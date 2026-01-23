@@ -1,4 +1,8 @@
-﻿using SOK.Application.Services.Interface;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SOK.Application.Services.Interface;
+using SOK.Domain.Entities.Central;
+using SOK.Infrastructure.Persistence.Context;
 
 namespace SOK.Web.Middleware
 {
@@ -8,11 +12,14 @@ namespace SOK.Web.Middleware
     public class ParishResolver : IMiddleware
     {
         private readonly ICurrentParishService _currentParishService;
-        //private readonly ILogger<ParishResolver> _logger;
+        private readonly UserManager<User> _userManager;
+        private readonly CentralDbContext _centralDb;
 
-        public ParishResolver(ICurrentParishService currentParishService)
+        public ParishResolver(ICurrentParishService currentParishService, UserManager<User> userManager, CentralDbContext centralDb)
         {
             _currentParishService = currentParishService;
+            _userManager = userManager;
+            _centralDb = centralDb;
         }
 
         /// <summary>
@@ -28,20 +35,56 @@ namespace SOK.Web.Middleware
         /// <remarks>
         /// Metoda pobiera identyfikator parafii (parishUid) z claimów użytkownika
         /// lub z parametru routingu "parishUid" dla publicznych formularzy.
+        /// 
+        /// Logika wyboru parafii:
+        /// 1. Dla niezalogowanych użytkowników: próba odczytu z parametru routingu
+        /// 2. Dla zalogowanych użytkowników:
+        ///    a) SuperAdmin: odczyt z ciasteczka "SelectedParishUid" (jeśli istnieje)
+        ///    b) Zwykły użytkownik: odczyt z przypisanej parafii w bazie centralnej
         /// </remarks>
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            string? parishUid;
+            string? parishUid = null;
             
-            // Najpierw sprawdź parametr routingu (dla anonimowych użytkowników)
+            // Sprawdź parametr routingu
             if (context.Request.RouteValues.TryGetValue("parishUid", out var routeParishUid))
             {
                 parishUid = routeParishUid?.ToString();
             }
-            // Jeśli nie ma w routingu, sprawdź claims użytkownika (dla zalogowanych)
-            else
+            // Dla zalogowanych użytkowników sprawdź przypisaną parafię
+            else if (context.User.Identity?.IsAuthenticated == true)
             {
-                parishUid = context.User.FindFirst("ParishUniqueId")?.Value;
+                var userId = _userManager.GetUserId(context.User);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    // Pobierz użytkownika z załadowaną relacją Parish
+                    var user = await _centralDb.Users
+                        .Include(u => u.Parish)
+                        .FirstOrDefaultAsync(u => u.Id == userId);
+                    
+                    if (user != null)
+                    {
+                        var isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
+                        
+                        if (isSuperAdmin)
+                        {
+                            // SuperAdmin: sprawdź ciasteczko z wybraną parafią
+                            if (context.Request.Cookies.TryGetValue("SelectedParishUid", out var selectedParishUid))
+                            {
+                                parishUid = selectedParishUid;
+                            }
+                            // Jeśli nie ma ciasteczka, SuperAdmin może działać bez wybranej parafii
+                        }
+                        else
+                        {
+                            // Zwykły użytkownik: użyj przypisanej parafii
+                            if (user.Parish != null)
+                            {
+                                parishUid = user.Parish.UniqueId.ToString();
+                            }
+                        }
+                    }
+                }
             }
 
             if (!string.IsNullOrEmpty(parishUid))

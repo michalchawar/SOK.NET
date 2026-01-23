@@ -51,6 +51,7 @@ namespace SOK.Infrastructure.Extensions
             services.AddHttpContextAccessor();
 
             // Rejestracja usług
+            services.AddScoped<ISuperAdminService, SuperAdminService>();
             services.AddScoped<IParishInfoService, ParishInfoService>();
             services.AddScoped<ISubmissionService, SubmissionService>();
             services.AddScoped<IScheduleService, ScheduleService>();

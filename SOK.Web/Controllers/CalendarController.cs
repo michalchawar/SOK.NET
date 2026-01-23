@@ -19,6 +19,8 @@ using SOK.Web.ViewModels.Calendar;
 namespace SOK.Web.Controllers
 {
     [AuthorizeRoles(Role.Administrator, Role.Priest)]
+    [RequireParish]
+    [RequireActivePlan]
     [ActivePage("Calendar")]
     public class CalendarController : Controller
     {
@@ -263,7 +265,8 @@ namespace SOK.Web.Controllers
                     EndHourOverride = a.EndHourOverride,
                     VisitsCount = a.VisitsCount,
                     ShowsAssignment = !a.HideVisits,
-                    ShowHours = a.ShowHours, 
+                    ShowHours = a.ShowHours,
+                    IsOfficial = a.IsOfficial,
                     GatheredFunds = a.GatheredFunds ?? 0f
                 }).ToList()
             };

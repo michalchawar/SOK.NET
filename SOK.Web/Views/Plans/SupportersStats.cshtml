@@ -1,0 +1,59 @@
+@using SOK.Application.Common.Helpers
+@using SOK.Infrastructure.Extensions
+@model SOK.Web.ViewModels.Parish.SupportersStatsVM
+@{
+    ViewData["Title"] = "Statystyki ministrantów";
+}
+
+<div class="overflow-x-auto h-full">
+    <div class="min-h-full w-full flex flex-col items-center justify-start py-8">
+        <div class="w-11/12 mb-6 flex flex-col lg:flex-row lg:justify-between gap-2">
+            <div class="">
+                <h1 class="text-3xl font-bold mb-2">
+                    Statystyki ministrantów
+                </h1>
+                <p class="text-lg opacity-70">
+                    Plan: <span class="font-semibold">@Model.PlanName</span>
+                </p>
+            </div>
+            <a asp-action="Index" class="btn btn-soft">
+                <i class="bi bi-arrow-left"></i>
+                Powrót do planów
+            </a>
+        </div>
+
+        @if (Model.Supporters.Any())
+        {
+            <table class="table w-11/12">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Ministrant</th>
+                        <th>Liczba kolęd</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var (supporter, index) in Model.Supporters.WithIndex())
+                    {
+                        <tr class="hover:bg-base-300">
+                            <th>@(index + 1)</th>
+                            <td>@supporter.DisplayName</td>
+                            <td>@supporter.VisitCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center mt-8">
+                <h2 class="text-center text-xl font-semibold">
+                    Brak przypisanych ministrantów w aktywnym planie.
+                </h2>
+                <h4 class="text-center text-lg opacity-70">
+                    Dodaj ministrantów do agend, aby zobaczyć statystyki.
+                </h4>
+            </div>
+        }
+    </div>
+</div>

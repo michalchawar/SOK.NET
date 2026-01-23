@@ -13,6 +13,7 @@ namespace SOK.Web.Controllers.Api
     [ApiController]
     [Route("api/settings")]
     [AuthorizeRoles]
+    [RequireParish]
     public class SettingsApiController : ControllerBase
     {
         private readonly IParishInfoService _parishInfoService;

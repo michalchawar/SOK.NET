@@ -161,6 +161,12 @@
                         Ukryj wizyty przed zgłaszającymi (agenda niepubliczna)
                     </label>
                 </div>
+                <div class="flex gap-2 items-center">
+                    <input v-model="form.isOfficial" type="checkbox" class="checkbox checkbox-primary" id="is-official-checkbox" />
+                    <label class="label" for="is-official-checkbox">
+                        Oficjalna agenda (liczona w kalendarzu i statystykach)
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -212,6 +218,7 @@
                         ministerIds: [],
                         hideVisits: false,
                         showHours: false,
+                        isOfficial: true,
                         minutesPerVisit: null
                     },
                     selectedMinisterId: null,
@@ -269,6 +276,7 @@
                         ministerIds: [],
                         hideVisits: false,
                         showHours: false,
+                        isOfficial: true,
                         minutesPerVisit: null
                     };
                     this.selectedMinisterId = null;
@@ -283,8 +291,6 @@
                         const data = await response.json();
                         this.priests = data.priests || [];
                         this.ministers = data.ministers || [];
-                        this.hideVisits = data.hideVisits || false;
-                        this.showHours = data.showHours || false;
                     } catch (error) {
                         console.error('Error loading modal data:', error);
                         alert('Nie udało się załadować danych modalu');
@@ -298,6 +304,8 @@
                         if (!response.ok) throw new Error('Failed to load agenda');
                         
                         const agenda = await response.json();
+
+                        console.log('Loaded agenda:', agenda);
                         
                         // Mapuj dane do formularza
                         this.form.startHour = agenda.startHourOverride ? this.formatTimeForInput(agenda.startHourOverride) : null;
@@ -306,6 +314,7 @@
                         this.form.ministerIds = agenda.ministers.map(m => m.id);
                         this.form.hideVisits = agenda.hideVisits;
                         this.form.showHours = agenda.showHours;
+                        this.form.isOfficial = agenda.isOfficial;
                         this.form.minutesPerVisit = agenda.minutesPerVisit || null;
                         
                         // Załaduj jednostkę czasową księdza jeśli przypisany
@@ -359,6 +368,7 @@
                             ministerIds: this.form.ministerIds,
                             hideVisits: this.form.hideVisits,
                             showHours: this.form.showHours,
+                            isOfficial: this.form.isOfficial,
                             minutesPerVisit: this.form.minutesPerVisit
                         };
 
