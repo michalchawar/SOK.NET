@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers.EmailTypes;
@@ -52,7 +53,8 @@ namespace SOK.Application.Tests.Services
                 _uowMock.Object,
                 _emailServiceMock.Object,
                 _parishInfoServiceMock.Object,
-                _visitServiceMock.Object
+                _visitServiceMock.Object,
+                Mock.Of<ILogger<SubmissionService>>()
             );
         }
 

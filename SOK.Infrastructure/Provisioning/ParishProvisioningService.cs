@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
@@ -25,14 +26,16 @@ namespace SOK.Infrastructure.Provisioning
         private readonly CentralDbContext _central;
         private readonly IServiceProvider _services;
         private readonly ICryptoService _crypto;
+        private readonly ILogger<ParishProvisioningService> _logger;
 
         public ParishProvisioningService(IConfiguration config, CentralDbContext centralDbContext,
-                                   IServiceProvider serviceProvider, ICryptoService cryptoService)
+                                   IServiceProvider serviceProvider, ICryptoService cryptoService, ILogger<ParishProvisioningService> logger)
         {
             _cfg = config;
             _central = centralDbContext;
             _services = serviceProvider;
             _crypto = cryptoService;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -155,9 +158,7 @@ namespace SOK.Infrastructure.Provisioning
             // z konta administratora sprawdź i wykonaj migracje
             if (context.Database.GetPendingMigrations().Any())
             {
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"Applying migrations for database {dbName}...");
-                Console.ResetColor();
+                _logger.LogInformation("Applying migrations for database {DatabaseName}...", dbName);
                 await context.Database.MigrateAsync();
             }
         }
@@ -350,11 +351,8 @@ namespace SOK.Infrastructure.Provisioning
             parishDbContext.Members.Add(parishMember);
             await parishDbContext.SaveChangesAsync();
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"✓ Created admin user for parish '{parish.ParishName}'");
-            Console.WriteLine($"  Username: {userName}");
-            Console.WriteLine($"  Password: {password}");
-            Console.ResetColor();
+            _logger.LogInformation("✓ Created admin user for parish '{ParishName}'. Username: {Username}, Password: {Password}", 
+                parish.ParishName, userName, password);
 
             return adminUser.Id;
         }

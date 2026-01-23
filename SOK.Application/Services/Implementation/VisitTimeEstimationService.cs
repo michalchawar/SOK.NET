@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
@@ -11,6 +12,7 @@ namespace SOK.Application.Services.Implementation
     {
         private readonly IUnitOfWorkParish _uow;
         private readonly IParishMemberService _parishMemberService;
+        private readonly ILogger<VisitTimeEstimationService> _logger;
 
         private const int DEFAULT_MINUTES_PER_VISIT = 10;
         private const int MAX_RANGE_MINUTES = 120; // 2 godziny
@@ -18,10 +20,12 @@ namespace SOK.Application.Services.Implementation
 
         public VisitTimeEstimationService(
             IUnitOfWorkParish uow, 
-            IParishMemberService parishMemberService)
+            IParishMemberService parishMemberService,
+            ILogger<VisitTimeEstimationService> logger)
         {
             _uow = uow;
             _parishMemberService = parishMemberService;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -253,7 +257,8 @@ namespace SOK.Application.Services.Implementation
             var agendaStart = agenda.StartHourOverride ?? agenda.Day.StartHour;
             var agendaEnd = agenda.EndHourOverride ?? agenda.Day.EndHour;
 
-            Console.WriteLine($"Calculated range for visit {visitId}: {startTime} - {endTime} (Agenda: {agendaStart} - {agendaEnd})");
+            _logger.LogDebug("Calculated range for visit {VisitId}: {StartTime} - {EndTime} (Agenda: {AgendaStart} - {AgendaEnd})", 
+                visitId, startTime, endTime, agendaStart, agendaEnd);
 
             // Nie zaczynamy przedziału wcześniej niż kwadrans przed rozpoczęciem
             var earliestStart = agendaStart.AddMinutes(-15);

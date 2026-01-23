@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Interface;
@@ -22,6 +23,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
         private readonly IParishProvisioningService _parishProvisioning;
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<DbSeeder> _logger;
 
         public DbSeeder(
             CentralDbContext context,
@@ -29,7 +31,8 @@ namespace SOK.Infrastructure.Persistence.Seeding
             RoleManager<IdentityRole> roleManager,
             IParishProvisioningService parishProvisioning,
             IServiceProvider serviceProvider,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<DbSeeder> logger)
         {
             _context = context;
             _userManager = userManager;
@@ -37,6 +40,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
             _parishProvisioning = parishProvisioning;
             _serviceProvider = serviceProvider;
             _configuration = configuration;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -67,9 +71,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
             // 1. Sprawdź i wykonaj migracje, jeśli oczekują
             if (_context.Database.GetPendingMigrations().Any())
             {
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine("Applying migrations for the central database...");
-                Console.ResetColor();
+                _logger.LogInformation("Applying migrations for the central database...");
                 _context.Database.Migrate();
             }
 
@@ -129,7 +131,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
         /// <inheritdoc />
         public async Task SeedParishDbAsync(string parishUid, string adminId, bool seedExampleData = false)
         {
-            Console.WriteLine("In SeedParishDbAsync");
+            _logger.LogInformation("In SeedParishDbAsync for parish {ParishUid}", parishUid);
 
             try
             {
@@ -286,7 +288,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error while seeding submissions: {ex.Message}");
+                        _logger.LogError(ex, "Error while seeding submissions: {ErrorMessage}", ex.Message);
                     }
                 }
 
@@ -315,7 +317,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error while seeding newly created parish database: {ex.Message}");
+                _logger.LogError(ex, "Error while seeding newly created parish database: {ErrorMessage}", ex.Message);
             }
 
             return;

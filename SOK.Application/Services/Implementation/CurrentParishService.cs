@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using SOK.Application.Common.Interface;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
@@ -13,6 +14,7 @@ namespace SOK.Application.Services.Implementation
     {
         private readonly IUnitOfWorkCentral _uow;
         private readonly ICryptoService _cryptoService;
+        private readonly ILogger<CurrentParishService> _logger;
 
         /// <inheritdoc/>
         public string? ParishUid { get; private set; }
@@ -22,10 +24,11 @@ namespace SOK.Application.Services.Implementation
 
         private bool _isParishSet = false;
 
-        public CurrentParishService(IUnitOfWorkCentral central, ICryptoService cryptoService)
+        public CurrentParishService(IUnitOfWorkCentral central, ICryptoService cryptoService, ILogger<CurrentParishService> logger)
         {
             _uow = central;
             _cryptoService = cryptoService;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -35,7 +38,7 @@ namespace SOK.Application.Services.Implementation
 
             if (parish is null)
             {
-                Console.WriteLine($"Parish with UID {parishUid} not found.");
+                _logger.LogWarning("Parish with UID {ParishUid} not found", parishUid);
                 return false;
             }
             ParishUid = parishUid;

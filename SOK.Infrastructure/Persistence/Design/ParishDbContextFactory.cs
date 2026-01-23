@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SOK.Application.Common.DTO.Parish;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
@@ -26,8 +28,9 @@ namespace SOK.Infrastructure.Persistence.Design
             };
 
             var fakeHttpContextAccessor = new DesignTimeHttpContextAccessor();
+            var fakeLogger = NullLogger<ParishDbContext>.Instance;
 
-            return new ParishDbContext(optionsBuilder.Options, fakeParishService, fakeHttpContextAccessor);
+            return new ParishDbContext(optionsBuilder.Options, fakeParishService, fakeHttpContextAccessor, fakeLogger);
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
 using SOK.Application.Services.Interface;
 using SOK.Domain.Entities.Central;
 using SOK.Domain.Entities.Parish;
@@ -13,17 +14,20 @@ namespace SOK.Infrastructure.Persistence.Context
     {
         private readonly ICurrentParishService _currentParishService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<ParishDbContext> _logger;
 
         public string OverrideConnectionString = string.Empty;
 
         public ParishDbContext(
             DbContextOptions<ParishDbContext> options, 
             ICurrentParishService currentParishService,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<ParishDbContext> logger)
             : base(options)
         {
             _currentParishService = currentParishService;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         public DbSet<Address> Addresses { get; set; } = default!;
@@ -98,7 +102,7 @@ namespace SOK.Infrastructure.Persistence.Context
             else
             {
                 optionsBuilder.UseSqlServer("");
-                Console.WriteLine($"Connection string for the parish with UID {_currentParishService.ParishUid} is not set.");
+                _logger.LogWarning("Connection string for the parish with UID {ParishUid} is not set", _currentParishService.ParishUid);
             }
 
             base.OnConfiguring(optionsBuilder);

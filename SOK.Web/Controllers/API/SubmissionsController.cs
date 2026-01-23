@@ -25,6 +25,7 @@ namespace SOK.Web.Controllers.API
         private readonly IEmailService _emailService;
         private readonly IParishInfoService _parishInfoService;
         private readonly IVisitTimeEstimationService _visitTimeEstimationService;
+        private readonly ILogger<SubmissionsController> _logger;
 
         public SubmissionsController(
             ISubmissionService submissionService, 
@@ -33,7 +34,8 @@ namespace SOK.Web.Controllers.API
             IBuildingService buildingService,
             IEmailService emailService,
             IParishInfoService parishInfoService,
-            IVisitTimeEstimationService visitTimeEstimationService)
+            IVisitTimeEstimationService visitTimeEstimationService,
+            ILogger<SubmissionsController> logger)
         {
             _submissionService = submissionService;
             _planService = planService;
@@ -42,6 +44,7 @@ namespace SOK.Web.Controllers.API
             _emailService = emailService;
             _parishInfoService = parishInfoService;
             _visitTimeEstimationService = visitTimeEstimationService;
+            _logger = logger;
         }
 
         // GET: api/<SubmissionsController>
@@ -201,7 +204,7 @@ namespace SOK.Web.Controllers.API
                 catch (Exception ex)
                 {
                     // Loguj błąd, ale nie przerywaj operacji
-                    Console.WriteLine($"Błąd wysyłania emaila o zmianach: {ex.Message}");
+                    _logger.LogError(ex, "Błąd wysyłania emaila o zmianach: {ErrorMessage}", ex.Message);
                 }
             }
 

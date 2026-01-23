@@ -28,6 +28,7 @@ namespace SOK.Web.Controllers
         private readonly IVisitService _visitService;
         private readonly IAgendaService _agendaService;
         private readonly IVisitTimeEstimationService _visitTimeEstimationService;
+        private readonly ILogger<PublicFormController> _logger;
 
         public PublicFormController(
             ISubmissionService submissionService,
@@ -39,7 +40,8 @@ namespace SOK.Web.Controllers
             IPlanService planService,
             IVisitService visitService,
             IAgendaService agendaService,
-            IVisitTimeEstimationService visitTimeEstimationService)
+            IVisitTimeEstimationService visitTimeEstimationService,
+            ILogger<PublicFormController> logger)
         {
             _submissionService = submissionService;
             _scheduleService = scheduleService;
@@ -48,9 +50,11 @@ namespace SOK.Web.Controllers
             _buildingService = buildingService;
             _currentParishService = currentParishService;
             _planService = planService;
+            _logger = logger;
             _visitService = visitService;
             _agendaService = agendaService;
             _visitTimeEstimationService = visitTimeEstimationService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -175,7 +179,7 @@ namespace SOK.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error creating submission: {ex.Message}");
+                    _logger.LogError(ex, "Error creating submission: {ErrorMessage}", ex.Message);
                     ModelState.AddModelError(string.Empty, "Wystąpił błąd podczas tworzenia zgłoszenia. Spróbuj ponownie.");
                 }
             }

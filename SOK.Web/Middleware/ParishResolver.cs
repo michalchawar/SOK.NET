@@ -14,12 +14,14 @@ namespace SOK.Web.Middleware
         private readonly ICurrentParishService _currentParishService;
         private readonly UserManager<User> _userManager;
         private readonly CentralDbContext _centralDb;
+        private readonly ILogger<ParishResolver> _logger;
 
-        public ParishResolver(ICurrentParishService currentParishService, UserManager<User> userManager, CentralDbContext centralDb)
+        public ParishResolver(ICurrentParishService currentParishService, UserManager<User> userManager, CentralDbContext centralDb, ILogger<ParishResolver> logger)
         {
             _currentParishService = currentParishService;
             _userManager = userManager;
             _centralDb = centralDb;
+            _logger = logger;
         }
 
         /// <summary>
@@ -95,11 +97,11 @@ namespace SOK.Web.Middleware
                 {
                     var done = await _currentParishService.SetParishAsync(parishUid);
                     if (done)
-                        Console.WriteLine($"ParishResolver: Using the parish with UID: {parishUid}");
+                        _logger.LogInformation("ParishResolver: Using the parish with UID: {ParishUid}", parishUid);
 
                     else if (isSuperAdmin)
                     {
-                        Console.WriteLine($"ParishResolver: SuperAdmin with invalid parish UID: {parishUid}.");
+                        _logger.LogWarning("ParishResolver: SuperAdmin with invalid parish UID: {ParishUid}", parishUid);
                         context.Response.Cookies.Delete("SelectedParishUid");
                         // Ustaw flagę, że ciasteczko było nieprawidłowe
                         context.Items["InvalidParishCookie"] = true;
@@ -107,12 +109,12 @@ namespace SOK.Web.Middleware
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Console.WriteLine($"ParishResolver: {ex.Message}");
+                    _logger.LogError(ex, "ParishResolver: {ErrorMessage}", ex.Message);
                 }
             }
             else
             {
-                Console.WriteLine("ParishResolver: No parish identifier found in the request.");
+                _logger.LogInformation("ParishResolver: No parish identifier found in the request");
             }
 
             await next(context);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SOK.Application.Common.Interface;
 using SOK.Infrastructure.Persistence.Context;
 using SOK.Infrastructure.Persistence.Seeding;
@@ -23,13 +24,12 @@ namespace SOK.Infrastructure.Extensions
             // Pobierz kontekst bazy danych
             using IServiceScope serviceScope = services.BuildServiceProvider().CreateScope();
             CentralDbContext context = serviceScope.ServiceProvider.GetRequiredService<CentralDbContext>();
+            var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<CentralDbContext>>();
 
             // Sprawdź i wykonaj migracje, jeśli oczekują
             if (context.Database.GetPendingMigrations().Any())
             {
-                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine("Applying migrations for the central database...");
-                Console.ResetColor();
+                logger.LogInformation("Applying migrations for the central database...");
                 context.Database.Migrate();
             }
 

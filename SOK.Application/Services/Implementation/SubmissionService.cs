@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using SOK.Application.Common.DTO.Submission;
 using SOK.Application.Common.Helpers;
 using SOK.Application.Common.Helpers.EmailTypes;
@@ -16,18 +17,21 @@ namespace SOK.Application.Services.Implementation
         private readonly IEmailService _emailService;
         private readonly IParishInfoService _parishInfoService;
         private readonly IVisitService _visitService;
+        private readonly ILogger<SubmissionService> _logger;
 
         public SubmissionService(
             IUnitOfWorkParish uow, 
             IEmailService emailService,
             IParishInfoService parishInfoService,
-            IVisitService visitService
+            IVisitService visitService,
+            ILogger<SubmissionService> logger
             )
         {
             _uow = uow;
             _emailService = emailService;
             _parishInfoService = parishInfoService;
             _visitService = visitService;
+            _logger = logger;
 
             _emailService.SetSMTPTimeout(3000);
         }
@@ -257,8 +261,9 @@ namespace SOK.Application.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    // Logowanie b��du - ale nie przerywamy procesu tworzenia zg�oszenia
-                    Console.WriteLine($"Failed to auto-assign visit {submission.Visit.Id} to day {buildingAssignment.DayId}: {ex.Message}");
+                    // Logowanie błędu - ale nie przerywamy procesu tworzenia zgłoszenia
+                    _logger.LogError(ex, "Failed to auto-assign visit {VisitId} to day {DayId}: {ErrorMessage}", 
+                        submission.Visit.Id, buildingAssignment.DayId, ex.Message);
                 }
             }
 
@@ -289,8 +294,8 @@ namespace SOK.Application.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    // Logowanie b��du, ale nie przerywamy procesu tworzenia zg�oszenia
-                    Console.WriteLine($"Failed to send confirmation email: {ex.Message}");
+                    // Logowanie błędu, ale nie przerywamy procesu tworzenia zgłoszenia
+                    _logger.LogError(ex, "Failed to send confirmation email: {ErrorMessage}", ex.Message);
                 }
             }
 
