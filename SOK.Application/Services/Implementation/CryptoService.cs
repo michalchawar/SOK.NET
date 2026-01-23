@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using SOK.Application.Services.Interface;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace SOK.Application.Services.Implementation
 {
@@ -8,10 +9,19 @@ namespace SOK.Application.Services.Implementation
     public class CryptoService : ICryptoService
     {
         private readonly byte[] _key; // 256-bit
+        private static readonly byte[] _salt = Encoding.UTF8.GetBytes("SOK.NET-Parish-Crypto-Salt-v1"); // Stała salt dla deterministycznego klucza
 
         public CryptoService(IConfiguration cfg)
         {
-            _key = Convert.FromBase64String(cfg["Crypto:Key"]!);
+            // Użyj PBKDF2 do wygenerowania klucza z dowolnego hasła
+            string password = cfg["Crypto:Key"]!;
+            using var deriveBytes = new Rfc2898DeriveBytes(
+                password, 
+                _salt, 
+                100000,
+                HashAlgorithmName.SHA256
+            );
+            _key = deriveBytes.GetBytes(32); // Wygeneruj dokładnie 32 bajty (256 bitów) dla AES-256
         }
 
         /// <inheritdoc/>
