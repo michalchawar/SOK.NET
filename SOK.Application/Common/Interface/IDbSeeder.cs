@@ -20,14 +20,14 @@ namespace SOK.Application.Common.Interface
         /// </summary>
         /// <param name="parishUid">Unikalny identyfikator parafii.</param>
         /// <param name="adminId">Identyfikator administratora parafii.</param>
-        /// <param name="seedOnlyBaseInfo">Określa, czy uzupełnić tylko podstawowe informacje.</param>
+        /// <param name="seedExampleData">Określa, czy zaludnić bazę danymi przykładowymi.</param>
         /// <returns>
         /// Obiekt <see cref="Task"/>, reprezentujący operację asynchroniczną.
         /// </returns>
         Task SeedParishDbAsync(
             string parishUid, 
             string adminId, 
-            bool seedOnlyBaseInfo = false
+            bool seedExampleData = false
         );
     }
 }

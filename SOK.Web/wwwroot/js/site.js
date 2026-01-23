@@ -29,7 +29,7 @@ const notifications = {
     _createNotification: function (type = this._types.default, text = '') {
         let alertElement = parseHTMLString(`
             <div role="alert" class="text-white transition 
-                    duration-500 opacity-0 shadow-md mb-2.5 flex items-center">
+                    duration-500 opacity-0 drop-shadow-md mb-2.5 flex items-center">
                 <div class="bg-${type.className} rounded-sm p-4 text-2xl">   
                     <i class="bi bi-${type.iconName}"></i>
                 </div>

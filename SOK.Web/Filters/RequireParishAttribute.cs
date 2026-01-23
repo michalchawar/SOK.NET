@@ -32,6 +32,17 @@ namespace SOK.Web.Filters
             
             if (isSuperAdmin)
             {
+                // Sprawdź czy ParishResolver wykrył nieprawidłowe ciasteczko
+                if (context.HttpContext.Items.ContainsKey("InvalidParishCookie"))
+                {
+                    // Przekieruj do wyboru parafii
+                    context.Result = new RedirectToActionResult(
+                        "Index", 
+                        "ParishManagement", 
+                        null);
+                    return;
+                }
+                
                 // SuperAdmin musi mieć wybrane ciasteczko z parafią
                 if (!context.HttpContext.Request.Cookies.ContainsKey("SelectedParishUid"))
                 {

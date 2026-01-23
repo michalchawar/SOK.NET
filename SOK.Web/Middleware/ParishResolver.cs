@@ -45,6 +45,7 @@ namespace SOK.Web.Middleware
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             string? parishUid = null;
+            bool isSuperAdmin = false;
             
             // Sprawdź parametr routingu
             if (context.Request.RouteValues.TryGetValue("parishUid", out var routeParishUid))
@@ -55,6 +56,7 @@ namespace SOK.Web.Middleware
             else if (context.User.Identity?.IsAuthenticated == true)
             {
                 var userId = _userManager.GetUserId(context.User);
+
                 if (!string.IsNullOrEmpty(userId))
                 {
                     // Pobierz użytkownika z załadowaną relacją Parish
@@ -64,7 +66,7 @@ namespace SOK.Web.Middleware
                     
                     if (user != null)
                     {
-                        var isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
+                        isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
                         
                         if (isSuperAdmin)
                         {
@@ -94,6 +96,14 @@ namespace SOK.Web.Middleware
                     var done = await _currentParishService.SetParishAsync(parishUid);
                     if (done)
                         Console.WriteLine($"ParishResolver: Using the parish with UID: {parishUid}");
+
+                    else if (isSuperAdmin)
+                    {
+                        Console.WriteLine($"ParishResolver: SuperAdmin with invalid parish UID: {parishUid}.");
+                        context.Response.Cookies.Delete("SelectedParishUid");
+                        // Ustaw flagę, że ciasteczko było nieprawidłowe
+                        context.Items["InvalidParishCookie"] = true;
+                    }
                 }
                 catch (InvalidOperationException ex)
                 {

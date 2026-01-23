@@ -87,12 +87,12 @@ namespace SOK.Infrastructure.Persistence.Seeding
             var parish = await _context.Parishes.FirstOrDefaultAsync();
             if (parish == null)
             {
-                parish = await _parishProvisioning.CreateParishAsync(Guid.NewGuid().ToString(), "Przykładowa parafia");
-                
-                // Zaludnij bazę danych parafii
-                // Można to zrobić zawsze, bo parafia nie istniała wcześniej
-                bool seedAll = _configuration.GetValue<bool>("Admin:SeedExampleData", false);
-                await SeedParishDbAsync(parish.UniqueId.ToString(), parish.Users.First().Id, !seedAll);
+                parish = await _parishProvisioning.CreateParishAsync(
+                    Guid.NewGuid().ToString(), 
+                    "Przykładowa parafia",
+                    createAdmin: true,
+                    seedExampleData: _configuration.GetValue<bool>("Admin:SeedExampleData", false)
+                );
             }
 
             // 4. Przygotuj konto superadministratora
@@ -128,7 +128,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
         }
 
         /// <inheritdoc />
-        public async Task SeedParishDbAsync(string parishUid, string adminId, bool seedOnlyBaseInfo = false)
+        public async Task SeedParishDbAsync(string parishUid, string adminId, bool seedExampleData = false)
         {
             Console.WriteLine("In SeedParishDbAsync");
 
@@ -146,7 +146,7 @@ namespace SOK.Infrastructure.Persistence.Seeding
 
                 await using var transaction = await context.Database.BeginTransactionAsync();
 
-                if (seedOnlyBaseInfo)
+                if (seedExampleData == false)
                 {
                     context.Add(new ParishInfo { Name = InfoKeys.Parish.UniqueId, Value = parishUid });
 

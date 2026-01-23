@@ -93,7 +93,7 @@ namespace SOK.Infrastructure.Provisioning
                 await seeder.SeedParishDbAsync(
                     parish.UniqueId.ToString(), 
                     adminUserId ?? string.Empty, 
-                    !shouldSeedData);
+                    seedExampleData: true);
             }
 
             parish = await _central.Parishes
