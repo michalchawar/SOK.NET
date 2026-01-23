@@ -1,0 +1,27 @@
+{
+  "ConnectionStrings": {
+    "CentralDatabase": "Server=sql-server;Database=CentralDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
+  },
+  "Admin": {
+    "SqlServer": "Server=sql-server;Database=master;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;",
+    "CreateAccount": {
+      "Enabled": true,
+      "Username": "${ADMIN_USERNAME}",
+      "Password": "${ADMIN_PASSWORD}",
+      "Email": "${ADMIN_EMAIL}",
+      "DisplayName": "${ADMIN_DISPLAY_NAME}"
+    }
+  },
+  "Crypto": {
+    "Keys": {
+      "1": "${CRYPTO_KEY}"
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}

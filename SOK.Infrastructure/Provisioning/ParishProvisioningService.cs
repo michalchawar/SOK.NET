@@ -73,7 +73,8 @@ namespace SOK.Infrastructure.Provisioning
             {
                 UniqueId = Guid.Parse(parishUid),
                 ParishName = parishName,
-                EncryptedConnectionString = _crypto.Encrypt(cs)
+                EncryptedConnectionString = _crypto.Encrypt(cs),
+                KeyVersion = _crypto.GetCurrentKeyVersion()
             };
             _central.Parishes.Add(parish);
             await _central.SaveChangesAsync();

@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOK.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace SOK.Infrastructure.Migrations.Central
+namespace SOK.Infrastructure.Persistence.Migrations.Central
 {
     [DbContext(typeof(CentralDbContext))]
-    partial class CentralDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260123151019_AddKeyVersionToParishEntry")]
+    partial class AddKeyVersionToParishEntry
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -19,6 +19,21 @@ In our case we have two additional files:
 
 The application uses a `.env` file to load environment variables for Docker Compose. In the repository you can find a sample file named `.env.sample` with placeholder or default values. You should create your own `.env` file based on the sample and adjust the values as needed before running the app first time.
 
+### Encryption Key
+
+The application uses `CRYPTO_KEY` environment variable to encrypt sensitive data (parish database connection strings). 
+
+**For new installations**, simply set any secure password:
+```env
+CRYPTO_KEY=MySecureParishPassword2026!
+```
+
+The system uses PBKDF2 to automatically derive a 256-bit encryption key from your password.
+
+**For existing installations** with Base64-encoded keys, see [docs/CRYPTO_MIGRATION.md](docs/CRYPTO_MIGRATION.md) for migration guide.
+
+For key rotation and advanced configuration, see [docs/KEY_ROTATION.md](docs/KEY_ROTATION.md).
+
 ## Development
 
 To run a development environment simply use the following command:

@@ -10,6 +10,7 @@ using SOK.Infrastructure.Extensions;
 using SOK.Infrastructure.Identity;
 using SOK.Infrastructure.Persistence.Context;
 using SOK.Infrastructure.Provisioning;
+using SOK.Web.CLI;
 using SOK.Web.Middleware;
 
 // Konfiguracja licencji QuestPDF
@@ -95,6 +96,86 @@ builder.Services.AddWebOptimizer(pipeline =>
 }, o => { o.AllowEmptyBundle = true;  o.EnableTagHelperBundling = true; });
 
 var app = builder.Build();
+
+// ========== CLI Commands ==========
+// Obsługa komend CLI przed uruchomieniem aplikacji webowej
+if (args.Length > 0)
+{
+    using var scope = app.Services.CreateScope();
+    var services = scope.ServiceProvider;
+
+    switch (args[0].ToLower())
+    {
+        case "rotate-keys":
+            {
+                var command = new KeyRotationCommand(
+                    services.GetRequiredService<CentralDbContext>(),
+                    services.GetRequiredService<ICryptoService>(),
+                    services.GetRequiredService<ILogger<KeyRotationCommand>>()
+                );
+
+                int? targetVersion = null;
+                bool dryRun = false;
+
+                for (int i = 1; i < args.Length; i++)
+                {
+                    if (args[i] == "--version" && i + 1 < args.Length)
+                    {
+                        targetVersion = int.Parse(args[i + 1]);
+                        i++;
+                    }
+                    else if (args[i] == "--dry-run")
+                    {
+                        dryRun = true;
+                    }
+                }
+
+                int exitCode = await command.RotateKeysAsync(targetVersion, dryRun);
+                Environment.Exit(exitCode);
+            }
+            break;
+
+        case "key-report":
+            {
+                var command = new KeyRotationCommand(
+                    services.GetRequiredService<CentralDbContext>(),
+                    services.GetRequiredService<ICryptoService>(),
+                    services.GetRequiredService<ILogger<KeyRotationCommand>>()
+                );
+
+                await command.ShowKeyVersionsReportAsync();
+                Environment.Exit(0);
+            }
+            break;
+
+        case "help":
+        case "--help":
+        case "-h":
+            Console.WriteLine("SOK.NET CLI Commands:");
+            Console.WriteLine("");
+            Console.WriteLine("  rotate-keys [--version N] [--dry-run]");
+            Console.WriteLine("    Re-encrypt all parish connection strings to a new key version");
+            Console.WriteLine("    --version N : Target key version (default: current)");
+            Console.WriteLine("    --dry-run   : Simulate without making changes");
+            Console.WriteLine("");
+            Console.WriteLine("  key-report");
+            Console.WriteLine("    Show current key version usage across all parishes");
+            Console.WriteLine("");
+            Console.WriteLine("Examples:");
+            Console.WriteLine("  dotnet run --project SOK.Web -- rotate-keys --version 2");
+            Console.WriteLine("  dotnet run --project SOK.Web -- rotate-keys --dry-run");
+            Console.WriteLine("  dotnet run --project SOK.Web -- key-report");
+            Environment.Exit(0);
+            break;
+
+        default:
+            Console.WriteLine($"Unknown command: {args[0]}");
+            Console.WriteLine("Use 'help' to see available commands");
+            Environment.Exit(1);
+            break;
+    }
+}
+// ========== End CLI Commands ==========
 
 // Migracja indywidualnych baz danych przy starcie aplikacji
 using (var scope = app.Services.CreateScope())

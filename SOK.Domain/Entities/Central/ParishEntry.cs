@@ -32,6 +32,12 @@ namespace SOK.Domain.Entities.Central
         public string EncryptedConnectionString { get; set; } = string.Empty;
 
         /// <summary>
+        /// Wersja klucza użytego do zaszyfrowania connection stringa.
+        /// Pozwala na rotację kluczy i stopniową migrację danych.
+        /// </summary>
+        public int KeyVersion { get; set; } = 1;
+
+        /// <summary>
         /// Data i godzina utworzenia parafii w systemie.
         /// </summary>
         public DateTime CreationTime { get; private set; }
