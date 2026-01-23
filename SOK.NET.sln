@@ -18,7 +18,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOK.Domain", "SOK.Domain\SO
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOK.Infrastructure", "SOK.Infrastructure\SOK.Infrastructure.csproj", "{B4638EEC-C9CA-4E07-BED1-6F99B0513B91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOK.Application.Tests", "SOK.Application.Tests\SOK.Application.Tests.csproj", "{AFE1B337-0BB9-4136-A9E8-75B0F545B35C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOK.Tests", "SOK.Tests\SOK.Tests.csproj", "{AFE1B337-0BB9-4136-A9E8-75B0F545B35C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
